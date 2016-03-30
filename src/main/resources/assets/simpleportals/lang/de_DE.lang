@@ -1,0 +1,74 @@
+# Blocks
+tile.blockPortal.name=Portal
+tile.blockPortalFrame.name=Portalrahmen
+tile.blockPowerGauge.name=Energiemesser 
+
+# Items
+item.itemPortalFrame.name=Portalrahmen
+item.itemPortalFrame.toolTip=§e§oUmschalten§r§7 gedrückt halten für Details.
+item.itemPortalFrame.toolTipDetails0=In rechteckiger Form ohne
+item.itemPortalFrame.toolTipDetails1=Ecken platzieren. Die Ecken mit
+item.itemPortalFrame.toolTipDetails2=beliebiger Kombination aus Blöcken
+item.itemPortalFrame.toolTipDetails3=füllen. Die Eckblöcke stellen die
+item.itemPortalFrame.toolTipDetails4=Addresse des Portals dar. Das Portal
+item.itemPortalFrame.toolTipDetails5=mit dem §bPortalaktivierer§7
+item.itemPortalFrame.toolTipDetails6=anschalten.
+item.itemPortalFrame.toolTipDetails7=(Ersetzbar durch §bEnergiemesser§7)
+item.itemPowerGauge.name=Energiemesser
+item.itemPowerGauge.toolTip=§e§oUmschalten§r§7 gedrückt halten für Details.
+item.itemPowerGauge.toolTipDetails0=Gibt ein §bKomparator§7 Signal ab,
+item.itemPowerGauge.toolTipDetails1=dessen Stärke auf der Menge der im
+item.itemPowerGauge.toolTipDetails2=Portal gespeicherten Energie
+item.itemPowerGauge.toolTipDetails3=basiert.
+item.itemPortalActivator.name=Portalaktivierer
+item.itemPortalActivator.toolTip=§e§oUmschalten§r§7 gedrückt halten für Details.
+item.itemPortalActivator.toolTipDetails0=Auf die innere Seite von
+item.itemPortalActivator.toolTipDetails1=§bPortalrahmen§7 benutzen um Portale
+item.itemPortalActivator.toolTipDetails2=zu aktivieren. Beim §bSchleichen§7 auf
+item.itemPortalActivator.toolTipDetails3=§bPortalrahmen§7 benutzen um ihn
+item.itemPortalActivator.toolTipDetails4=sofort abzubauen. Kann von §bWerfern
+item.itemPortalActivator.toolTipDetails5=benutzt werden.
+
+# ConfigUI Category Labels
+configui.category.misc=Verschiedenes
+configui.category.blocks=Blöcke
+configui.category.recipes=Rezepte
+configui.category.portalFrame=Portalrahmen
+configui.category.powerGauge=Energiemesser
+configui.category.portalActivator=Portalaktivierer
+
+# ConfigUI Element Labels
+configui.maxSize=Maximale Portalgröße
+configui.powerCost=Energiekosten
+configui.powerCapacity=Energiekapazität
+configui.powerSource=Energiequelle
+configui.particlesEnabled=Partikel an
+configui.ambientSoundEnabled=Umgebungsgeräusch an
+configui.shapeless=Formlos
+configui.yield=Ertrag
+configui.components=Komponenten
+configui.pattern=Muster
+
+# ConfigUI Element ToolTips
+configui.category.misc.tooltip=Grundlegende Einstellungen.
+configui.maxSize.tooltip=Die Maximalgröße eines Portals inklusive des Rahmens. 
+configui.powerCost.tooltip=Energiekosten pro transport. Auf 0 setzen für keine Kosten.
+configui.powerCapacity.tooltip=Die Menge an Energie die ein Portal speichern kann.
+configui.powerSource.tooltip=Der Gegenstand der in Energie umgewandelt wird wenn man ihn in ein Portal wirft (1 Energie pro Gegenstand). Format: [ModId]:[GegenstandsId] oder oreDict:[Name].
+configui.particlesEnabled.tooltip=Schaltet den Partikeleffekt von Portalen an.
+configui.ambientSoundEnabled.tooltip=Schaltet das Umgebungsgeräusch von Portalen an.
+
+configui.category.recipes.tooltip=Handwerksrezepte.
+configui.shapeless.tooltip=Ist dieser Wert auf "true" gesetzt, wird das Muster ignoriert.
+configui.yield.tooltip=Die Menge an Blöcken/Gegenständen die das Rezept ergiebt.
+configui.components.tooltip=Die Blöcke/Gegenstände die für das Rezept benötigt werden. Format: [MusterId], [ModId], [GegenstandsId]. Benutze "-" als MusterId für formlose Rezepte. Benutze "oreDict" als ModId für Ore Dictionary Gegenstände.
+configui.pattern.tooltip=Das Muster des Rezepts für die Werkbank. Benutze "-" für leere Positionen.
+
+# Waila Option Labels
+waila.powerCapacity=Energiekapazität
+waila.address=Addresse
+
+# Waila Tooltip Texts
+waila.toolTip.powerCapacity=Energie: §b%,d/%,d§r (%d%%)
+waila.toolTip.address=Addresse:
+waila.toolTip.addressComponent=- §b%s

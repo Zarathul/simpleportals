@@ -1,0 +1,74 @@
+# Blocks
+tile.blockPortal.name=Portal
+tile.blockPortalFrame.name=Portal Frame
+tile.blockPowerGauge.name=Power Gauge
+
+# Items
+item.itemPortalFrame.name=Portal Frame
+item.itemPortalFrame.toolTip=Hold §e§oshift§r§7 for details.
+item.itemPortalFrame.toolTipDetails0=Place in a rectangular shape
+item.itemPortalFrame.toolTipDetails1=without the corners. Fill in
+item.itemPortalFrame.toolTipDetails2=the corners with any
+item.itemPortalFrame.toolTipDetails3=combination of blocks. The
+item.itemPortalFrame.toolTipDetails4=corner blocks serve as the
+item.itemPortalFrame.toolTipDetails5=address of the portal. Activate
+item.itemPortalFrame.toolTipDetails6=with a §bPortal Activator§7.
+item.itemPortalFrame.toolTipDetails7=(Replaceable with a §bPower Gauge§7)
+item.itemPowerGauge.name=Power Gauge
+item.itemPowerGauge.toolTip=Hold §e§oshift§r§7 for details.
+item.itemPowerGauge.toolTipDetails0=Emits a §bcomparator§7 signal 
+item.itemPowerGauge.toolTipDetails1=whose strength is based on
+item.itemPowerGauge.toolTipDetails2=the amount of power stored
+item.itemPowerGauge.toolTipDetails3=in the portal.
+item.itemPortalActivator.name=Portal Activator
+item.itemPortalActivator.toolTip=Hold §e§oshift§r§7 for details.
+item.itemPortalActivator.toolTipDetails0=Use on the inner face of
+item.itemPortalActivator.toolTipDetails1=§bPortal Frames§7 to activate
+item.itemPortalActivator.toolTipDetails2=portals. Use on a §bPortal
+item.itemPortalActivator.toolTipDetails3=§bFrame§7 while §bsneaking§7
+item.itemPortalActivator.toolTipDetails4=to instantly dismantle it.
+item.itemPortalActivator.toolTipDetails5=Can be used by a §bDispenser.
+
+# ConfigUI Category Labels
+configui.category.misc=Misc
+configui.category.blocks=Blocks
+configui.category.recipes=Recipes
+configui.category.portalFrame=Portal Frame
+configui.category.powerGauge=Power Gauge
+configui.category.portalActivator=Portal Activator
+
+# ConfigUI Element Labels
+configui.maxSize=Max Portal Size
+configui.powerCost=Power Cost
+configui.powerCapacity=Power Capacity 
+configui.powerSource=Power Source
+configui.particlesEnabled=Enable Particles
+configui.ambientSoundEnabled=Enable Ambient Sound
+configui.shapeless=Shapeless
+configui.yield=Yield
+configui.components=Components
+configui.pattern=Pattern
+
+# ConfigUI Element ToolTips
+configui.category.misc.tooltip=Basic settings.
+configui.maxSize.tooltip=The maximum size including the frame of a portal. 
+configui.powerCost.tooltip=The power cost per port. Set to 0 for no cost.
+configui.powerCapacity.tooltip=The amount of power a portal can store.
+configui.powerSource.tooltip=The item that gets converted to power when thrown into a portal (1 power per item). Format: [modId]:[itemId] or oreDict:[name].
+configui.particlesEnabled.tooltip=Enables the portal particle effect.
+configui.ambientSoundEnabled.tooltip=Enables the portal ambient sound.
+
+configui.category.recipes.tooltip=Crafting recipes.
+configui.shapeless.tooltip=If this is set to true, the pattern is ignored.
+configui.yield.tooltip=The amount of blocks/items the recipe yields.
+configui.components.tooltip=The blocks/items needed to complete the recipe. Format: [patternId], [modId], [itemId]. Use "-" as the patternId for shapeless recipes. Use "oreDict" as the modId for ore dictionary items.
+configui.pattern.tooltip=The crafting table pattern for the recipe. Use "-" for empty slots.
+
+# Waila Option Labels
+waila.powerCapacity=Power capacity
+waila.address=Address
+
+# Waila Tooltip Texts
+waila.toolTip.powerCapacity=Power: §b%,d/%,d§r (%d%%)
+waila.toolTip.address=Address:
+waila.toolTip.addressComponent=- §b%s

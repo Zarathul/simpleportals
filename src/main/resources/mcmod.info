@@ -1,0 +1,20 @@
+[
+{
+    "modid": "simpleportals",
+    "name": "Simple Portals",
+    "description": "Adds portals for easy intra- and interdimensional travel.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [ "Zarathul" ],
+    "credits": "",
+    "logoFile": "assets/simpleportals/sp_logo.jpg",
+    "screenshots": [],
+    "parent": "",
+    "requiredMods": [ "Forge" ],
+    "dependencies": [ "Forge", "Waila" ],
+    "dependants": [],
+    "useDependencyInformation": "true"
+}
+]
