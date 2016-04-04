@@ -3,7 +3,6 @@ package net.zarathul.simpleportals.registration;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.BlockPos;
@@ -12,6 +11,8 @@ import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.EnumFacing.AxisDirection;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.INBTSerializable;
+import net.zarathul.simpleportals.blocks.BlockPortal;
+import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.common.Utils;
 
 /**
@@ -33,10 +34,9 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 	{
 	}
 	
-	public Portal(
-			int dimension, Address address, Axis axis,
-			Corner corner1, Corner corner2,
-			Corner corner3, Corner corner4)
+	public Portal(int dimension, Address address, Axis axis,
+				  Corner corner1, Corner corner2,
+			      Corner corner3, Corner corner4)
 	{
 		this.dimension = dimension;
 		this.address = address;
@@ -147,22 +147,51 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 	}
 	
 	/**
-	 * Gets the positions of all blocks making up the portals frame.
+	 * Gets the positions of all blocks making up the portals frame including the corners.
 	 * 
 	 * @return
 	 * An {@link Iterable} of {@link BlockPos}.
 	 */
 	public Iterable<BlockPos> getFramePositions()
 	{
-		List<BlockPos> all = new ArrayList<BlockPos>();
+		return getFramePositions(true);
+	}
+	
+	/**
+	 * Gets the positions of all blocks making up the portals frame.
+	 * Inclusion of corner address blocks is optional.
+	 * 
+	 * @param includeCorners
+	 * Determines if corner blocks should be included.
+	 * @return
+	 * An {@link Iterable} of {@link BlockPos}.
+	 */
+	public Iterable<BlockPos> getFramePositions(boolean includeCorners)
+	{
+		List<BlockPos> frame = new ArrayList<>();
 		
-		for (BlockPos pos : getAllPositions()) all.add(pos);
+		// Get relative directions of the first and forth corners to their adjacent corners.
 		
-		List<BlockPos> portals = new ArrayList<BlockPos>();
+		EnumFacing dir1To2 = Utils.getRelativeDirection(corner1.getPos(), corner2.getPos());
+		EnumFacing dir1To3 = Utils.getRelativeDirection(corner1.getPos(), corner3.getPos());
+		EnumFacing dir4To2 = Utils.getRelativeDirection(corner4.getPos(), corner2.getPos());
+		EnumFacing dir4To3 = Utils.getRelativeDirection(corner4.getPos(), corner3.getPos());
 		
-		for (BlockPos pos : getPortalPositions()) portals.add(pos);
+		// Offset the corner positions towards their adjacent corners and get all positions
+		// in between. This way we get all the frame positions without the corners themselves.
 		
-		List<BlockPos> frame = all.stream().filter(e -> !portals.contains(e)).collect(Collectors.toList());
+		BlockPos.getAllInBox(corner1.getPos().offset(dir1To2), corner2.getPos().offset(dir1To2.getOpposite())).forEach(e -> frame.add(e));
+		BlockPos.getAllInBox(corner1.getPos().offset(dir1To3), corner3.getPos().offset(dir1To3.getOpposite())).forEach(e -> frame.add(e));
+		BlockPos.getAllInBox(corner4.getPos().offset(dir4To2), corner2.getPos().offset(dir4To2.getOpposite())).forEach(e -> frame.add(e));
+		BlockPos.getAllInBox(corner4.getPos().offset(dir4To3), corner3.getPos().offset(dir4To3.getOpposite())).forEach(e -> frame.add(e));
+		
+		if (includeCorners)
+		{
+			frame.add(corner1.getPos());
+			frame.add(corner2.getPos());
+			frame.add(corner3.getPos());
+			frame.add(corner4.getPos());
+		}
 		
 		return new Iterable<BlockPos>()
 		{
@@ -308,7 +337,7 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 		
 		BlockPos currentFeetPos;
 		
-		// Find the lowest position where the entity can spawn at at either side.
+		// Find the lowest position where the entity can spawn at either side.
 		// Search order is south before north and east before west.
 		
 		for (int y = 0; y <= height - entityHeight; y++)
@@ -339,6 +368,52 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 		return null;
 	}
 	
+	/**
+	 * Determines if the portals address blocks have changed.
+	 * 
+	 * @param world
+	 * The world.
+	 * @return
+	 * <code>true</code> if the address has changed, otherwise <code>false</code>.
+	 */
+	public boolean hasAddressChanged(World world)
+	{
+		if (world == null) return false;
+		
+		Address actualAddress = new Address(
+				PortalRegistry.getAddressBlockId(world.getBlockState(corner1.getPos())),
+				PortalRegistry.getAddressBlockId(world.getBlockState(corner2.getPos())),
+				PortalRegistry.getAddressBlockId(world.getBlockState(corner3.getPos())),
+				PortalRegistry.getAddressBlockId(world.getBlockState(corner4.getPos())));
+		
+		return !actualAddress.equals(address);
+	}
+	
+	/**
+	 * Determines if the portal is missing any blocks.
+	 * 
+	 * @param world
+	 * The world.
+	 * @return
+	 * <code>true</code> if the portal is missing one or more blocks, otherwise <code>false</code>.
+	 */
+	public boolean isDamaged(World world)
+	{
+		if (world == null) return false;
+		
+		for (BlockPos pos : getFramePositions(false))
+		{
+			if (!(world.getBlockState(pos).getBlock() instanceof BlockPortalFrame)) return true;
+		}
+		
+		for (BlockPos pos : getPortalPositions())
+		{
+			if (!(world.getBlockState(pos).getBlock() instanceof BlockPortal)) return true;
+		}
+		
+		return hasAddressChanged(world);
+	}
+	
 	@Override
 	public NBTTagCompound serializeNBT()
 	{
@@ -362,21 +437,21 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 		dimension = nbt.getInteger("dimension");
 		
 		address = new Address();
-		address.deserializeNBT((NBTTagCompound)nbt.getTag("address"));
+		address.deserializeNBT(nbt.getCompoundTag("address"));
 		
 		axis = Axis.byName(nbt.getString("axis"));
 		
 		corner1 = new Corner();
-		corner1.deserializeNBT((NBTTagCompound)nbt.getTag("corner1"));
+		corner1.deserializeNBT(nbt.getCompoundTag("corner1"));
 		
 		corner2 = new Corner();
-		corner2.deserializeNBT((NBTTagCompound)nbt.getTag("corner2"));
+		corner2.deserializeNBT(nbt.getCompoundTag("corner2"));
 		
 		corner3 = new Corner();
-		corner3.deserializeNBT((NBTTagCompound)nbt.getTag("corner3"));
+		corner3.deserializeNBT(nbt.getCompoundTag("corner3"));
 		
 		corner4 = new Corner();
-		corner4.deserializeNBT((NBTTagCompound)nbt.getTag("corner4"));
+		corner4.deserializeNBT(nbt.getCompoundTag("corner4"));
 	}
 	
 	@Override

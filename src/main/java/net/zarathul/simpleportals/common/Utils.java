@@ -6,11 +6,9 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 
-import net.minecraft.command.server.CommandTeleport;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.play.server.S07PacketRespawn;
 import net.minecraft.network.play.server.S1DPacketEntityEffect;
 import net.minecraft.network.play.server.S1FPacketSetExperience;
@@ -22,7 +20,6 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.WorldServer;
-import net.minecraft.world.WorldSettings.GameType;
 
 /**
  * General utility class.
@@ -102,6 +99,25 @@ public final class Utils
 		}
 		
 		return 0;
+	}
+	
+	/**
+	 * Gets the relative direction from one {@link BlockPos} to another.
+	 * 
+	 * @param from
+	 * The starting point.
+	 * @param to
+	 * The end point.
+	 * @return
+	 * One of the {@link EnumFacing} values or <code>null</code> if one of the arguments was <code>null</code>.
+	 */
+	public static EnumFacing getRelativeDirection(BlockPos from, BlockPos to)
+	{
+		if (from == null || to == null) return null;
+		
+		BlockPos directionVec = to.subtract(from);
+		
+		return EnumFacing.getFacingFromVector(directionVec.getX(), directionVec.getY(), directionVec.getZ());
 	}
 	
 	/**

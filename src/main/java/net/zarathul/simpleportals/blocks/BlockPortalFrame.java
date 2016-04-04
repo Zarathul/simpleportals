@@ -9,10 +9,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.zarathul.simpleportals.SimplePortals;
-import net.zarathul.simpleportals.registration.Address;
 import net.zarathul.simpleportals.registration.Portal;
 import net.zarathul.simpleportals.registration.PortalRegistry;
 import net.zarathul.simpleportals.registration.Registry;
@@ -73,9 +71,7 @@ public class BlockPortalFrame extends Block
 	{
 		if (!world.isRemote)
 		{
-			if (neighborBlock == this || neighborBlock == SimplePortals.blockPortal) return;
-			
-			// Deactivate all portals that share this frame block if an address block was removed or changed.
+			// Deactivate damaged portals.
 			
 			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.provider.getDimensionId());
 			
@@ -83,18 +79,9 @@ public class BlockPortalFrame extends Block
 			
 			Portal firstPortal = affectedPortals.get(0);
 			
-			Address newAddress = new Address(
-					PortalRegistry.getAddressBlockId(world.getBlockState(firstPortal.getCorner1().getPos())),
-					PortalRegistry.getAddressBlockId(world.getBlockState(firstPortal.getCorner2().getPos())),
-					PortalRegistry.getAddressBlockId(world.getBlockState(firstPortal.getCorner3().getPos())),
-					PortalRegistry.getAddressBlockId(world.getBlockState(firstPortal.getCorner4().getPos())));
-			
-			if (!newAddress.equals(firstPortal.getAddress()))
+			if (firstPortal.isDamaged(world))
 			{
-				for (Portal portal : affectedPortals)
-				{
-					PortalRegistry.deactivatePortal(world, pos);
-				}
+				PortalRegistry.deactivatePortal(world, pos);
 			}
 		}
 	}

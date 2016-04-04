@@ -29,7 +29,6 @@ import net.zarathul.simpleportals.configuration.Config;
 
 /**
  * The central registration for all portals.
- *
  */
 public final class PortalRegistry
 {
@@ -174,7 +173,7 @@ public final class PortalRegistry
 		
 		List<BlockPos> powerGauges = new ArrayList<BlockPos>();
 		
-		for (BlockPos framePos : portal.getFramePositions())
+		for (BlockPos framePos : portal.getFramePositions(false))
 		{
 			if (world.getBlockState(framePos).getBlock() instanceof BlockPowerGauge)
 			{
@@ -203,13 +202,13 @@ public final class PortalRegistry
 	{
 		if (world == null || pos == null) return;
 		
+		// Copying of the Collection is required because unregister() changes it.
 		List<Portal> affectedPortals = portals.get(pos).stream().collect(Collectors.toList());
 		
-		for (Portal portal : affectedPortals)
-		{
-			destroyPortalBlocks(world, portal);
-			unregister(world, portal);
-		}
+		// Unregister all affected portals first to avoid unnecessary deactivatePortal()
+		// calls that would otherwise be caused by the destruction of the portal blocks.
+		for (Portal portal : affectedPortals) unregister(world, portal);
+		for (Portal portal : affectedPortals) destroyPortalBlocks(world, portal);
 	}
 	
 	/**
@@ -525,7 +524,7 @@ public final class PortalRegistry
 	 */
 	private static boolean isPortalFrame(World world, BlockPos pos)
 	{
-		if (pos == null) return false;
+		if (world == null || pos == null) return false;
 		
 		return world.getBlockState(pos).getBlock() instanceof BlockPortalFrame;
 	}
@@ -616,9 +615,9 @@ public final class PortalRegistry
 		portals.clear();
 		addresses.clear();
 		
-		NBTTagCompound portalsTag = (NBTTagCompound)nbt.getTag("portals");
-		NBTTagCompound portalBlocksTag = (NBTTagCompound)nbt.getTag("portalBlocks");
-		NBTTagCompound powerTag = (NBTTagCompound)nbt.getTag("power");
+		NBTTagCompound portalsTag = nbt.getCompoundTag("portals");
+		NBTTagCompound portalBlocksTag = nbt.getCompoundTag("portalBlocks");
+		NBTTagCompound powerTag = nbt.getCompoundTag("power");
 		
 		if (portalsTag == null || portalBlocksTag == null || powerTag == null) return;
 		
@@ -633,7 +632,7 @@ public final class PortalRegistry
 		
 		while(portalsTag.hasKey(key = String.valueOf(i)))
 		{
-			tag = (NBTTagCompound)portalsTag.getTag(key);
+			tag = portalsTag.getCompoundTag(key);
 			
 			portal = new Portal();
 			portal.deserializeNBT(tag);
@@ -651,7 +650,7 @@ public final class PortalRegistry
 		
 		while (portalBlocksTag.hasKey(key = String.valueOf(i++)))
 		{
-			tag = (NBTTagCompound)portalBlocksTag.getTag(key);
+			tag = portalBlocksTag.getCompoundTag(key);
 			
 			portalPos = BlockPos.fromLong(tag.getLong("pos"));
 			isGauge = tag.getBoolean("isGauge");

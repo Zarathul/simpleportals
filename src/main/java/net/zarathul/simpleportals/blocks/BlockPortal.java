@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Maps;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockBreakable;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -26,7 +27,6 @@ import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.EnumWorldBlockLayer;
 import net.minecraft.util.MathHelper;
-import net.minecraft.world.Explosion;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -58,7 +58,7 @@ public class BlockPortal extends BlockBreakable
 		
 		setUnlocalizedName(Registry.BLOCK_PORTAL_NAME);
 		setDefaultState(this.blockState.getBaseState().withProperty(AXIS, EnumFacing.Axis.X));
-		setHardness(-1.0F);
+		setHardness(-1.0F); // indestructible by normal means
 		setLightLevel(0.75F);
 		setStepSound(soundTypeGlass);
 	}
@@ -239,7 +239,27 @@ public class BlockPortal extends BlockBreakable
 			}
 		}
 	}
-
+	
+	@Override
+	public void onNeighborBlockChange(World world, BlockPos pos, IBlockState state, Block neighborBlock)
+	{
+		if (!world.isRemote)
+		{
+			// Deactivate damaged portals.
+			
+			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.provider.getDimensionId());
+			
+			if (affectedPortals == null || affectedPortals.size() < 1) return;
+			
+			Portal firstPortal = affectedPortals.get(0);
+			
+			if (firstPortal.isDamaged(world))
+			{
+				PortalRegistry.deactivatePortal(world, pos);
+			}
+		}
+	}
+	
 	@Override
 	public boolean isFullCube()
 	{
