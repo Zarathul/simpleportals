@@ -33,6 +33,12 @@ public class BlockPortalFrame extends Block
 	}
 
 	@Override
+	public boolean requiresUpdates()
+	{
+		return false;
+	}
+
+	@Override
 	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player,
 			EnumFacing side, float hitX, float hitY, float hitZ)
 	{
@@ -48,8 +54,6 @@ public class BlockPortalFrame extends Block
 				{
 					if (player.isSneaking())
 					{
-						PortalRegistry.deactivatePortal(world, pos);
-						
 						world.setBlockToAir(pos);
 						dropBlockAsItem(world, pos, this.getDefaultState(), 0);
 					}
@@ -67,7 +71,7 @@ public class BlockPortalFrame extends Block
 	}
 
 	@Override
-	public void onNeighborBlockChange(World world, BlockPos pos, IBlockState state, Block neighborBlock)
+	public void breakBlock(World world, BlockPos pos, IBlockState state)
 	{
 		if (!world.isRemote)
 		{
@@ -82,6 +86,31 @@ public class BlockPortalFrame extends Block
 			if (firstPortal.isDamaged(world))
 			{
 				PortalRegistry.deactivatePortal(world, pos);
+			}
+		}
+	}
+
+	@Override
+	public void onNeighborBlockChange(World world, BlockPos pos, IBlockState state, Block neighborBlock)
+	{
+		if (!world.isRemote)
+		{
+			if (neighborBlock instanceof BlockPortalFrame || neighborBlock == SimplePortals.blockPortal) return;
+			
+			// Deactivate all portals that share this frame block if an address block was removed or changed.
+			
+			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.provider.getDimensionId());
+			
+			if (affectedPortals == null || affectedPortals.size() < 1) return;
+			
+			Portal firstPortal = affectedPortals.get(0);
+			
+			if (firstPortal.hasAddressChanged(world))
+			{
+				for (Portal portal : affectedPortals)
+				{
+					PortalRegistry.deactivatePortal(world, pos);
+				}
 			}
 		}
 	}

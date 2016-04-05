@@ -11,6 +11,8 @@ public class CommonProxy
 {
 	public void preInit(FMLPreInitializationEvent event)
 	{
+		SimplePortals.log = event.getModLog();
+		
 		SimplePortals.commonEventHub = new CommonEventHub();
 		MinecraftForge.EVENT_BUS.register(SimplePortals.commonEventHub);
 		

@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Maps;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockBreakable;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -241,7 +240,7 @@ public class BlockPortal extends BlockBreakable
 	}
 	
 	@Override
-	public void onNeighborBlockChange(World world, BlockPos pos, IBlockState state, Block neighborBlock)
+	public void breakBlock(World world, BlockPos pos, IBlockState state)
 	{
 		if (!world.isRemote)
 		{
@@ -260,6 +259,12 @@ public class BlockPortal extends BlockBreakable
 		}
 	}
 	
+	@Override
+	public boolean requiresUpdates()
+	{
+		return false;
+	}
+
 	@Override
 	public boolean isFullCube()
 	{

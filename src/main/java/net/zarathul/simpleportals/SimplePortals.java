@@ -1,5 +1,7 @@
 package net.zarathul.simpleportals;
 
+import org.apache.logging.log4j.Logger;
+
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -40,6 +42,9 @@ public class SimplePortals
 	
 	// world save data handler
 	public static PortalWorldSaveData portalSaveData;
+	
+	// logger
+	public static Logger log;
 	
 	// constants
 	public static final String MOD_ID = "simpleportals";

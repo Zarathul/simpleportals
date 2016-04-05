@@ -4,7 +4,6 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.launchwrapper.LogWrapper;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.event.FMLInterModComms;
 import net.minecraftforge.fml.common.registry.GameRegistry;
@@ -118,11 +117,11 @@ public final class Registry
 	{
 		if (!registerRecipe(result, recipe))
 		{
-			LogWrapper.severe("[%s] Failed to register recipe for: %s. Check your config file.", SimplePortals.MOD_ID, result.getUnlocalizedName());
+			SimplePortals.log.warn(String.format("Failed to register recipe for '%s'. Check your config file.", result.getItem().getRegistryName()));
 
 			if (!registerRecipe(result, defaultRecipe))
 			{
-				LogWrapper.severe("[%s] Failed to register default recipe for: %s.", SimplePortals.MOD_ID, result.getUnlocalizedName());
+				SimplePortals.log.error(String.format("Failed to register default recipe for '%s'. This should never happen.", result.getItem().getRegistryName()));
 			}
 		}
 	}
