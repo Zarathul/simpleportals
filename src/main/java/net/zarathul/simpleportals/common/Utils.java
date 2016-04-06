@@ -188,47 +188,47 @@ public final class Utils
 	 */
 	private static void teleportPlayerToDimension(EntityPlayerMP player, int dimension, BlockPos destination, float yaw)
 	{
-        int startDimension = player.dimension;
+		int startDimension = player.dimension;
 		MinecraftServer server = MinecraftServer.getServer();
 		ServerConfigurationManager serverManager = server.getConfigurationManager();
-        WorldServer startWorld = server.worldServerForDimension(startDimension);
-        WorldServer destinationWorld = server.worldServerForDimension(dimension);
-        
-        player.dimension = dimension;
-        player.playerNetServerHandler.sendPacket(new S07PacketRespawn(
-        		dimension,
-        		destinationWorld.getDifficulty(),
-        		destinationWorld.getWorldInfo().getTerrainType(),
-        		player.theItemInWorldManager.getGameType()));
-        
-        startWorld.removePlayerEntityDangerously(player);
-        player.isDead = false;
-        
-        player.setLocationAndAngles(destination.getX() + 0.5d, destination.getY(), destination.getZ() + 0.5d, yaw, player.rotationPitch);
-        destinationWorld.spawnEntityInWorld(player);
-        destinationWorld.updateEntityWithOptionalForce(player, false);
-        player.setWorld(destinationWorld);
-        
-        serverManager.preparePlayer(player, startWorld);
-        player.playerNetServerHandler.setPlayerLocation(destination.getX() + 0.5d, destination.getY(), destination.getZ() + 0.5d, yaw, player.rotationPitch);
-        player.theItemInWorldManager.setWorld(destinationWorld);
-        serverManager.updateTimeAndWeatherForPlayer(player, destinationWorld);
-        serverManager.syncPlayerInventory(player);
+		WorldServer startWorld = server.worldServerForDimension(startDimension);
+		WorldServer destinationWorld = server.worldServerForDimension(dimension);
 
-        // Reapply potion effects
-        
-        for (PotionEffect potioneffect : player.getActivePotionEffects())
-        {
-            player.playerNetServerHandler.sendPacket(new S1DPacketEntityEffect(player.getEntityId(), potioneffect));
-        }
-		
-        // Resend player XP otherwise the XP bar won't show up until XP is either gained or lost 
+		player.dimension = dimension;
+		player.playerNetServerHandler.sendPacket(new S07PacketRespawn(
+				dimension,
+				destinationWorld.getDifficulty(),
+				destinationWorld.getWorldInfo().getTerrainType(),
+				player.theItemInWorldManager.getGameType()));
+
+		startWorld.removePlayerEntityDangerously(player);
+		player.isDead = false;
+
+		player.setLocationAndAngles(destination.getX() + 0.5d, destination.getY(), destination.getZ() + 0.5d, yaw, player.rotationPitch);
+		destinationWorld.spawnEntityInWorld(player);
+		destinationWorld.updateEntityWithOptionalForce(player, false);
+		player.setWorld(destinationWorld);
+
+		serverManager.preparePlayer(player, startWorld);
+		player.playerNetServerHandler.setPlayerLocation(destination.getX() + 0.5d, destination.getY(), destination.getZ() + 0.5d, yaw, player.rotationPitch);
+		player.theItemInWorldManager.setWorld(destinationWorld);
+		serverManager.updateTimeAndWeatherForPlayer(player, destinationWorld);
+		serverManager.syncPlayerInventory(player);
+
+		// Reapply potion effects
+
+		for (PotionEffect potioneffect : player.getActivePotionEffects())
+		{
+			player.playerNetServerHandler.sendPacket(new S1DPacketEntityEffect(player.getEntityId(), potioneffect));
+		}
+
+		// Resend player XP otherwise the XP bar won't show up until XP is either gained or lost 
 		player.playerNetServerHandler.sendPacket(new S1FPacketSetExperience(player.experience, player.experienceTotal, player.experienceLevel));
-		
+
 		startWorld.resetUpdateEntityTick();
 		destinationWorld.resetUpdateEntityTick();
-        
-        net.minecraftforge.fml.common.FMLCommonHandler.instance().firePlayerChangedDimensionEvent(player, startDimension, dimension);
+
+		net.minecraftforge.fml.common.FMLCommonHandler.instance().firePlayerChangedDimensionEvent(player, startDimension, dimension);
 	}
 	
 	/**
@@ -270,7 +270,7 @@ public final class Utils
 		Entity portedEntity = EntityList.createEntityByName(EntityList.getEntityString(entity), destinationWorld);
 		
 		if (portedEntity != null)
-        {
+		{
 			portedEntity.copyDataFromOld(entity);
 			// setVelocity is marked to be client side only for some reason, so set velocity manually
 			portedEntity.motionX = 0;
@@ -284,11 +284,11 @@ public final class Utils
 					entity.rotationPitch);
 			
 			destinationWorld.spawnEntityInWorld(portedEntity);
-        }
-
+		}
+		
 		entity.isDead = true;
 		startWorld.resetUpdateEntityTick();
-        destinationWorld.resetUpdateEntityTick();
+		destinationWorld.resetUpdateEntityTick();
 	}
 	
 	/**
