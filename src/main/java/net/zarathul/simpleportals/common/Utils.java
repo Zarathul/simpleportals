@@ -154,13 +154,17 @@ public final class Utils
 		}
 		else
 		{
+			// setVelocity is marked to be client side only for some reason, so set velocity manually
+			entity.motionX = 0;
+			entity.motionY = 0;
+			entity.motionZ = 0;
+			
 			if (interdimensional)
 			{
 				teleportNonPlayerEntityToDimension(entity, dimension, destination, getYaw(facing));
 			}
 			else
 			{
-				entity.setVelocity(0, 0, 0);
 				entity.setLocationAndAngles(
 						destination.getX() + 0.5d,
 						destination.getY(),
@@ -217,9 +221,9 @@ public final class Utils
 
 		// Reapply potion effects
 
-		for (PotionEffect potioneffect : player.getActivePotionEffects())
+		for (PotionEffect potionEffect : player.getActivePotionEffects())
 		{
-			player.playerNetServerHandler.sendPacket(new S1DPacketEntityEffect(player.getEntityId(), potioneffect));
+			player.playerNetServerHandler.sendPacket(new S1DPacketEntityEffect(player.getEntityId(), potionEffect));
 		}
 
 		// Resend player XP otherwise the XP bar won't show up until XP is either gained or lost 
@@ -272,10 +276,6 @@ public final class Utils
 		if (portedEntity != null)
 		{
 			portedEntity.copyDataFromOld(entity);
-			// setVelocity is marked to be client side only for some reason, so set velocity manually
-			portedEntity.motionX = 0;
-			portedEntity.motionY = 0;
-			portedEntity.motionZ = 0;
 			portedEntity.setLocationAndAngles(
 					destination.getX() + 0.5d,
 					destination.getY(),

@@ -69,8 +69,8 @@ public class ItemPortalActivator extends Item
 	
 	@Override
 	public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side,
-			float hitX, float hitY, float hitZ) {
-		
+			float hitX, float hitY, float hitZ)
+	{
 		if (world.getBlockState(pos).getBlock() instanceof BlockPortalFrame)
 		{
 			player.swingItem();
