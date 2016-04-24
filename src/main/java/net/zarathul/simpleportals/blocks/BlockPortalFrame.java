@@ -107,10 +107,7 @@ public class BlockPortalFrame extends Block
 			
 			if (firstPortal.hasAddressChanged(world))
 			{
-				for (Portal portal : affectedPortals)
-				{
-					PortalRegistry.deactivatePortal(world, pos);
-				}
+				PortalRegistry.deactivatePortal(world, pos);
 			}
 		}
 	}
