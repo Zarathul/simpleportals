@@ -17,9 +17,9 @@ import com.google.common.collect.Multimap;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.blocks.BlockPortal;
@@ -115,19 +115,19 @@ public final class PortalRegistry
 		
 		IBlockState addBlock1 = world.getBlockState(corner1.getPos());
 		
-		if (!isValidAddressBlock(addBlock1.getBlock())) return false;
+		if (!isValidAddressBlock(addBlock1)) return false;
 		
 		IBlockState addBlock2 = world.getBlockState(corner2.getPos());
 		
-		if (!isValidAddressBlock(addBlock2.getBlock())) return false;
+		if (!isValidAddressBlock(addBlock2))return false;
 		
 		IBlockState addBlock3 = world.getBlockState(corner3.getPos());
 		
-		if (!isValidAddressBlock(addBlock3.getBlock())) return false;
+		if (!isValidAddressBlock(addBlock3)) return false;
 		
 		IBlockState addBlock4 = world.getBlockState(corner4.getPos());
 		
-		if (!isValidAddressBlock(addBlock4.getBlock())) return false;
+		if (!isValidAddressBlock(addBlock4)) return false;
 		
 		// Determine portal axis
 		
@@ -149,7 +149,7 @@ public final class PortalRegistry
 				getAddressBlockId(addBlock3),
 				getAddressBlockId(addBlock4));
 		
-		int dimension = world.provider.getDimensionId();
+		int dimension = world.provider.getDimension();
 		
 		Portal portal = new Portal(dimension, address, portalAxis, corner1, corner2, corner3, corner4);
 		
@@ -209,6 +209,25 @@ public final class PortalRegistry
 		// calls that would otherwise be caused by the destruction of the portal blocks.
 		for (Portal portal : affectedPortals) unregister(world, portal);
 		for (Portal portal : affectedPortals) destroyPortalBlocks(world, portal);
+	}
+	
+	/**
+	 * Determines if there is a portal at the specified position in the 
+	 * specified dimension.
+	 * 
+	 * @param pos
+	 * The {@link BlockPos} of a portal or frame block.
+	 * @param dimension
+	 * The dimension the portal is supposed to be in.
+	 * @return
+	 * <code>true</code> if the block at the specified position is part of 
+	 * a registered portal, otherwise <code>false</code>.
+	 */
+	public static boolean isPortalAt(BlockPos pos, int dimension)
+	{
+		List<Portal> portals = getPortalsAt(pos, dimension);
+		
+		return (portals != null) ? (portals.size() > 0) : false;
 	}
 	
 	/**
@@ -534,15 +553,15 @@ public final class PortalRegistry
 	 * Valid blocks may not have TileEntities and must be full blocks.
 	 * 
 	 * @param block
-	 * The {@link Block} to check.
+	 * The {@link IBlockState} of the block to check.
 	 * @return
 	 * <code>true</code> if the block is valid, otherwise <code>false</code>.
 	 */
-	private static boolean isValidAddressBlock(Block block)
+	private static boolean isValidAddressBlock(IBlockState state)
 	{
-		if (block == null
-			|| block.hasTileEntity(block.getDefaultState())
-			|| !block.isFullBlock()) 
+		if (state == null
+			|| state.getBlock().hasTileEntity(state)
+			|| !state.getBlock().isFullBlock(state))
 			return false;
 		
 		return true;

@@ -1,6 +1,6 @@
 package net.zarathul.simpleportals.registration;
 
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -47,15 +47,15 @@ public final class Registry
 	{
 		// BlockPortal
 		SimplePortals.blockPortal = new BlockPortal();
-		GameRegistry.registerBlock(SimplePortals.blockPortal, null, BLOCK_PORTAL_NAME);
+		GameRegistry.register(SimplePortals.blockPortal);
 
 		// BlockPortalFrame
 		SimplePortals.blockPortalFrame = new BlockPortalFrame();
-		GameRegistry.registerBlock(SimplePortals.blockPortalFrame, ItemPortalFrame.class, BLOCK_PORTAL_FRAME_NAME);
+		GameRegistry.register(SimplePortals.blockPortalFrame);
 		
 		// BlockPowerGauge
 		SimplePortals.blockPowerGauge = new BlockPowerGauge();
-		GameRegistry.registerBlock(SimplePortals.blockPowerGauge, ItemPowerGauge.class, BLOCK_POWER_GAUGE_NAME);
+		GameRegistry.register(SimplePortals.blockPowerGauge);
 	}
 
 	/**
@@ -63,8 +63,14 @@ public final class Registry
 	 */
 	public static void registerItems()
 	{
+		SimplePortals.itemPortalFrame = new ItemPortalFrame(SimplePortals.blockPortalFrame);
+		GameRegistry.register(SimplePortals.itemPortalFrame);
+		
+		SimplePortals.itemPowerGauge = new ItemPowerGauge(SimplePortals.blockPowerGauge);
+		GameRegistry.register(SimplePortals.itemPowerGauge);
+		
 		SimplePortals.itemPortalActivator = new ItemPortalActivator();
-		GameRegistry.registerItem(SimplePortals.itemPortalActivator, ITEM_PORTAL_ACTIVATOR_NAME);
+		GameRegistry.register(SimplePortals.itemPortalActivator);
 	}
 	
 	/**
@@ -72,11 +78,8 @@ public final class Registry
 	 */
 	public static void registerItemModels()
 	{
-		Item itemPortalFrame = GameRegistry.findItem(SimplePortals.MOD_ID, BLOCK_PORTAL_FRAME_NAME);
-		Item itemPowerGauge = GameRegistry.findItem(SimplePortals.MOD_ID, BLOCK_POWER_GAUGE_NAME);
-		
-		ModelLoader.setCustomModelResourceLocation(itemPortalFrame, 0, new ModelResourceLocation(ITEM_PORTAL_FRAME_MODEL_RESLOC, "inventory"));
-		ModelLoader.setCustomModelResourceLocation(itemPowerGauge, 0, new ModelResourceLocation(ITEM_POWER_GAUGE_MODEL_RESLOC, "inventory"));
+		ModelLoader.setCustomModelResourceLocation(SimplePortals.itemPortalFrame, 0, new ModelResourceLocation(ITEM_PORTAL_FRAME_MODEL_RESLOC, "inventory"));
+		ModelLoader.setCustomModelResourceLocation(SimplePortals.itemPowerGauge, 0, new ModelResourceLocation(ITEM_POWER_GAUGE_MODEL_RESLOC, "inventory"));
 		ModelLoader.setCustomModelResourceLocation(SimplePortals.itemPortalActivator, 0, new ModelResourceLocation(ITEM_PORTAL_ACTIVATOR_RESLOC, "inventory"));
 	}
 

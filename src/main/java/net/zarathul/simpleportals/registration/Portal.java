@@ -5,10 +5,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.EnumFacing.AxisDirection;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.zarathul.simpleportals.blocks.BlockPortal;
@@ -319,10 +319,9 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 		int middle = lowBound + halfWidth;
 		int startHeight = (portal1.getY() < portal2.getY()) ? portal1.getY() : portal2.getY();
 		
-		// EnumFacing.func_181076_a gets the facing on the specified axis in the specified direction.
 		// e.g. Axis.Z and AxisDirection.POSITIVE returns EnumFacing.SOUTH.
-		EnumFacing searchDirPositive = EnumFacing.func_181076_a(AxisDirection.POSITIVE, axis);
-		EnumFacing searchDirNegative = EnumFacing.func_181076_a(AxisDirection.NEGATIVE, axis);
+		EnumFacing searchDirPositive = EnumFacing.getFacingFromAxis(AxisDirection.POSITIVE, axis);
+		EnumFacing searchDirNegative = EnumFacing.getFacingFromAxis(AxisDirection.NEGATIVE, axis);
 		
 		BlockPos feetPos = null;
 		BlockPos searchStartPos1 = (axis == Axis.X)

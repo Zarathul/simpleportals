@@ -3,7 +3,8 @@ package net.zarathul.simpleportals.configuration;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraft.item.Item;
+import net.minecraft.util.ResourceLocation;
 import net.zarathul.simpleportals.common.Utils;
 
 /**
@@ -82,7 +83,9 @@ public class Recipe
 
 		for (RecipeComponent component : components)
 		{
-			componentArg = (!component.modId.equals(RecipeComponent.OREDICT_IDENTIFIER)) ? GameRegistry.findItem(component.modId, component.itemId) : component.itemId;
+			componentArg = (!component.modId.equals(RecipeComponent.OREDICT_IDENTIFIER)) ?
+					Item.itemRegistry.getObject(new ResourceLocation(component.modId, component.itemId)) :
+					component.itemId;
 
 			if (componentArg == null) return null;
 

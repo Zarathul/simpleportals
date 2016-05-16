@@ -9,9 +9,9 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
 import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.registration.Portal;
@@ -53,7 +53,7 @@ public final class BlockPortalFrameDataProvider implements IWailaDataProvider
 		{
 			World world = accessor.getWorld();
 			
-			List<Portal> portals = PortalRegistry.getPortalsAt(accessor.getPosition(), world.provider.getDimensionId());
+			List<Portal> portals = PortalRegistry.getPortalsAt(accessor.getPosition(), world.provider.getDimension());
 			
 			if (portals == null) return currenttip;
 			
@@ -67,7 +67,7 @@ public final class BlockPortalFrameDataProvider implements IWailaDataProvider
 					power = PortalRegistry.getPower(portal);
 					percentage = (Config.powerCapacity > 0) ? MathHelper.clamp_int((int) ((long) power * 100 / Config.powerCapacity), 0, 100) : 100;
 					
-					currenttip.add(StatCollector.translateToLocalFormatted(WailaRegistry.WAILA_TOOLTIP_POWER_CAPACITY, power, Config.powerCapacity, percentage));
+					currenttip.add(I18n.translateToLocalFormatted(WailaRegistry.WAILA_TOOLTIP_POWER_CAPACITY, power, Config.powerCapacity, percentage));
 				}
 			}
 			
@@ -78,14 +78,14 @@ public final class BlockPortalFrameDataProvider implements IWailaDataProvider
 				
 				for (Portal portal : portals)
 				{
-					currenttip.add(StatCollector.translateToLocal(WailaRegistry.WAILA_TOOLTIP_ADDRESS));
+					currenttip.add(I18n.translateToLocal(WailaRegistry.WAILA_TOOLTIP_ADDRESS));
 					
 					address = portal.getAddress().toString();
 					addressComponents = address.split(",");
 					
 					for (String component : addressComponents)
 					{
-						currenttip.add(StatCollector.translateToLocalFormatted(WailaRegistry.WAILA_TOOLTIP_ADDRESS_COMPONENT, component.trim()));
+						currenttip.add(I18n.translateToLocalFormatted(WailaRegistry.WAILA_TOOLTIP_ADDRESS_COMPONENT, component.trim()));
 					}
 				}
 			}

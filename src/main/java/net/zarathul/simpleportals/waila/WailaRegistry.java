@@ -1,7 +1,7 @@
 package net.zarathul.simpleportals.waila;
 
 import mcp.mobius.waila.api.IWailaRegistrar;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.text.translation.I18n;
 import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 
@@ -34,8 +34,8 @@ public final class WailaRegistry
 	 */
 	public static final void register(IWailaRegistrar registrar)
 	{
-		registrar.addConfig(SimplePortals.MOD_READABLE_NAME, WAILA_POWER_CAPACITY_KEY, StatCollector.translateToLocal(WAILA_POWER_CAPACITY_LOCA));
-		registrar.addConfig(SimplePortals.MOD_READABLE_NAME, WAILA_ADDRESS_KEY, StatCollector.translateToLocal(WAILA_ADDRESS_LOCA));
+		registrar.addConfig(SimplePortals.MOD_READABLE_NAME, WAILA_POWER_CAPACITY_KEY, I18n.translateToLocal(WAILA_POWER_CAPACITY_LOCA));
+		registrar.addConfig(SimplePortals.MOD_READABLE_NAME, WAILA_ADDRESS_KEY, I18n.translateToLocal(WAILA_ADDRESS_LOCA));
 
 		registrar.registerBodyProvider(BlockPortalFrameDataProvider.instance, BlockPortalFrame.class);
 	}

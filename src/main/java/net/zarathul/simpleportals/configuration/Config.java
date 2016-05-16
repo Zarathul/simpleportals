@@ -7,7 +7,7 @@ import java.util.List;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.oredict.OreDictionary;
@@ -50,7 +50,7 @@ public final class Config
 		new RecipeComponent[]
 		{
 			new RecipeComponent("R", "oreDict", "dustRedstone"),
-			new RecipeComponent("F", SimplePortals.MOD_ID, Registry.BLOCK_PORTAL_FRAME_NAME)
+			new RecipeComponent("F", SimplePortals.MOD_ID, Registry.ITEM_PORTAL_FRAME_NAME)
 		}
 	);
 
@@ -134,43 +134,43 @@ public final class Config
 
 		// Misc
 
-		config.getCategory(CATEGORY_MISC).setLanguageKey("configui.category.misc").setComment(StatCollector.translateToLocal("configui.category.misc.tooltip"));
+		config.getCategory(CATEGORY_MISC).setLanguageKey("configui.category.misc").setComment(I18n.translateToLocal("configui.category.misc.tooltip"));
 		
 		prop = config.get(CATEGORY_MISC, "maxSize", defaultMaxSize);
-		prop.comment = StatCollector.translateToLocal("configui.maxSize.tooltip");
+		prop.setComment(I18n.translateToLocal("configui.maxSize.tooltip"));
 		prop.setLanguageKey("configui.maxSize").setMinValue(3);
 		maxSize = prop.getInt();
 
 		prop = config.get(CATEGORY_MISC, "powerCost", defaultPowerCost);
-		prop.comment = StatCollector.translateToLocal("configui.powerCost.tooltip");
+		prop.setComment(I18n.translateToLocal("configui.powerCost.tooltip"));
 		prop.setLanguageKey("configui.powerCost").setMinValue(0);
 		powerCost = prop.getInt();
 
 		prop = config.get(CATEGORY_MISC, "powerCapacity", defaultPowerCapacity);
-		prop.comment = StatCollector.translateToLocal("configui.powerCapacity.tooltip");
+		prop.setComment(I18n.translateToLocal("configui.powerCapacity.tooltip"));
 		prop.setLanguageKey("configui.powerCapacity").setMinValue(0);
 		powerCapacity = prop.getInt();
 		
-		prop = config.get(CATEGORY_MISC, "powerSource", defaultPowerSource.getItem().getRegistryName());
-		prop.comment = StatCollector.translateToLocal("configui.powerSource.tooltip");
+		prop = config.get(CATEGORY_MISC, "powerSource", defaultPowerSource.getItem().getRegistryName().toString());
+		prop.setComment(I18n.translateToLocal("configui.powerSource.tooltip"));
 		prop.setLanguageKey("configui.powerSource");
 		powerSource = prop.getString();
 		
 		updateValidPowerSources();
 
 		prop = config.get(CATEGORY_MISC, "particlesEnabled", defaultParticlesEnabled);
-		prop.comment = StatCollector.translateToLocal("configui.particlesEnabled.tooltip");
+		prop.setComment(I18n.translateToLocal("configui.particlesEnabled.tooltip"));
 		prop.setLanguageKey("configui.particlesEnabled");
 		particlesEnabled = prop.getBoolean();
 
 		prop = config.get(CATEGORY_MISC, "ambientSoundEnabled", defaultAmbientSoundEnabled);
-		prop.comment = StatCollector.translateToLocal("configui.ambientSoundEnabled.tooltip");
+		prop.setComment(I18n.translateToLocal("configui.ambientSoundEnabled.tooltip"));
 		prop.setLanguageKey("configui.ambientSoundEnabled");
 		ambientSoundEnabled = prop.getBoolean();
 		
 		// Recipes
 
-		config.getCategory(CATEGORY_RECIPES).setLanguageKey("configui.category.recipes").setComment(StatCollector.translateToLocal("configui.category.recipes.tooltip"));
+		config.getCategory(CATEGORY_RECIPES).setLanguageKey("configui.category.recipes").setComment(I18n.translateToLocal("configui.category.recipes.tooltip"));
 		config.getCategory(CATEGORY_RECIPES_PORTAL_FRAME).setLanguageKey("configui.category.portalFrame");
 		config.getCategory(CATEGORY_RECIPES_POWER_GAUGE).setLanguageKey("configui.category.powerGauge");
 		config.getCategory(CATEGORY_RECIPES_PORTAL_ACTIVATOR).setLanguageKey("configui.category.portalActivator");
@@ -217,22 +217,22 @@ public final class Config
 	private static Recipe loadRecipe(Configuration config, String category, Recipe defaultRecipe)
 	{
 		Property prop = config.get(category, "shapeless", defaultRecipe.isShapeless);
-		prop.comment = StatCollector.translateToLocal("configui.shapeless.tooltip");
+		prop.setComment(I18n.translateToLocal("configui.shapeless.tooltip"));
 		prop.setLanguageKey("configui.shapeless").setRequiresMcRestart(true);
 		boolean shapeless = prop.getBoolean();
 
 		prop = config.get(category, "yield", defaultRecipe.yield);
-		prop.comment = StatCollector.translateToLocal("configui.yield.tooltip");
+		prop.setComment(I18n.translateToLocal("configui.yield.tooltip"));
 		prop.setLanguageKey("configui.yield").setRequiresMcRestart(true).setMinValue(1).setMaxValue(64);
 		int yield = prop.getInt();
 
 		prop = config.get(category, "components", defaultRecipe.getComponentList());
-		prop.comment = StatCollector.translateToLocal("configui.components.tooltip");
+		prop.setComment(I18n.translateToLocal("configui.components.tooltip"));
 		prop.setLanguageKey("configui.components").setRequiresMcRestart(true).setMaxListLength(27);
 		String[] components = prop.getStringList();
 
 		prop = config.get(category, "pattern", defaultRecipe.pattern.rows.toArray(new String[0])).setIsListLengthFixed(true).setMaxListLength(3);
-		prop.comment = StatCollector.translateToLocal("configui.pattern.tooltip");
+		prop.setComment(I18n.translateToLocal("configui.pattern.tooltip"));
 		prop.setLanguageKey("configui.pattern").setRequiresMcRestart(true);
 		String[] pattern = prop.getStringList();
 

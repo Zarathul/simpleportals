@@ -12,7 +12,7 @@ public final class ClientEventHub
 	@SubscribeEvent
 	public void OnConfigChanged(OnConfigChangedEvent event)
 	{
-		if (SimplePortals.MOD_ID.equals(event.modID))
+		if (SimplePortals.MOD_ID.equals(event.getModID()))
 		{
 			Config.sync();
 		}

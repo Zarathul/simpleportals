@@ -13,11 +13,14 @@ import net.minecraft.dispenser.IBlockSource;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.EnumFacing.AxisDirection;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.translation.I18n;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -40,8 +43,8 @@ public class ItemPortalActivator extends Item
 		super();
 
 		setMaxStackSize(1);
-
 		setCreativeTab(SimplePortals.creativeTab);
+		setRegistryName(Registry.ITEM_PORTAL_ACTIVATOR_NAME);
 		setUnlocalizedName(Registry.ITEM_PORTAL_ACTIVATOR_NAME);
 		
 		BlockDispenser.dispenseBehaviorRegistry.putObject(this, dispenserBehavior);
@@ -57,26 +60,26 @@ public class ItemPortalActivator extends Item
 		}
 		else
 		{
-			list.add(StatCollector.translateToLocal(toolTipKey));
+			list.add(I18n.translateToLocal(toolTipKey));
 		}
-	}
-
-	@Override
-	public boolean doesSneakBypassUse(World world, BlockPos pos, EntityPlayer player)
-	{
-		return true;
 	}
 	
 	@Override
-	public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side,
-			float hitX, float hitY, float hitZ)
+	public boolean doesSneakBypassUse(ItemStack stack, IBlockAccess world, BlockPos pos, EntityPlayer player)
+	{
+		return true;
+	}
+
+	@Override
+	public EnumActionResult onItemUse(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumHand hand,
+			 EnumFacing side, float hitX, float hitY, float hitZ)
 	{
 		if (world.getBlockState(pos).getBlock() instanceof BlockPortalFrame)
 		{
-			player.swingItem();
+			player.swingArm(hand);
 		}
 		
-		return super.onItemUse(stack, player, world, pos, side, hitX, hitY, hitZ);
+		return super.onItemUse(stack, player, world, pos, hand, side, hitX, hitY, hitZ);
 	}
 	
 	/**
@@ -111,8 +114,8 @@ public class ItemPortalActivator extends Item
 					{
 						if (axis != dispenserAxis)
 						{
-							searchDirections.add(EnumFacing.func_181076_a(AxisDirection.POSITIVE, axis));
-							searchDirections.add(EnumFacing.func_181076_a(AxisDirection.NEGATIVE, axis));
+							searchDirections.add(EnumFacing.getFacingFromAxis(AxisDirection.POSITIVE, axis));
+							searchDirections.add(EnumFacing.getFacingFromAxis(AxisDirection.NEGATIVE, axis));
 						}
 					}
 					

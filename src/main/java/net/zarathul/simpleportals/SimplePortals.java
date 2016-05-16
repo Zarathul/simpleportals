@@ -3,6 +3,7 @@ package net.zarathul.simpleportals;
 import org.apache.logging.log4j.Logger;
 
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.ItemBlock;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
@@ -32,6 +33,8 @@ public class SimplePortals
 
 	// items
 	public static ItemPortalActivator itemPortalActivator;
+	public static ItemBlock itemPortalFrame;
+	public static ItemBlock itemPowerGauge;
 
 	// creative tabs
 	public static CreativeTabs creativeTab;

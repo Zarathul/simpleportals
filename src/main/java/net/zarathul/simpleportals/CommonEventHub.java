@@ -16,9 +16,9 @@ public final class CommonEventHub
 	@SubscribeEvent
 	public void OnWorldLoad(Load event)
 	{
-		if (!event.world.isRemote)
+		if (!event.getWorld().isRemote)
 		{
-			SimplePortals.portalSaveData = PortalWorldSaveData.get(event.world);
+			SimplePortals.portalSaveData = PortalWorldSaveData.get(event.getWorld());
 		}
 	}
 }

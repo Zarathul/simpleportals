@@ -2,8 +2,9 @@ package net.zarathul.simpleportals.blocks;
 
 import java.util.List;
 
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.MathHelper;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.configuration.Config;
@@ -19,20 +20,19 @@ public class BlockPowerGauge extends BlockPortalFrame
 {
 	public BlockPowerGauge()
 	{
-		setUnlocalizedName(Registry.BLOCK_POWER_GAUGE_NAME);
-		setCreativeTab(SimplePortals.creativeTab);
+		super(Registry.BLOCK_POWER_GAUGE_NAME);
 	}
 	
 	@Override
-	public boolean hasComparatorInputOverride()
+	public boolean hasComparatorInputOverride(IBlockState state)
 	{
 		return true;
 	}
-
+	
 	@Override
-	public int getComparatorInputOverride(World world, BlockPos pos)
+	public int getComparatorInputOverride(IBlockState state, World world, BlockPos pos)
 	{
-		List<Portal> portals = PortalRegistry.getPortalsAt(pos, world.provider.getDimensionId());
+		List<Portal> portals = PortalRegistry.getPortalsAt(pos, world.provider.getDimension());
 		
 		if (portals != null && portals.size() > 0)
 		{

@@ -9,23 +9,27 @@ import java.util.stream.Collectors;
 import com.google.common.collect.Maps;
 
 import net.minecraft.block.BlockBreakable;
+import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockState;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.item.Item;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.EnumWorldBlockLayer;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -57,17 +61,18 @@ public class BlockPortal extends BlockBreakable
 	{
 		super(Material.portal, false);
 		
+		setRegistryName(Registry.BLOCK_PORTAL_NAME);
 		setUnlocalizedName(Registry.BLOCK_PORTAL_NAME);
 		setDefaultState(this.blockState.getBaseState().withProperty(AXIS, EnumFacing.Axis.X));
 		setHardness(-1.0F); // indestructible by normal means
 		setLightLevel(0.75F);
-		setStepSound(soundTypeGlass);
+		setStepSound(SoundType.GLASS);
 	}
 
 	@Override
-	protected BlockState createBlockState()
+	protected BlockStateContainer createBlockState()
 	{
-		return new BlockState(this, new IProperty[] { AXIS });
+		return new BlockStateContainer(this, new IProperty[] { AXIS });
 	}
 	
 	@Override
@@ -97,57 +102,57 @@ public class BlockPortal extends BlockBreakable
 			default: return 0;
 		}
 	}
-
+	
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(World world, BlockPos pos, IBlockState state)
+	public AxisAlignedBB getSelectedBoundingBox(IBlockState blockState, World world, BlockPos pos)
 	{
-		return null;
+		return NULL_AABB;
 	}
 	
 	@Override
-	public void setBlockBoundsBasedOnState(IBlockAccess world, BlockPos pos)
+	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess world, BlockPos pos)
 	{
-		Axis axis = world.getBlockState(pos).getValue(AXIS);
+		Axis axis = state.getValue(AXIS);
 		
-		float minX = 0f, maxX = 0f, minY = 0f, maxY = 0f, minZ = 0f, maxZ = 0f;
+		double minX = 0, maxX = 0, minY = 0, maxY = 0, minZ = 0, maxZ = 0;
 		
 		switch (axis)
 		{
 			case X:
-				minX = 0f;
-				maxX = 1f;
-				minY = 0f;
-				maxY = 1f;
-				minZ = 0.375f;
-				maxZ = 0.625f;
+				minX = 0;
+				maxX = 1;
+				minY = 0;
+				maxY = 1;
+				minZ = 0.375;
+				maxZ = 0.625;
 			break;
 			
 			case Y:
-				minX = 0f;
-				maxX = 1f;
-				minY = 0.375f;
-				maxY = 0.625f;
-				minZ = 0f;
-				maxZ = 1f;
+				minX = 0;
+				maxX = 1;
+				minY = 0.375;
+				maxY = 0.625;
+				minZ = 0;
+				maxZ = 1;
 			break;
 			
 			case Z:
-				minX = 0.375f;
-				maxX = 0.625f;
-				minY = 0f;
-				maxY = 1f;
-				minZ = 0f;
-				maxZ = 1f;
+				minX = 0.375;
+				maxX = 0.625;
+				minY = 0;
+				maxY = 1;
+				minZ = 0;
+				maxZ = 1;
 			break;
 		}
 		
-		this.setBlockBounds(minX, minY, minZ, maxX, maxY, maxZ);
+		return new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
 	}
 	
 	@Override
 	public void onEntityCollidedWithBlock(World world, BlockPos pos, IBlockState state, Entity entity)
 	{
-		if (!world.isRemote && entity.ridingEntity == null && entity.riddenByEntity == null && !entity.isDead)
+		if (!world.isRemote && !entity.isRiding() && !entity.isBeingRidden() && entity.isNonBoss() && !entity.isDead)
 		{
 			// Check if entity is on teleportation cooldown
 			if (entityCooldowns.containsKey(entity.getUniqueID()))
@@ -203,8 +208,11 @@ public class BlockPortal extends BlockBreakable
 				}
 			}
 			
+			// Bypass the power cost for players in creative mode
+			boolean bypassPowerCost = (entity instanceof EntityPlayerMP && ((EntityPlayerMP)entity).capabilities.isCreativeMode);
+			
 			// Check if portal has enough power for a port
-			if (PortalRegistry.getPower(start) < Config.powerCost) return;
+			if (!bypassPowerCost && PortalRegistry.getPower(start) < Config.powerCost) return;
 			
 			portals = PortalRegistry.getPortalsWithAddress(start.getAddress());
 			
@@ -218,14 +226,14 @@ public class BlockPortal extends BlockBreakable
 					.findFirst()
 					.get();
 			
-			WorldServer server = MinecraftServer.getServer().worldServerForDimension(destination.getDimension());
+			WorldServer server = entity.getServer().worldServerForDimension(destination.getDimension());
 			int entityHeight = MathHelper.ceiling_float_int(entity.height);
 			
 			BlockPos portTarget = destination.getPortDestination(server, entityHeight);
 			
 			if (portTarget == null) return;
 			
-			if (Config.powerCost == 0 || PortalRegistry.removePower(start, Config.powerCost))
+			if (bypassPowerCost || Config.powerCost == 0 || PortalRegistry.removePower(start, Config.powerCost))
 			{
 				// Get a facing pointing away from the destination portal. After porting, the portal 
 				// will always be behind the entity. When porting to a horizontal portal the facing
@@ -255,7 +263,7 @@ public class BlockPortal extends BlockBreakable
 		{
 			// Deactivate damaged portals.
 			
-			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.provider.getDimensionId());
+			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.provider.getDimension());
 			
 			if (affectedPortals == null || affectedPortals.size() < 1) return;
 			
@@ -275,14 +283,14 @@ public class BlockPortal extends BlockBreakable
 	}
 
 	@Override
-	public boolean isFullCube()
+	public boolean isFullCube(IBlockState state)
 	{
 		return false;
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public Item getItem(World world, BlockPos pos)
+	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos,
+			EntityPlayer player)
 	{
 		return null;
 	}
@@ -295,18 +303,18 @@ public class BlockPortal extends BlockBreakable
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public EnumWorldBlockLayer getBlockLayer()
+	public BlockRenderLayer getBlockLayer()
 	{
-		return EnumWorldBlockLayer.TRANSLUCENT;
+		return BlockRenderLayer.TRANSLUCENT;
 	}
 	
 	@Override
 	@SideOnly(Side.CLIENT)
-	public void randomDisplayTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
+	public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand)
 	{
 		if (Config.ambientSoundEnabled && rand.nextInt(100) == 0)
 		{
-			worldIn.playSound((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, "portal.portal", 0.5F, rand.nextFloat() * 0.4F + 0.8F, false);
+			world.playSound((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, SoundEvents.block_portal_ambient, SoundCategory.BLOCKS, 0.5F, rand.nextFloat() * 0.4F + 0.8F, false);
 		}
 
 		if (Config.particlesEnabled)
@@ -321,7 +329,7 @@ public class BlockPortal extends BlockBreakable
 				double d5 = ((double)rand.nextFloat() - 0.5D) * 0.5D;
 				int j = rand.nextInt(2) * 2 - 1;
 
-				if (worldIn.getBlockState(pos.west()).getBlock() != this && worldIn.getBlockState(pos.east()).getBlock() != this)
+				if (world.getBlockState(pos.west()).getBlock() != this && world.getBlockState(pos.east()).getBlock() != this)
 				{
 					d0 = (double)pos.getX() + 0.5D + 0.25D * (double)j;
 					d3 = (double)(rand.nextFloat() * 2.0F * (float)j);
@@ -332,7 +340,7 @@ public class BlockPortal extends BlockBreakable
 					d5 = (double)(rand.nextFloat() * 2.0F * (float)j);
 				}
 
-				worldIn.spawnParticle(EnumParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5, new int[0]);
+				world.spawnParticle(EnumParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5, new int[0]);
 			}
 		}
 	}

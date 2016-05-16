@@ -1,5 +1,6 @@
 package net.zarathul.simpleportals.common;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import com.google.common.base.Predicate;
@@ -9,23 +10,31 @@ import com.google.common.collect.Iterables;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.network.play.server.S07PacketRespawn;
-import net.minecraft.network.play.server.S1DPacketEntityEffect;
-import net.minecraft.network.play.server.S1FPacketSetExperience;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.server.SPacketEntityEffect;
+import net.minecraft.network.play.server.SPacketPlayerAbilities;
+import net.minecraft.network.play.server.SPacketRespawn;
+import net.minecraft.network.play.server.SPacketSetExperience;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.management.ServerConfigurationManager;
-import net.minecraft.util.BlockPos;
+import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.WorldSettings.GameType;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.zarathul.simpleportals.SimplePortals;
 
 /**
  * General utility class.
  */
 public final class Utils
 {
+	private static Field invulnerableDimensionChange;
+	
 	/**
 	 * A predicate that returns <code>true</code> if passed string is neither <code>null</code> nor empty.
 	 */
@@ -69,9 +78,9 @@ public final class Utils
 			int x = 0;
 			String currentKey = key + x;
 
-			while (StatCollector.canTranslate(currentKey))
+			while (I18n.canTranslate(currentKey))
 			{
-				lines.add(StatCollector.translateToLocalFormatted(currentKey, args));
+				lines.add(I18n.translateToLocalFormatted(currentKey, args));
 				currentKey = key + ++x;
 			}
 		}
@@ -111,7 +120,7 @@ public final class Utils
 	 * @return
 	 * One of the {@link EnumFacing} values or <code>null</code> if one of the arguments was <code>null</code>.
 	 */
-	public static EnumFacing getRelativeDirection(BlockPos from, BlockPos to)
+	public static final EnumFacing getRelativeDirection(BlockPos from, BlockPos to)
 	{
 		if (from == null || to == null) return null;
 		
@@ -136,20 +145,39 @@ public final class Utils
 	 */
 	public static final void teleportTo(Entity entity, int dimension, BlockPos destination, EnumFacing facing)
 	{
-		if (entity == null || destination == null || entity.ridingEntity != null || entity.riddenByEntity != null) return;
+		if (entity == null || destination == null || entity.isBeingRidden() || entity.isRiding() || !entity.isNonBoss()) return;
 		
 		EntityPlayerMP player = (entity instanceof EntityPlayerMP) ? (EntityPlayerMP)entity : null;
 		boolean interdimensional = (entity.dimension != dimension);
 		
 		if (player != null)
 		{
+			if (!setInvulnerableDimensionChange(player))
+			{
+				SimplePortals.log.error("InvulnerableDimensionChange flag could not be set. Aborting teleportation.");
+				return;
+			}
+
 			if (interdimensional)
 			{
-				teleportPlayerToDimension(player, dimension, destination, getYaw(facing));
+				if (ForgeHooks.onTravelToDimension(player, dimension))
+				{
+					teleportPlayerToDimension(player, dimension, destination, getYaw(facing));
+				}
+				else
+				{
+					SimplePortals.log.warn(String.format("Teleportation of player %s [%s] to dimension %d canceled by other mod.",
+							player.getName(), player.getPosition(), dimension));
+				}
 			}
 			else
 			{
-				player.playerNetServerHandler.setPlayerLocation(destination.getX() + 0.5d, destination.getY(), destination.getZ() + 0.5d, getYaw(facing), player.rotationPitch);
+				player.playerNetServerHandler.setPlayerLocation(
+						destination.getX() + 0.5d,
+						destination.getY(),
+						destination.getZ() + 0.5d,
+						getYaw(facing),
+						player.rotationPitch);
 			}
 		}
 		else
@@ -178,8 +206,9 @@ public final class Utils
 	/**
 	 * Teleport a player entity to the specified position in the specified dimension
 	 * facing the specified direction.
-	 * (Combination of {@link EntityPlayerMP#travelToDimension(int)} and
-	 * {@link ServerConfigurationManager#transferPlayerToDimension(EntityPlayerMP, int)})
+	 * (Combination of {@link EntityPlayerMP#changeDimension(int)} and
+	 * {@link PlayerList#changePlayerDimension(EntityPlayerMP, int)}  without the 
+	 * hardcoded dimension specific vanilla code)
 	 * 
 	 * @param player
 	 * The player to teleport.
@@ -190,56 +219,66 @@ public final class Utils
 	 * @param yaw
 	 * The rotation yaw the entity should have after porting.
 	 */
-	private static void teleportPlayerToDimension(EntityPlayerMP player, int dimension, BlockPos destination, float yaw)
+	private static final void teleportPlayerToDimension(EntityPlayerMP player, int dimension, BlockPos destination, float yaw)
 	{
 		int startDimension = player.dimension;
-		MinecraftServer server = MinecraftServer.getServer();
-		ServerConfigurationManager serverManager = server.getConfigurationManager();
+		MinecraftServer server = player.getServer();
+		PlayerList playerList = server.getPlayerList();
 		WorldServer startWorld = server.worldServerForDimension(startDimension);
 		WorldServer destinationWorld = server.worldServerForDimension(dimension);
-
+		
 		player.dimension = dimension;
-		player.playerNetServerHandler.sendPacket(new S07PacketRespawn(
+		player.playerNetServerHandler.sendPacket(new SPacketRespawn(
 				dimension,
 				destinationWorld.getDifficulty(),
 				destinationWorld.getWorldInfo().getTerrainType(),
-				player.theItemInWorldManager.getGameType()));
+				player.interactionManager.getGameType()));
 
+		playerList.updatePermissionLevel(player);
 		startWorld.removePlayerEntityDangerously(player);
 		player.isDead = false;
 
-		player.setLocationAndAngles(destination.getX() + 0.5d, destination.getY(), destination.getZ() + 0.5d, yaw, player.rotationPitch);
+		player.setLocationAndAngles(
+				destination.getX() + 0.5d,
+				destination.getY(),
+				destination.getZ() + 0.5d,
+				yaw,
+				player.rotationPitch);
+		
 		destinationWorld.spawnEntityInWorld(player);
 		destinationWorld.updateEntityWithOptionalForce(player, false);
 		player.setWorld(destinationWorld);
 
-		serverManager.preparePlayer(player, startWorld);
-		player.playerNetServerHandler.setPlayerLocation(destination.getX() + 0.5d, destination.getY(), destination.getZ() + 0.5d, yaw, player.rotationPitch);
-		player.theItemInWorldManager.setWorld(destinationWorld);
-		serverManager.updateTimeAndWeatherForPlayer(player, destinationWorld);
-		serverManager.syncPlayerInventory(player);
+		playerList.preparePlayer(player, startWorld);
+		player.playerNetServerHandler.setPlayerLocation(
+				destination.getX() + 0.5d,
+				destination.getY(),
+				destination.getZ() + 0.5d,
+				yaw,
+				player.rotationPitch);
+		
+		player.interactionManager.setWorld(destinationWorld);
+		player.playerNetServerHandler.sendPacket(new SPacketPlayerAbilities(player.capabilities));
+		playerList.updateTimeAndWeatherForPlayer(player, destinationWorld);
+		playerList.syncPlayerInventory(player);
 
 		// Reapply potion effects
 
 		for (PotionEffect potionEffect : player.getActivePotionEffects())
 		{
-			player.playerNetServerHandler.sendPacket(new S1DPacketEntityEffect(player.getEntityId(), potionEffect));
+			player.playerNetServerHandler.sendPacket(new SPacketEntityEffect(player.getEntityId(), potionEffect));
 		}
 
 		// Resend player XP otherwise the XP bar won't show up until XP is either gained or lost 
-		player.playerNetServerHandler.sendPacket(new S1FPacketSetExperience(player.experience, player.experienceTotal, player.experienceLevel));
+		player.playerNetServerHandler.sendPacket(new SPacketSetExperience(player.experience, player.experienceTotal, player.experienceLevel));
 
-		startWorld.resetUpdateEntityTick();
-		destinationWorld.resetUpdateEntityTick();
-
-		net.minecraftforge.fml.common.FMLCommonHandler.instance().firePlayerChangedDimensionEvent(player, startDimension, dimension);
+		FMLCommonHandler.instance().firePlayerChangedDimensionEvent(player, startDimension, dimension);
 	}
 	
 	/**
 	 * Teleport a non-player entity to the specified position in the specified dimension
 	 * facing the specified direction.
-	 * (Combination of {@link Entity#travelToDimension(int)} and
-	 * {@link ServerConfigurationManager#transferEntityToWorld(Entity, int, WorldServer, WorldServer)}).
+	 * ({@link Entity#changeDimension(int)} without the hardcoded dimension specific vanilla code)
 	 * 
 	 * @param entity
 	 * The entity to teleport. Can be any entity (item, mob, player).
@@ -250,9 +289,9 @@ public final class Utils
 	 * @param yaw
 	 * The rotation yaw the entity should have after porting.
 	 */
-	private static void teleportNonPlayerEntityToDimension(Entity entity, int dimension, BlockPos destination, float yaw)
+	private static final void teleportNonPlayerEntityToDimension(Entity entity, int dimension, BlockPos destination, float yaw)
 	{
-		MinecraftServer server = MinecraftServer.getServer();
+		MinecraftServer server = entity.getServer();
 		WorldServer startWorld = server.worldServerForDimension(entity.dimension);
 		WorldServer destinationWorld = server.worldServerForDimension(dimension);
 		
@@ -260,14 +299,14 @@ public final class Utils
 		startWorld.removeEntity(entity);
 		entity.isDead = false;
 		
-		if (entity.isEntityAlive())
-		{
-			entity.setLocationAndAngles(destination.getX() + 0.5d, destination.getY(), destination.getZ() + 0.5d, yaw, entity.rotationPitch);
-	        destinationWorld.spawnEntityInWorld(entity);
-	        destinationWorld.updateEntityWithOptionalForce(entity, false);
-		}
-		
-		entity.setWorld(destinationWorld);
+		entity.setLocationAndAngles(
+				destination.getX() + 0.5d,
+				destination.getY(),
+				destination.getZ() + 0.5d,
+				yaw,
+				entity.rotationPitch);
+
+		startWorld.updateEntityWithOptionalForce(entity, false);
 		
 		// Why duplicate the entity and delete the one we just went through the trouble of porting?
 		// - Vanilla does it, and without it there are significantly more error and missing items.
@@ -275,7 +314,7 @@ public final class Utils
 		
 		if (portedEntity != null)
 		{
-			portedEntity.copyDataFromOld(entity);
+			copyEntityNBT(entity, portedEntity);
 			portedEntity.setLocationAndAngles(
 					destination.getX() + 0.5d,
 					destination.getY(),
@@ -283,12 +322,67 @@ public final class Utils
 					yaw,
 					entity.rotationPitch);
 			
+			boolean forceSpawn = portedEntity.forceSpawn;
+			portedEntity.forceSpawn = true;
 			destinationWorld.spawnEntityInWorld(portedEntity);
+			portedEntity.forceSpawn = forceSpawn;
+			destinationWorld.updateEntityWithOptionalForce(portedEntity, false);
 		}
 		
 		entity.isDead = true;
 		startWorld.resetUpdateEntityTick();
 		destinationWorld.resetUpdateEntityTick();
+	}
+	
+	/**
+	 * Copies NBT data from one entity to another, excluding the "Dimension" tag.<br>
+	 * (Copy of {@link Entity#copyDataFromOld(Entity)} because the method is private as of Minecraft 1.9)
+	 * 
+	 * @param source
+	 * The entity to read the NBT data from.
+	 * @param target
+	 * The entity to write the NBT data to.
+	 */
+	private static final void copyEntityNBT(Entity source, Entity target)
+	{
+		NBTTagCompound tag = new NBTTagCompound();
+        source.writeToNBT(tag);
+        tag.removeTag("Dimension");
+        target.readFromNBT(tag);
+	}
+	
+	/**
+	 * Sets the InvulnerableDimensionChange flag on the specified player. This is needed to 
+	 * circumvent the illegal movement checks on the server side.
+	 * 
+	 * @param player
+	 * The player to set the flag for.
+	 * @return
+	 * <code>true</code> if the flag was successfully set, otherwise <code>false</code>.
+	 */
+	private static final boolean setInvulnerableDimensionChange(EntityPlayerMP player)
+	{
+		if (player == null) return false;
+		
+		try
+		{
+			if (invulnerableDimensionChange == null)
+			{
+				Class<EntityPlayerMP> playerClass = (Class<EntityPlayerMP>) Class.forName("net.minecraft.entity.player.EntityPlayerMP");
+				invulnerableDimensionChange = playerClass.getDeclaredField("invulnerableDimensionChange");
+				invulnerableDimensionChange.setAccessible(true);
+			}
+			
+			invulnerableDimensionChange.set(player, true);
+			
+			SimplePortals.log.warn(player.getDisplayNameString() + " - " + player.isInvulnerableDimensionChange());
+			
+			return true;
+		}
+		catch (Exception ex)
+		{
+			return false;
+		}
 	}
 	
 	/**
@@ -300,7 +394,7 @@ public final class Utils
 	 * <code>0</code> if facing is <code>null</code>, otherwise a value between <code>0</code> and <code>270</code> that
 	 * is a multiple of <code>90</code>.
 	 */
-	public static float getYaw(EnumFacing facing)
+	public static final float getYaw(EnumFacing facing)
 	{
 		if (facing == null) return 0;
 		

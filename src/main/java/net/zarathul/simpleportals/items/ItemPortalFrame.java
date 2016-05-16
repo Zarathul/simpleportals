@@ -8,7 +8,7 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.zarathul.simpleportals.SimplePortals;
@@ -29,6 +29,7 @@ public class ItemPortalFrame extends ItemBlock
 		
 		setMaxStackSize(64);
 		setCreativeTab(SimplePortals.creativeTab);
+		setRegistryName(Registry.ITEM_PORTAL_FRAME_NAME);
 		setUnlocalizedName(Registry.ITEM_PORTAL_FRAME_NAME);
 	}
 	
@@ -42,7 +43,7 @@ public class ItemPortalFrame extends ItemBlock
 		}
 		else
 		{
-			list.add(StatCollector.translateToLocal(toolTipKey));
+			list.add(I18n.translateToLocal(toolTipKey));
 		}
 	}
 }
