@@ -23,7 +23,6 @@ import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.WorldServer;
-import net.minecraft.world.WorldSettings.GameType;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.zarathul.simpleportals.SimplePortals;
@@ -369,13 +368,11 @@ public final class Utils
 			if (invulnerableDimensionChange == null)
 			{
 				Class<EntityPlayerMP> playerClass = (Class<EntityPlayerMP>) Class.forName("net.minecraft.entity.player.EntityPlayerMP");
-				invulnerableDimensionChange = playerClass.getDeclaredField("invulnerableDimensionChange");
+				invulnerableDimensionChange = playerClass.getDeclaredField("field_184851_cj");  // invulnerableDimensionChange field
 				invulnerableDimensionChange.setAccessible(true);
 			}
 			
 			invulnerableDimensionChange.set(player, true);
-			
-			SimplePortals.log.warn(player.getDisplayNameString() + " - " + player.isInvulnerableDimensionChange());
 			
 			return true;
 		}
