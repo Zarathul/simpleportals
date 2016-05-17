@@ -231,9 +231,7 @@ public class BlockPortal extends BlockBreakable
 			
 			BlockPos portTarget = destination.getPortDestination(server, entityHeight);
 			
-			if (portTarget == null) return;
-			
-			if (bypassPowerCost || Config.powerCost == 0 || PortalRegistry.removePower(start, Config.powerCost))
+			if (portTarget != null && (bypassPowerCost || Config.powerCost == 0 || PortalRegistry.removePower(start, Config.powerCost)))
 			{
 				// Get a facing pointing away from the destination portal. After porting, the portal 
 				// will always be behind the entity. When porting to a horizontal portal the facing
@@ -249,10 +247,11 @@ public class BlockPortal extends BlockBreakable
 						: EnumFacing.WEST;
 				
 				Utils.teleportTo(entity, destination.getDimension(), portTarget, entityFacing);
-				// Put the entity on "cooldown" in order to prevent it from instantly porting again
-				entityCooldowns.put(entity.getUniqueID(), world.getTotalWorldTime());
 				PortalRegistry.updatePowerGauges(world, start);
 			}
+			
+			// Put the entity on "cooldown" in order to prevent it from instantly porting again
+			entityCooldowns.put(entity.getUniqueID(), world.getTotalWorldTime());
 		}
 	}
 	

@@ -368,7 +368,7 @@ public final class Utils
 			if (invulnerableDimensionChange == null)
 			{
 				Class<EntityPlayerMP> playerClass = (Class<EntityPlayerMP>) Class.forName("net.minecraft.entity.player.EntityPlayerMP");
-				invulnerableDimensionChange = playerClass.getDeclaredField("field_184851_cj");  // invulnerableDimensionChange field
+				invulnerableDimensionChange = playerClass.getDeclaredField("invulnerableDimensionChange");  // invulnerableDimensionChange field
 				invulnerableDimensionChange.setAccessible(true);
 			}
 			

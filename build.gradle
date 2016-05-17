@@ -37,6 +37,10 @@ minecraft
 
     replaceIn "SimplePortals.java"
     replace "@VERSION@", project.version
+	// Vanilla field name used to set private field with reflection.
+	// Field name in DEV environment needs to be MCP, after compile SRG.
+	replaceIn "Utils.java"
+	replace "(\"invulnerableDimensionChange\")", "(\"field_184851_cj\")"
 }
 
 processResources

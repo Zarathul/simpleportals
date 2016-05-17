@@ -1,5 +1,7 @@
 package net.zarathul.simpleportals.registration;
 
+import java.util.Arrays;
+
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
@@ -17,6 +19,7 @@ import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.blocks.BlockPowerGauge;
 import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.configuration.Recipe;
+import net.zarathul.simpleportals.items.CreativeTabLogoItem;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
 import net.zarathul.simpleportals.items.ItemPortalFrame;
 import net.zarathul.simpleportals.items.ItemPowerGauge;
@@ -35,10 +38,12 @@ public final class Registry
 	public static final String ITEM_POWER_GAUGE_NAME = "itemPowerGauge";
 
 	public static final String ITEM_PORTAL_ACTIVATOR_NAME = "itemPortalActivator";
+	public static final String CREATIVE_TAB_LOGO_ITEM_NAME = "creativeTabLogo";
 
 	private static final String ITEM_PORTAL_FRAME_MODEL_RESLOC = SimplePortals.MOD_ID + ":" + BLOCK_PORTAL_FRAME_NAME;
 	private static final String ITEM_POWER_GAUGE_MODEL_RESLOC = SimplePortals.MOD_ID + ":" + BLOCK_POWER_GAUGE_NAME;
 	private static final String ITEM_PORTAL_ACTIVATOR_RESLOC = SimplePortals.MOD_ID + ":" + ITEM_PORTAL_ACTIVATOR_NAME;
+	private static final String CREATIVETABITEM_MODEL_RESLOC = SimplePortals.MOD_ID + ":" + CREATIVE_TAB_LOGO_ITEM_NAME;
 
 	/**
 	 * Creates and registers all blocks added by the mod.
@@ -71,6 +76,9 @@ public final class Registry
 		
 		SimplePortals.itemPortalActivator = new ItemPortalActivator();
 		GameRegistry.register(SimplePortals.itemPortalActivator);
+		
+		SimplePortals.creativeTabLogoItem = new CreativeTabLogoItem();
+		GameRegistry.register(SimplePortals.creativeTabLogoItem);
 	}
 	
 	/**
@@ -81,6 +89,7 @@ public final class Registry
 		ModelLoader.setCustomModelResourceLocation(SimplePortals.itemPortalFrame, 0, new ModelResourceLocation(ITEM_PORTAL_FRAME_MODEL_RESLOC, "inventory"));
 		ModelLoader.setCustomModelResourceLocation(SimplePortals.itemPowerGauge, 0, new ModelResourceLocation(ITEM_POWER_GAUGE_MODEL_RESLOC, "inventory"));
 		ModelLoader.setCustomModelResourceLocation(SimplePortals.itemPortalActivator, 0, new ModelResourceLocation(ITEM_PORTAL_ACTIVATOR_RESLOC, "inventory"));
+		ModelLoader.setCustomModelResourceLocation(SimplePortals.creativeTabLogoItem, 0, new ModelResourceLocation(CREATIVETABITEM_MODEL_RESLOC, "inventory"));
 	}
 
 	/**
@@ -171,24 +180,30 @@ public final class Registry
 	}
 
 	/**
-	 * Adds a tab in creative mode for the mod.
+	 * Adds a creative mode tab.
 	 */
 	@SideOnly(Side.CLIENT)
 	public static final void addCreativeTab()
 	{
-		SimplePortals.creativeTab = new CreativeTabs(SimplePortals.MOD_READABLE_NAME)
-		{
-			@Override
-			public String getTranslatedTabLabel()
-			{
-				return this.getTabLabel();
-			}
-
-			@Override
-			public Item getTabIconItem()
-			{
-				return Item.getItemFromBlock(SimplePortals.blockPortalFrame);
-			}
-		};
+		// Check if a a "Simple Mods" tab already exists, otherwise make one.
+		SimplePortals.creativeTab = Arrays.stream(CreativeTabs.creativeTabArray)
+			.filter(tab -> tab.getTabLabel().equals(SimplePortals.MOD_TAB_NAME))
+			.findFirst()
+			.orElseGet(() ->
+				new CreativeTabs(SimplePortals.MOD_TAB_NAME)
+				{
+					@Override
+					public String getTranslatedTabLabel()
+					{
+						return this.getTabLabel();
+					}
+					
+					@Override
+					public Item getTabIconItem()
+					{
+						return SimplePortals.creativeTabLogoItem;
+					}
+				}
+			);
 	}
 }
