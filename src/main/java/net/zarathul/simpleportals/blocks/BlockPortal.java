@@ -16,6 +16,7 @@ import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
@@ -194,8 +195,11 @@ public class BlockPortal extends BlockBreakable
 				}
 			}
 			
+			// Bypass the power cost for players in creative mode
+			boolean bypassPowerCost = (entity instanceof EntityPlayerMP && ((EntityPlayerMP)entity).capabilities.isCreativeMode);
+			
 			// Check if portal has enough power for a port
-			if (PortalRegistry.getPower(start) < Config.powerCost) return;
+			if (!bypassPowerCost && PortalRegistry.getPower(start) < Config.powerCost) return;
 			
 			portals = PortalRegistry.getPortalsWithAddress(start.getAddress());
 			
@@ -214,9 +218,7 @@ public class BlockPortal extends BlockBreakable
 			
 			BlockPos portTarget = destination.getPortDestination(server, entityHeight);
 			
-			if (portTarget == null) return;
-			
-			if (Config.powerCost == 0 || PortalRegistry.removePower(start, Config.powerCost))
+			if (portTarget != null && (bypassPowerCost || Config.powerCost == 0 || PortalRegistry.removePower(start, Config.powerCost)))
 			{
 				// Get a facing pointing away from the destination portal. After porting, the portal 
 				// will always be behind the entity. When porting to a horizontal portal the initial
@@ -232,10 +234,11 @@ public class BlockPortal extends BlockBreakable
 						: EnumFacing.WEST;
 				
 				Utils.teleportTo(entity, destination.getDimension(), portTarget, entityFacing);
-				// Put the entity on "cooldown" in order to prevent it from instantly porting again
-				portedEntities.put(entity.getUniqueID(), world.getTotalWorldTime());
 				PortalRegistry.updatePowerGauges(world, start);
 			}
+			
+			// Put the entity on "cooldown" in order to prevent it from instantly porting again
+			portedEntities.put(entity.getUniqueID(), world.getTotalWorldTime());
 		}
 	}
 	
