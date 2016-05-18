@@ -15,7 +15,6 @@ import net.zarathul.simpleportals.blocks.BlockPortal;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.blocks.BlockPowerGauge;
 import net.zarathul.simpleportals.common.PortalWorldSaveData;
-import net.zarathul.simpleportals.items.CreativeTabLogoItem;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
 
 @Mod(modid = SimplePortals.MOD_ID, name = SimplePortals.MOD_READABLE_NAME, version = SimplePortals.VERSION, guiFactory = "net.zarathul.simpleportals.configuration.ConfigGuiFactory")
@@ -34,7 +33,6 @@ public class SimplePortals
 
 	// items
 	public static ItemPortalActivator itemPortalActivator;
-	public static CreativeTabLogoItem creativeTabLogoItem;
 	public static ItemBlock itemPortalFrame;
 	public static ItemBlock itemPowerGauge;
 
