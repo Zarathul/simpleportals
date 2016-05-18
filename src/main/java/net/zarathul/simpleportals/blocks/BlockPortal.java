@@ -237,7 +237,7 @@ public class BlockPortal extends BlockBreakable
 				// will always be behind the entity. When porting to a horizontal portal the facing
 				// is always south.
 				EnumFacing entityFacing = (destination.getAxis() == Axis.Y)
-						? EnumFacing.SOUTH
+						? entity.getHorizontalFacing()
 						: (destination.getAxis() == Axis.X)
 						? (portTarget.getZ() > destination.getCorner1().getPos().getZ())
 						? EnumFacing.SOUTH
