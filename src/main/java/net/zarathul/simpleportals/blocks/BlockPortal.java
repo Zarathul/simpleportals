@@ -49,8 +49,10 @@ public class BlockPortal extends BlockBreakable
 			EnumFacing.Axis.class,
 			new EnumFacing.Axis[] { EnumFacing.Axis.X, EnumFacing.Axis.Y, EnumFacing.Axis.Z });
 	
-	private static final HashMap<UUID, Long> portedEntities = Maps.newHashMap();
-	private static long lastPortedEntitiesUpdate = 0;
+	private static final HashMap<UUID, Long> entityCooldowns = Maps.newHashMap();
+	private static long lastCooldownUpdate = 0;
+	private static final int COOLDOWN = 60;
+	private static final int COOLDOWN_UPDATE_INTERVAL = 200;
 	
 	public BlockPortal()
 	{
@@ -148,21 +150,28 @@ public class BlockPortal extends BlockBreakable
 	{
 		if (!world.isRemote && entity.ridingEntity == null && entity.riddenByEntity == null && !entity.isDead)
 		{
-			if (portedEntities.size() > 0 && world.getTotalWorldTime() - lastPortedEntitiesUpdate >= 100)
+			// Check if entity is on teleportation cooldown
+			if (entityCooldowns.containsKey(entity.getUniqueID()))
 			{
-				// Remove entities from ported entities list that have been ported at least 100 ticks ago
+				if (world.getTotalWorldTime() - entityCooldowns.get(entity.getUniqueID()) < COOLDOWN) return;
 				
-				List<UUID> removableEntities = portedEntities.keySet().stream()
-					.filter(id -> world.getTotalWorldTime() - portedEntities.get(id) >= 100)
-					.collect(Collectors.toList());
+				entityCooldowns.remove(entity.getUniqueID());
 				
-				for (UUID id : removableEntities) { portedEntities.remove(id); }
-				
-				lastPortedEntitiesUpdate = world.getTotalWorldTime();
+				if (world.getTotalWorldTime() - lastCooldownUpdate >= COOLDOWN_UPDATE_INTERVAL)
+				{
+					if (entityCooldowns.size() > 0)
+					{
+						// Remove expired cooldowns
+						List<UUID> expiredCooldowns = entityCooldowns.keySet().stream()
+							.filter(id -> world.getTotalWorldTime() - entityCooldowns.get(id) >= COOLDOWN)
+							.collect(Collectors.toList());
+						
+						for (UUID id : expiredCooldowns) { entityCooldowns.remove(id); }
+					}
+					
+					lastCooldownUpdate = world.getTotalWorldTime();
+				}
 			}
-			
-			// Check if entity has already been ported
-			if (portedEntities.containsKey(entity.getUniqueID())) return;
 			
 			List<Portal> portals = PortalRegistry.getPortalsAt(pos, entity.dimension);
 			
@@ -224,7 +233,7 @@ public class BlockPortal extends BlockBreakable
 				// will always be behind the entity. When porting to a horizontal portal the initial
 				// facing is not changed.
 				EnumFacing entityFacing = (destination.getAxis() == Axis.Y)
-						? EnumFacing.SOUTH
+						? entity.getHorizontalFacing()
 						: (destination.getAxis() == Axis.X)
 						? (portTarget.getZ() > destination.getCorner1().getPos().getZ())
 						? EnumFacing.SOUTH
@@ -238,7 +247,7 @@ public class BlockPortal extends BlockBreakable
 			}
 			
 			// Put the entity on "cooldown" in order to prevent it from instantly porting again
-			portedEntities.put(entity.getUniqueID(), world.getTotalWorldTime());
+			entityCooldowns.put(entity.getUniqueID(), world.getTotalWorldTime());
 		}
 	}
 	
