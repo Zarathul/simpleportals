@@ -1,5 +1,6 @@
 package net.zarathul.simpleportals.blocks;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -21,6 +22,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
@@ -218,36 +220,52 @@ public class BlockPortal extends BlockBreakable
 			
 			if (portals == null || portals.size() < 2) return;
 			
-			// Choose a random portal with the same address as the starting portal
-			
-			Portal destination = portals.stream()
+			// Get a shuffled list of possible destination portals (portals with the same address)
+			List<Portal> destinations = portals.stream()
 					.filter(e -> !e.equals(start))
-					.skip(RANDOM.nextInt(portals.size() - 1))
-					.findFirst()
-					.get();
+					.collect(Collectors.toList());
 			
-			WorldServer server = entity.getServer().worldServerForDimension(destination.getDimension());
-			int entityHeight = MathHelper.ceiling_float_int(entity.height);
+			Collections.shuffle(destinations);
 			
-			BlockPos portTarget = destination.getPortDestination(server, entityHeight);
-			
-			if (portTarget != null && (bypassPowerCost || Config.powerCost == 0 || PortalRegistry.removePower(start, Config.powerCost)))
+			if (destinations.size() > 0 && (bypassPowerCost || Config.powerCost == 0 || PortalRegistry.removePower(start, Config.powerCost)))
 			{
-				// Get a facing pointing away from the destination portal. After porting, the portal 
-				// will always be behind the entity. When porting to a horizontal portal the facing
-				// is always south.
-				EnumFacing entityFacing = (destination.getAxis() == Axis.Y)
-						? entity.getHorizontalFacing()
-						: (destination.getAxis() == Axis.X)
-						? (portTarget.getZ() > destination.getCorner1().getPos().getZ())
-						? EnumFacing.SOUTH
-						: EnumFacing.NORTH
-						: (portTarget.getX() > destination.getCorner1().getPos().getX())
-						? EnumFacing.EAST
-						: EnumFacing.WEST;
+				WorldServer server;
+				BlockPos portTarget = null;
+				Portal destination = null;
+				MinecraftServer mcServer = entity.getServer();
+				int entityHeight = MathHelper.ceiling_float_int(entity.height);
 				
-				Utils.teleportTo(entity, destination.getDimension(), portTarget, entityFacing);
-				PortalRegistry.updatePowerGauges(world, start);
+				// Pick the first not blocked destination portal
+				for (Portal portal : destinations)
+				{
+					server = mcServer.worldServerForDimension(portal.getDimension());
+					portTarget = portal.getPortDestination(server, entityHeight);
+					
+					if (portTarget != null)
+					{
+						destination = portal;
+						break;
+					}
+				}
+				
+				if (portTarget != null)
+				{
+					// Get a facing pointing away from the destination portal. After porting, the portal 
+					// will always be behind the entity. When porting to a horizontal portal the initial
+					// facing is not changed.
+					EnumFacing entityFacing = (destination.getAxis() == Axis.Y)
+							? entity.getHorizontalFacing()
+							: (destination.getAxis() == Axis.X)
+							? (portTarget.getZ() > destination.getCorner1().getPos().getZ())
+							? EnumFacing.SOUTH
+							: EnumFacing.NORTH
+							: (portTarget.getX() > destination.getCorner1().getPos().getX())
+							? EnumFacing.EAST
+							: EnumFacing.WEST;
+					
+					Utils.teleportTo(entity, destination.getDimension(), portTarget, entityFacing);
+					PortalRegistry.updatePowerGauges(world, start);
+				}
 			}
 			
 			// Put the entity on "cooldown" in order to prevent it from instantly porting again
