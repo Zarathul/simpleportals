@@ -13,7 +13,7 @@ public class PortalFrameMaterial extends Material
 
 	public PortalFrameMaterial()
 	{
-		super(MapColor.blackColor);
+		super(MapColor.BLACK);
 	}
 
 	@Override

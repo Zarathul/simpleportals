@@ -77,7 +77,7 @@ public final class Config
 	private static final int defaultPowerCapacity = 64;
 	private static final boolean defaultParticlesEnabled = true;
 	private static final boolean defaultAmbientSoundEnabled = false;
-	private static final ItemStack defaultPowerSource = new ItemStack(Items.ender_pearl);
+	private static final ItemStack defaultPowerSource = new ItemStack(Items.ENDER_PEARL);
 
 	// Settings
 

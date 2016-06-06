@@ -47,7 +47,7 @@ public class ItemPortalActivator extends Item
 		setRegistryName(Registry.ITEM_PORTAL_ACTIVATOR_NAME);
 		setUnlocalizedName(Registry.ITEM_PORTAL_ACTIVATOR_NAME);
 		
-		BlockDispenser.dispenseBehaviorRegistry.putObject(this, dispenserBehavior);
+		BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.putObject(this, dispenserBehavior);
 	}
 	
 	@Override

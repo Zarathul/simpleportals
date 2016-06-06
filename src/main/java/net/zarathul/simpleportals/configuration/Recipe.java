@@ -84,7 +84,7 @@ public class Recipe
 		for (RecipeComponent component : components)
 		{
 			componentArg = (!component.modId.equals(RecipeComponent.OREDICT_IDENTIFIER)) ?
-					Item.itemRegistry.getObject(new ResourceLocation(component.modId, component.itemId)) :
+					Item.REGISTRY.getObject(new ResourceLocation(component.modId, component.itemId)) :
 					component.itemId;
 
 			if (componentArg == null) return null;

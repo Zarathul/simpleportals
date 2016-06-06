@@ -26,9 +26,10 @@ public class PortalWorldSaveData extends WorldSavedData
 	}
 	
 	@Override
-	public void writeToNBT(NBTTagCompound nbt)
+	public NBTTagCompound writeToNBT(NBTTagCompound nbt)
 	{
 		PortalRegistry.writeToNBT(nbt);
+		return nbt;
 	}
 	
 	public static PortalWorldSaveData get(World world)
@@ -36,7 +37,7 @@ public class PortalWorldSaveData extends WorldSavedData
 		if (world == null) return null;
 		
 		MapStorage storage = world.getMapStorage();
-		WorldSavedData instance = storage.loadData(PortalWorldSaveData.class, DATA_NAME);
+		WorldSavedData instance = storage.getOrLoadData(PortalWorldSaveData.class, DATA_NAME);
 		
 		if (instance == null)
 		{

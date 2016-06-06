@@ -61,14 +61,14 @@ public class BlockPortal extends BlockBreakable
 	
 	public BlockPortal()
 	{
-		super(Material.portal, false);
+		super(Material.PORTAL, false);
 		
 		setRegistryName(Registry.BLOCK_PORTAL_NAME);
 		setUnlocalizedName(Registry.BLOCK_PORTAL_NAME);
 		setDefaultState(this.blockState.getBaseState().withProperty(AXIS, EnumFacing.Axis.X));
 		setHardness(-1.0F); // indestructible by normal means
 		setLightLevel(0.75F);
-		setStepSound(SoundType.GLASS);
+		setSoundType(SoundType.GLASS);
 	}
 
 	@Override
@@ -106,7 +106,7 @@ public class BlockPortal extends BlockBreakable
 	}
 	
 	@Override
-	public AxisAlignedBB getSelectedBoundingBox(IBlockState blockState, World world, BlockPos pos)
+	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, World world, BlockPos pos)
 	{
 		return NULL_AABB;
 	}
@@ -331,7 +331,7 @@ public class BlockPortal extends BlockBreakable
 	{
 		if (Config.ambientSoundEnabled && rand.nextInt(100) == 0)
 		{
-			world.playSound((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, SoundEvents.block_portal_ambient, SoundCategory.BLOCKS, 0.5F, rand.nextFloat() * 0.4F + 0.8F, false);
+			world.playSound((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, SoundEvents.BLOCK_PORTAL_AMBIENT, SoundCategory.BLOCKS, 0.5F, rand.nextFloat() * 0.4F + 0.8F, false);
 		}
 
 		if (Config.particlesEnabled)

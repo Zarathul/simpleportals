@@ -171,7 +171,7 @@ public final class Utils
 			}
 			else
 			{
-				player.playerNetServerHandler.setPlayerLocation(
+				player.connection.setPlayerLocation(
 						destination.getX() + 0.5d,
 						destination.getY(),
 						destination.getZ() + 0.5d,
@@ -227,14 +227,14 @@ public final class Utils
 		WorldServer destinationWorld = server.worldServerForDimension(dimension);
 		
 		player.dimension = dimension;
-		player.playerNetServerHandler.sendPacket(new SPacketRespawn(
+		player.connection.sendPacket(new SPacketRespawn(
 				dimension,
 				destinationWorld.getDifficulty(),
 				destinationWorld.getWorldInfo().getTerrainType(),
 				player.interactionManager.getGameType()));
 
 		playerList.updatePermissionLevel(player);
-		startWorld.removePlayerEntityDangerously(player);
+		startWorld.removeEntityDangerously(player);
 		player.isDead = false;
 
 		player.setLocationAndAngles(
@@ -249,7 +249,7 @@ public final class Utils
 		player.setWorld(destinationWorld);
 
 		playerList.preparePlayer(player, startWorld);
-		player.playerNetServerHandler.setPlayerLocation(
+		player.connection.setPlayerLocation(
 				destination.getX() + 0.5d,
 				destination.getY(),
 				destination.getZ() + 0.5d,
@@ -257,7 +257,7 @@ public final class Utils
 				player.rotationPitch);
 		
 		player.interactionManager.setWorld(destinationWorld);
-		player.playerNetServerHandler.sendPacket(new SPacketPlayerAbilities(player.capabilities));
+		player.connection.sendPacket(new SPacketPlayerAbilities(player.capabilities));
 		playerList.updateTimeAndWeatherForPlayer(player, destinationWorld);
 		playerList.syncPlayerInventory(player);
 
@@ -265,11 +265,11 @@ public final class Utils
 
 		for (PotionEffect potionEffect : player.getActivePotionEffects())
 		{
-			player.playerNetServerHandler.sendPacket(new SPacketEntityEffect(player.getEntityId(), potionEffect));
+			player.connection.sendPacket(new SPacketEntityEffect(player.getEntityId(), potionEffect));
 		}
 
 		// Resend player XP otherwise the XP bar won't show up until XP is either gained or lost 
-		player.playerNetServerHandler.sendPacket(new SPacketSetExperience(player.experience, player.experienceTotal, player.experienceLevel));
+		player.connection.sendPacket(new SPacketSetExperience(player.experience, player.experienceTotal, player.experienceLevel));
 
 		FMLCommonHandler.instance().firePlayerChangedDimensionEvent(player, startDimension, dimension);
 	}

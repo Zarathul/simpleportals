@@ -36,7 +36,7 @@ public class BlockPortalFrame extends Block
 		setCreativeTab(SimplePortals.creativeTab);
 		setHardness(50.0f);
 		setResistance(200.0f);
-		setStepSound(SoundType.STONE);
+		setSoundType(SoundType.STONE);
 		setHarvestLevel("pickaxe", 3);
 	}
 
@@ -95,7 +95,7 @@ public class BlockPortalFrame extends Block
 	}
 
 	@Override
-	public void onNeighborBlockChange(World world, BlockPos pos, IBlockState state, Block neighborBlock)
+	public void neighborChanged(IBlockState state, World world, BlockPos pos, Block neighborBlock)
 	{
 		if (!world.isRemote)
 		{
@@ -114,5 +114,7 @@ public class BlockPortalFrame extends Block
 				PortalRegistry.deactivatePortal(world, pos);
 			}
 		}
+		
+		super.neighborChanged(state, world, pos, neighborBlock);
 	}
 }
