@@ -301,18 +301,24 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 		BlockPos portal2 = corner4.getInnerCornerPos();
 		int width = 0, height = 0, lowBound = 0, highBound = 0;
 		
-		width = Math.abs(Utils.getAxisValue(portal1, axis) - Utils.getAxisValue(portal2, axis)) + 1;
+		// Get the axis for possible spawn locations and the corresponding 
+		// axis values for the 2 corner portal blocks.
+		Axis cornerAxis = Utils.getOrthogonalTo(axis);
+		int portal1AxisValue = Utils.getAxisValue(portal1, cornerAxis);
+		int portal2AxisValue = Utils.getAxisValue(portal2, cornerAxis);
+		
+		width = Math.abs(portal1AxisValue - portal2AxisValue) + 1;
 		height = Math.abs(portal1.getY() - portal2.getY()) + 1;
 		
-		if (Utils.getAxisValue(portal1, axis) < Utils.getAxisValue(portal2, axis))
+		if (portal1AxisValue < portal2AxisValue)
 		{
-			lowBound = Utils.getAxisValue(portal1, axis);
-			highBound = Utils.getAxisValue(portal2, axis);
+			lowBound = portal1AxisValue;
+			highBound = portal2AxisValue;
 		}
 		else
 		{
-			lowBound = Utils.getAxisValue(portal2, axis);
-			highBound = Utils.getAxisValue(portal1, axis);
+			lowBound = portal2AxisValue;
+			highBound = portal1AxisValue;
 		}
 		
 		int halfWidth = Math.floorDiv(width, 2);
@@ -320,15 +326,15 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 		int startHeight = (portal1.getY() < portal2.getY()) ? portal1.getY() : portal2.getY();
 		
 		// e.g. Axis.Z and AxisDirection.POSITIVE returns EnumFacing.SOUTH.
-		EnumFacing searchDirPositive = EnumFacing.getFacingFromAxis(AxisDirection.POSITIVE, axis);
-		EnumFacing searchDirNegative = EnumFacing.getFacingFromAxis(AxisDirection.NEGATIVE, axis);
+		EnumFacing searchDirPositive = EnumFacing.getFacingFromAxis(AxisDirection.POSITIVE, cornerAxis);
+		EnumFacing searchDirNegative = EnumFacing.getFacingFromAxis(AxisDirection.NEGATIVE, cornerAxis);
 		
 		BlockPos feetPos = null;
-		BlockPos searchStartPos1 = (axis == Axis.X)
+		BlockPos searchStartPos1 = (axis == Axis.Z)
 				? new BlockPos(middle, startHeight, portal1.south(1).getZ())
 				: new BlockPos(portal1.east(1).getX(), startHeight, middle);
 		
-		BlockPos searchStartPos2 = (axis == Axis.X)
+		BlockPos searchStartPos2 = (axis == Axis.Z)
 				? new BlockPos(middle, startHeight, portal1.north(1).getZ())
 				: new BlockPos(portal1.west(1).getX(), startHeight, middle);
 		
@@ -349,14 +355,14 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 				{
 					feetPos = currentFeetPos.offset(searchDirPositive, x);
 					
-					if (Utils.getAxisValue(feetPos, axis) <= highBound)
+					if (Utils.getAxisValue(feetPos, cornerAxis) <= highBound)
 					{
 						if (canEntitySpawnAt(world, feetPos, entityHeight)) return feetPos;
 					}
 					
 					feetPos = currentFeetPos.offset(searchDirNegative, x);
 					
-					if (Utils.getAxisValue(feetPos, axis) >= lowBound)
+					if (Utils.getAxisValue(feetPos, cornerAxis) >= lowBound)
 					{
 						if (canEntitySpawnAt(world, feetPos, entityHeight)) return feetPos;
 					}

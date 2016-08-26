@@ -25,6 +25,7 @@ import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.blocks.BlockPortal;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.blocks.BlockPowerGauge;
+import net.zarathul.simpleportals.common.Utils;
 import net.zarathul.simpleportals.configuration.Config;
 
 /**
@@ -133,13 +134,18 @@ public final class PortalRegistry
 		
 		int corner1Y = corner1.getPos().getY();
 		
-		Axis portalAxis = (corner1Y == corner2.getPos().getY()
+		boolean isHorizontal = (corner1Y == corner2.getPos().getY()
 				&& corner1Y == corner3.getPos().getY()
-				&& corner1Y == corner4.getPos().getY())
-				? Axis.Y
-				: (corner1.getFacingA().getAxis() != Axis.Y)
+				&& corner1Y == corner4.getPos().getY());
+		
+		// Only relevant for vertical portals.
+		Axis horizontalCornerFacing = (corner1.getFacingA().getAxis() != Axis.Y)
 				? corner1.getFacingA().getAxis()
 				: corner1.getFacingB().getAxis();
+		
+		Axis portalAxis = isHorizontal
+				? Axis.Y
+				: Utils.getOrthogonalTo(horizontalCornerFacing);
 		
 		// Create portal data structure
 		

@@ -129,6 +129,22 @@ public final class Utils
 	}
 	
 	/**
+	 * Gets the axis that is orthogonal to, and on the same plane as the specified one.
+	 * 
+	 * @param axis
+	 * The starting axis.
+	 * @return
+	 * One of the {@link Axis} values or <code>null</code> if the specified axis was <code>null</code> or 
+	 * there is no other axis on the same plane.
+	 */
+	public static final Axis getOrthogonalTo(Axis axis)
+	{
+		if (axis == null || axis == Axis.Y) return null;
+		
+		return (axis == Axis.X) ? Axis.Z : Axis.X;
+	}
+	
+	/**
 	 * Teleport an entity to the specified position in the specified dimension
 	 * facing the specified direction.
 	 * 

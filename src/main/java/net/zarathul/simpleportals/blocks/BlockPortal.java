@@ -84,10 +84,10 @@ public class BlockPortal extends BlockBreakable
 		
 		switch (meta)
 		{
-			case 0: axis = EnumFacing.Axis.X;
-			case 1: axis = EnumFacing.Axis.Y;
-			case 2:	axis = EnumFacing.Axis.Z;
-			default: axis = EnumFacing.Axis.X;
+			case 0: axis = EnumFacing.Axis.X; break;
+			case 1: axis = EnumFacing.Axis.Y; break;
+			case 2:	axis = EnumFacing.Axis.Z; break;
+			default: axis = EnumFacing.Axis.X; break;
 		}
 		
 		return this.getDefaultState().withProperty(AXIS, axis);
@@ -121,12 +121,12 @@ public class BlockPortal extends BlockBreakable
 		switch (axis)
 		{
 			case X:
-				minX = 0;
-				maxX = 1;
+				minX = 0.375;
+				maxX = 0.625;
 				minY = 0;
 				maxY = 1;
-				minZ = 0.375;
-				maxZ = 0.625;
+				minZ = 0;
+				maxZ = 1;
 			break;
 			
 			case Y:
@@ -139,12 +139,12 @@ public class BlockPortal extends BlockBreakable
 			break;
 			
 			case Z:
-				minX = 0.375;
-				maxX = 0.625;
+				minX = 0;
+				maxX = 1;
 				minY = 0;
 				maxY = 1;
-				minZ = 0;
-				maxZ = 1;
+				minZ = 0.375;
+				maxZ = 0.625;
 			break;
 		}
 		
@@ -255,7 +255,7 @@ public class BlockPortal extends BlockBreakable
 					// facing is not changed.
 					EnumFacing entityFacing = (destination.getAxis() == Axis.Y)
 							? entity.getHorizontalFacing()
-							: (destination.getAxis() == Axis.X)
+							: (destination.getAxis() == Axis.Z)
 							? (portTarget.getZ() > destination.getCorner1().getPos().getZ())
 							? EnumFacing.SOUTH
 							: EnumFacing.NORTH
