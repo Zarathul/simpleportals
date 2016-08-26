@@ -361,9 +361,9 @@ public final class Utils
 	private static final void copyEntityNBT(Entity source, Entity target)
 	{
 		NBTTagCompound tag = new NBTTagCompound();
-        source.writeToNBT(tag);
-        tag.removeTag("Dimension");
-        target.readFromNBT(tag);
+		source.writeToNBT(tag);
+		tag.removeTag("Dimension");
+		target.readFromNBT(tag);
 	}
 	
 	/**
