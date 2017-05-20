@@ -17,7 +17,9 @@ import net.zarathul.simpleportals.blocks.BlockPowerGauge;
 import net.zarathul.simpleportals.common.PortalWorldSaveData;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
 
-@Mod(modid = SimplePortals.MOD_ID, name = SimplePortals.MOD_READABLE_NAME, version = SimplePortals.VERSION, guiFactory = "net.zarathul.simpleportals.configuration.ConfigGuiFactory")
+@Mod(modid = SimplePortals.MOD_ID, name = SimplePortals.MOD_READABLE_NAME, version = SimplePortals.VERSION,
+     updateJSON = "https://raw.githubusercontent.com/Zarathul/mcmodversions/master/simpleportals.json",
+     guiFactory = "net.zarathul.simpleportals.configuration.ConfigGuiFactory")
 public class SimplePortals
 {
 	@Instance(value = SimplePortals.MOD_ID)
