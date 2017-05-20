@@ -1,7 +1,7 @@
 {
     "parent": "builtin/generated",
     "textures": {
-        "layer0": "simpleportals:items/PortalActivator"
+        "layer0": "simpleportals:items/portalactivator"
     },
     "display": {
         "thirdperson_righthand": {

@@ -48,13 +48,15 @@ public class BlockPortalFrame extends Block
 
 	@Override
 	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player,
-			EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ)
+			EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ)
 	{
 		if (!world.isRemote)
 		{
-			if (heldItem != null)
+			ItemStack heldStack = player.getHeldItem(hand);
+			
+			if (heldStack != null)
 			{
-				Item usedItem = heldItem.getItem();
+				Item usedItem = heldStack.getItem();
 				
 				if (usedItem == SimplePortals.itemPortalActivator)
 				{
@@ -71,7 +73,7 @@ public class BlockPortalFrame extends Block
 			}
 		}
 		
-		return super.onBlockActivated(world, pos, state, player, hand, heldItem, side, hitX, hitY, hitZ);
+		return super.onBlockActivated(world, pos, state, player, hand, side, hitX, hitY, hitZ);
 	}
 
 	@Override
@@ -95,7 +97,7 @@ public class BlockPortalFrame extends Block
 	}
 
 	@Override
-	public void neighborChanged(IBlockState state, World world, BlockPos pos, Block neighborBlock)
+	public void neighborChanged(IBlockState state, World world, BlockPos pos, Block neighborBlock, BlockPos sourcePos)
 	{
 		if (!world.isRemote)
 		{
@@ -115,6 +117,6 @@ public class BlockPortalFrame extends Block
 			}
 		}
 		
-		super.neighborChanged(state, world, pos, neighborBlock);
+		super.neighborChanged(state, world, pos, neighborBlock, sourcePos);
 	}
 }

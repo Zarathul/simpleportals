@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.event.FMLInterModComms;
@@ -90,7 +89,7 @@ public final class Registry
 	 */
 	public static final void registerWithWaila()
 	{
-		FMLInterModComms.sendMessage("Waila", "register", "net.zarathul.simpleportals.waila.WailaRegistry.register");
+		FMLInterModComms.sendMessage("waila", "register", "net.zarathul.simpleportals.waila.WailaRegistry.register");
 	}
 
 	/**
@@ -151,7 +150,7 @@ public final class Registry
 
 			if (registrationArgs != null && recipe.yield > 0)
 			{
-				result.stackSize = recipe.yield;
+				result.setCount(recipe.yield);
 
 				if (recipe.isShapeless)
 				{
@@ -185,6 +184,8 @@ public final class Registry
 			.orElseGet(() ->
 				new CreativeTabs(SimplePortals.MOD_TAB_NAME)
 				{
+					private ItemStack iconStack;
+					
 					@Override
 					public String getTranslatedTabLabel()
 					{
@@ -192,9 +193,11 @@ public final class Registry
 					}
 					
 					@Override
-					public Item getTabIconItem()
+					public ItemStack getTabIconItem()
 					{
-						return Item.getItemFromBlock(SimplePortals.blockPortalFrame);
+						if (iconStack == null) iconStack = new ItemStack(SimplePortals.itemPortalFrame);
+						
+						return iconStack;
 					}
 				}
 			);

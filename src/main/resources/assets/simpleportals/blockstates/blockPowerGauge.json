@@ -1,5 +1,5 @@
 {
     "variants": {
-        "normal": { "model": "simpleportals:blockPowerGauge" }
+        "normal": { "model": "simpleportals:blockpowergauge" }
     }
 }

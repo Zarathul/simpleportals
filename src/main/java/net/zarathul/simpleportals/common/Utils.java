@@ -260,7 +260,7 @@ public final class Utils
 				yaw,
 				player.rotationPitch);
 		
-		destinationWorld.spawnEntityInWorld(player);
+		destinationWorld.spawnEntity(player);
 		destinationWorld.updateEntityWithOptionalForce(player, false);
 		player.setWorld(destinationWorld);
 
@@ -324,8 +324,8 @@ public final class Utils
 		startWorld.updateEntityWithOptionalForce(entity, false);
 		
 		// Why duplicate the entity and delete the one we just went through the trouble of porting?
-		// - Vanilla does it, and without it there are significantly more error and missing items.
-		Entity portedEntity = EntityList.createEntityByName(EntityList.getEntityString(entity), destinationWorld);
+		// - Vanilla does it, and without it there are significantly more errors and missing items.
+		Entity portedEntity = EntityList.createEntityByIDFromName(EntityList.getKey(entity), destinationWorld);
 		
 		if (portedEntity != null)
 		{
@@ -339,7 +339,7 @@ public final class Utils
 			
 			boolean forceSpawn = portedEntity.forceSpawn;
 			portedEntity.forceSpawn = true;
-			destinationWorld.spawnEntityInWorld(portedEntity);
+			destinationWorld.spawnEntity(portedEntity);
 			portedEntity.forceSpawn = forceSpawn;
 			destinationWorld.updateEntityWithOptionalForce(portedEntity, false);
 		}

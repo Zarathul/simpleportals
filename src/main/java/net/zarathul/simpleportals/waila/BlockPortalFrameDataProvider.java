@@ -65,7 +65,7 @@ public final class BlockPortalFrameDataProvider implements IWailaDataProvider
 				for (Portal portal : portals)
 				{
 					power = PortalRegistry.getPower(portal);
-					percentage = (Config.powerCapacity > 0) ? MathHelper.clamp_int((int) ((long) power * 100 / Config.powerCapacity), 0, 100) : 100;
+					percentage = (Config.powerCapacity > 0) ? MathHelper.clamp((int) ((long) power * 100 / Config.powerCapacity), 0, 100) : 100;
 					
 					currenttip.add(I18n.translateToLocalFormatted(WailaRegistry.WAILA_TOOLTIP_POWER_CAPACITY, power, Config.powerCapacity, percentage));
 				}

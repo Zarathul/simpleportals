@@ -1,12 +1,11 @@
 package net.zarathul.simpleportals.configuration;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
@@ -90,7 +89,7 @@ public final class Config
 	public static Recipe portalFrameRecipe;
 	public static Recipe powerGaugeRecipe;
 	public static Recipe portalActivatorRecipe;
-	public static List<ItemStack> powerSources;
+	public static NonNullList<ItemStack> powerSources;
 
 	// Config file categories
 
@@ -191,8 +190,7 @@ public final class Config
 		
 		if (item != null)
 		{
-			powerSources = new ArrayList<ItemStack>();
-			powerSources.add(new ItemStack(item));
+			powerSources = NonNullList.withSize(1, new ItemStack(item));
 		}
 		else
 		{

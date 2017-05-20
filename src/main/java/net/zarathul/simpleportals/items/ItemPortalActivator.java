@@ -71,7 +71,7 @@ public class ItemPortalActivator extends Item
 	}
 
 	@Override
-	public EnumActionResult onItemUse(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumHand hand,
+	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand,
 			 EnumFacing side, float hitX, float hitY, float hitZ)
 	{
 		if (world.getBlockState(pos).getBlock() instanceof BlockPortalFrame)
@@ -79,7 +79,7 @@ public class ItemPortalActivator extends Item
 			player.swingArm(hand);
 		}
 		
-		return super.onItemUse(stack, player, world, pos, hand, side, hitX, hitY, hitZ);
+		return super.onItemUse(player, world, pos, hand, side, hitX, hitY, hitZ);
 	}
 	
 	/**

@@ -106,7 +106,7 @@ public class BlockPortal extends BlockBreakable
 	}
 	
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, World world, BlockPos pos)
+	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos)
 	{
 		return NULL_AABB;
 	}
@@ -193,13 +193,13 @@ public class BlockPortal extends BlockBreakable
 				
 				if (PortalRegistry.getPower(start) < Config.powerCapacity && OreDictionary.containsMatch(false, Config.powerSources, item))
 				{
-					int surplus = PortalRegistry.addPower(start, item.stackSize);
+					int surplus = PortalRegistry.addPower(start, item.getCount());
 					
 					PortalRegistry.updatePowerGauges(world, start);
 					
 					if (surplus > 0)
 					{
-						item.stackSize = surplus;
+						item.setCount(surplus);
 					}
 					else
 					{
@@ -233,7 +233,7 @@ public class BlockPortal extends BlockBreakable
 				BlockPos portTarget = null;
 				Portal destination = null;
 				MinecraftServer mcServer = entity.getServer();
-				int entityHeight = MathHelper.ceiling_float_int(entity.height);
+				int entityHeight = MathHelper.ceil(entity.height);
 				
 				// Pick the first not blocked destination portal
 				for (Portal portal : destinations)
@@ -306,10 +306,16 @@ public class BlockPortal extends BlockBreakable
 	}
 
 	@Override
+	public ItemStack getItem(World worldIn, BlockPos pos, IBlockState state)
+	{
+		return ItemStack.EMPTY;
+	}
+
+	@Override
 	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos,
 			EntityPlayer player)
 	{
-		return null;
+		return ItemStack.EMPTY;
 	}
 
 	@Override

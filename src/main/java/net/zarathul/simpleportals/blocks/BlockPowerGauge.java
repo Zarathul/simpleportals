@@ -42,7 +42,7 @@ public class BlockPowerGauge extends BlockPortalFrame
 				signalSum += getSignalStrength(portal);
 			}
 			
-			int combinedSignal = MathHelper.floor_float(signalSum / (float)portals.size());
+			int combinedSignal = MathHelper.floor(signalSum / (float)portals.size());
 			
 			return combinedSignal;
 		}
@@ -63,14 +63,14 @@ public class BlockPowerGauge extends BlockPortalFrame
 	{
 		if (portal != null && Config.powerCost > 0 && Config.powerCapacity > 0)
 		{
-			int maxUses = MathHelper.floor_float(Config.powerCapacity / (float)Config.powerCost);
+			int maxUses = MathHelper.floor(Config.powerCapacity / (float)Config.powerCost);
 			
 			if (maxUses > 0)
 			{
 				int power = PortalRegistry.getPower(portal);
-				int uses = MathHelper.floor_float(power / (float)Config.powerCost);
+				int uses = MathHelper.floor(power / (float)Config.powerCost);
 				
-				int signalStrength = MathHelper.floor_float((uses / (float)maxUses) * 14.0f) + ((uses > 0) ? 1 : 0);
+				int signalStrength = MathHelper.floor((uses / (float)maxUses) * 14.0f) + ((uses > 0) ? 1 : 0);
 				
 				return Math.min(signalStrength, 15);
 			}
