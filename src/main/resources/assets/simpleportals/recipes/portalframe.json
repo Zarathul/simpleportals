@@ -1,0 +1,26 @@
+{
+  "result": {
+    "item": "simpleportals:itemPortalFrame",
+    "count": 4
+  },
+  "pattern": [
+    "olo",
+    "lpl",
+    "olo"
+  ],
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "o": {
+      "type": "forge:ore_dict",
+      "ore": "obsidian"
+    },
+    "l": {
+      "type": "forge:ore_dict",
+      "ore": "gemLapis"
+    },
+    "p": {
+      "type": "forge:ore_dict",
+      "ore": "enderpearl"
+    }
+  }
+}

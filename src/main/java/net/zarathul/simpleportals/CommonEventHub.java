@@ -7,17 +7,13 @@ import net.zarathul.simpleportals.common.PortalWorldSaveData;
 /**
  * Hosts Forge event handlers on both the server and client side.
  */
-public final class CommonEventHub
-{
-	public CommonEventHub()
-	{
+public final class CommonEventHub {
+	public CommonEventHub() {
 	}
-	
+
 	@SubscribeEvent
-	public void OnWorldLoad(Load event)
-	{
-		if (!event.getWorld().isRemote)
-		{
+	public void OnWorldLoad(Load event) {
+		if (!event.getWorld().isRemote) {
 			SimplePortals.portalSaveData = PortalWorldSaveData.get(event.getWorld());
 		}
 	}

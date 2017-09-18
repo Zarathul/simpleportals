@@ -4,7 +4,6 @@
     "name": "Simple Portals",
     "description": "Adds portals for easy intra- and interdimensional travel.",
     "version": "${version}",
-    "mcversion": "${mcversion}",
     "url": "https://minecraft.curseforge.com/projects/simpleportals",
     "updateUrl": "",
     "authorList": [ "Zarathul" ],

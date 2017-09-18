@@ -12,39 +12,42 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 /**
- * The Accessor is used to get some basic data out of the game without having to request direct access to the game engine.<br>
- * It will also return things that are unmodified by the overriding systems (like getWailaStack).<br>
+ * The Accessor is used to get some basic data out of the game without having to
+ * request direct access to the game engine.<br>
+ * It will also return things that are unmodified by the overriding systems
+ * (like getWailaStack).<br>
  * Common accessor for both Entity and Block/TileEntity.<br>
- * Available data depends on what it is called upon (ie : getEntity() will return null if looking at a block, etc).<br>
+ * Available data depends on what it is called upon (ie : getEntity() will
+ * return null if looking at a block, etc).<br>
  */
 public interface IWailaCommonAccessor {
-    World getWorld();
+	World getWorld();
 
-    EntityPlayer getPlayer();
+	EntityPlayer getPlayer();
 
-    Block getBlock();
+	Block getBlock();
 
-    int getBlockID();
+	int getBlockID();
 
-    String getBlockQualifiedName();
+	String getBlockQualifiedName();
 
-    int getMetadata();
+	int getMetadata();
 
-    TileEntity getTileEntity();
+	TileEntity getTileEntity();
 
-    Entity getEntity();
+	Entity getEntity();
 
-    BlockPos getPosition();
+	BlockPos getPosition();
 
-    Vec3d getRenderingPosition();
+	Vec3d getRenderingPosition();
 
-    NBTTagCompound getNBTData();
+	NBTTagCompound getNBTData();
 
-    int getNBTInteger(NBTTagCompound tag, String keyname);
+	int getNBTInteger(NBTTagCompound tag, String keyname);
 
-    double getPartialFrame();
+	double getPartialFrame();
 
-    EnumFacing getSide();
+	EnumFacing getSide();
 
-    ItemStack getStack();
+	ItemStack getStack();
 }

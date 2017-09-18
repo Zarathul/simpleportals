@@ -7,46 +7,47 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 
 /**
- * The Accessor is used to get some basic data out of the game without having to request direct access to the game engine.<br>
- * It will also return things that are unmodified by the overriding systems (like getWailaStack).<br>
- * An instance of this interface is passed to most of Waila Block/TileEntity callbacks.
+ * The Accessor is used to get some basic data out of the game without having to
+ * request direct access to the game engine.<br>
+ * It will also return things that are unmodified by the overriding systems
+ * (like getWailaStack).<br>
+ * An instance of this interface is passed to most of Waila Block/TileEntity
+ * callbacks.
  *
  * @author ProfMobius
  */
 
 public interface IWailaDataAccessor {
-    World getWorld();
+	World getWorld();
 
-    EntityPlayer getPlayer();
+	EntityPlayer getPlayer();
 
-    Block getBlock();
+	Block getBlock();
 
-    //int          		 getBlockID();
-    int getMetadata();
+	// int getBlockID();
+	int getMetadata();
 
-    IBlockState getBlockState();
+	IBlockState getBlockState();
 
-    TileEntity getTileEntity();
+	TileEntity getTileEntity();
 
-    RayTraceResult getMOP();
+	RayTraceResult getMOP();
 
-    BlockPos getPosition();
+	BlockPos getPosition();
 
-    Vec3d getRenderingPosition();
+	Vec3d getRenderingPosition();
 
-    NBTTagCompound getNBTData();
+	NBTTagCompound getNBTData();
 
-    int getNBTInteger(NBTTagCompound tag, String keyname);
+	int getNBTInteger(NBTTagCompound tag, String keyname);
 
-    double getPartialFrame();
+	double getPartialFrame();
 
-    EnumFacing getSide();
+	EnumFacing getSide();
 
-    ItemStack getStack();
+	ItemStack getStack();
 }
