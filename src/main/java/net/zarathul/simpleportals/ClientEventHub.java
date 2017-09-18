@@ -7,13 +7,10 @@ import net.zarathul.simpleportals.configuration.Config;
 /**
  * Hosts Forge event handlers on the client side.
  */
-public final class ClientEventHub
-{
+public final class ClientEventHub {
 	@SubscribeEvent
-	public void OnConfigChanged(OnConfigChangedEvent event)
-	{
-		if (SimplePortals.MOD_ID.equals(event.getModID()))
-		{
+	public void OnConfigChanged(OnConfigChangedEvent event) {
+		if (SimplePortals.MOD_ID.equals(event.getModID())) {
 			Config.sync();
 		}
 	}

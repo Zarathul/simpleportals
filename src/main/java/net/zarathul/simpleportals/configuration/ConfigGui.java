@@ -12,16 +12,14 @@ import net.zarathul.simpleportals.SimplePortals;
 /**
  * The in-game config UI.
  */
-public class ConfigGui extends GuiConfig
-{
-	public ConfigGui(GuiScreen parentScreen)
-	{
+public class ConfigGui extends GuiConfig {
+	public ConfigGui(GuiScreen parentScreen) {
 		super(parentScreen, getConfigElements(), SimplePortals.MOD_ID, false, false,
-				GuiConfig.getAbridgedConfigPath(Config.getConfig().getConfigFile().getPath()), SimplePortals.MOD_READABLE_NAME);
+				GuiConfig.getAbridgedConfigPath(Config.getConfig().getConfigFile().getPath()),
+				SimplePortals.MOD_READABLE_NAME);
 	}
 
-	private static List<IConfigElement> getConfigElements()
-	{
+	private static List<IConfigElement> getConfigElements() {
 		return new ConfigElement(Config.getConfig().getCategory(Configuration.CATEGORY_GENERAL)).getChildElements();
 	}
 }

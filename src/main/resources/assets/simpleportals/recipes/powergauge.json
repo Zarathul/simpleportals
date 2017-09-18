@@ -1,0 +1,20 @@
+{
+  "result": {
+    "item": "simpleportals:itemPowerGauge"
+  },
+  "pattern": [
+    " r ",
+    "rfr",
+    " r "
+  ],
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "r": {
+      "type": "forge:ore_dict",
+      "ore": "dustRedstone"
+    },
+    "f": {
+      "item": "simpleportals:itemPortalFrame"
+    }
+  }
+}

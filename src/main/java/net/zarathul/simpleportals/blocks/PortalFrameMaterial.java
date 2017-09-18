@@ -1,66 +1,54 @@
 package net.zarathul.simpleportals.blocks;
 
-import net.minecraft.block.material.EnumPushReaction;
-import net.minecraft.block.material.MapColor;
-import net.minecraft.block.material.Material;
+import net.minecraft.block.material.*;
 
 /**
  * The material for {@link BlockPortalFrame}s.
  */
-public class PortalFrameMaterial extends Material
-{
+public class PortalFrameMaterial extends Material {
 	public static final Material portalFrameMaterial = new PortalFrameMaterial();
 
-	public PortalFrameMaterial()
-	{
+	public PortalFrameMaterial() {
 		super(MapColor.BLACK);
 	}
 
 	@Override
-	public boolean isLiquid()
-	{
+	public boolean isLiquid() {
 		return false;
 	}
 
 	@Override
-	public boolean isSolid()
-	{
+	public boolean isSolid() {
 		return true;
 	}
 
 	@Override
-	public boolean blocksMovement()
-	{
+	public boolean blocksMovement() {
 		return true;
 	}
 
 	@Override
-	public boolean getCanBurn()
-	{
+	public boolean getCanBurn() {
 		return false;
 	}
 
 	@Override
-	public boolean isReplaceable()
-	{
+	public boolean isReplaceable() {
 		return false;
 	}
 
 	@Override
-	public boolean isOpaque()
-	{
+	public boolean isOpaque() {
 		return true;
 	}
 
 	@Override
-	public boolean isToolNotRequired()
-	{
+	public boolean isToolNotRequired() {
 		return false;
 	}
 
 	@Override
-	public EnumPushReaction getMobilityFlag()
-	{
+	public EnumPushReaction getMobilityFlag() {
 		return EnumPushReaction.BLOCK;
 	}
 }
