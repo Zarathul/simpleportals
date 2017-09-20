@@ -1,12 +1,5 @@
 package net.zarathul.simpleportals.common;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-
-import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -22,10 +15,16 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.translation.I18n;
+import net.minecraft.world.BossInfoServer;
+import net.minecraft.world.WorldProviderEnd;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.end.DragonFightManager;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.zarathul.simpleportals.SimplePortals;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 
 /**
  * General utility class.
@@ -33,31 +32,7 @@ import net.zarathul.simpleportals.SimplePortals;
 public final class Utils
 {
 	private static Field invulnerableDimensionChange;
-	
-	/**
-	 * A predicate that returns <code>true</code> if passed string is neither <code>null</code> nor empty.
-	 */
-	private static final Predicate<String> stringNotNullOrEmpty = new Predicate<String>()
-	{
-		@Override
-		public boolean apply(String item)
-		{
-			return !Strings.isNullOrEmpty(item);
-		}
-	};
-
-	/**
-	 * Checks a list of strings for <code>null</code> and empty elements.
-	 * 
-	 * @param items
-	 * The list of strings to check.
-	 * @return
-	 * <code>true</code> if the list neither contains <code>null</code> elements nor empty strings, otherwise <code>false</code>.
-	 */
-	public static final boolean notNullorEmpty(Iterable<String> items)
-	{
-		return Iterables.all(items, stringNotNullOrEmpty);
-	}
+	private static Field dragonBossInfo;
 
 	/**
 	 * Gets the localized formatted strings for the specified key and formatting arguments.
@@ -67,10 +42,11 @@ public final class Utils
 	 * @param args
 	 * Formatting arguments.
 	 * @return
+	 * A list of localized strings for the specified key, or an empty list if the key was not found.
 	 */
 	public static final ArrayList<String> multiLineTranslateToLocal(String key, Object... args)
 	{
-		ArrayList<String> lines = new ArrayList<String>();
+		ArrayList<String> lines = new ArrayList<>();
 
 		if (key != null)
 		{
@@ -99,13 +75,12 @@ public final class Utils
 	 */
 	public static final int getAxisValue(BlockPos pos, Axis axis)
 	{
-		if (pos != null || axis != null)
-		{
-			if (axis == Axis.X) return pos.getX();
-			if (axis == Axis.Y) return pos.getY();
-			if (axis == Axis.Z) return pos.getZ();
-		}
-		
+		if (pos == null || axis == null) return 0;
+
+		if (axis == Axis.X) return pos.getX();
+		if (axis == Axis.Y) return pos.getY();
+		if (axis == Axis.Z) return pos.getZ();
+
 		return 0;
 	}
 	
@@ -156,7 +131,6 @@ public final class Utils
 	 * The position to port to.
 	 * @param facing
 	 * The direction the entity should face after porting.
-	 * @return
 	 */
 	public static final void teleportTo(Entity entity, int dimension, BlockPos destination, EnumFacing facing)
 	{
@@ -169,7 +143,7 @@ public final class Utils
 		{
 			if (!setInvulnerableDimensionChange(player))
 			{
-				SimplePortals.log.error("InvulnerableDimensionChange flag could not be set. Aborting teleportation.");
+				SimplePortals.log.error(String.format("InvulnerableDimensionChange flag could not be set for player '%s' (ID: %s). Aborting teleportation.", player.getName(), player.getCachedUniqueIdString()));
 				return;
 			}
 
@@ -239,26 +213,26 @@ public final class Utils
 		int startDimension = player.dimension;
 		MinecraftServer server = player.getServer();
 		PlayerList playerList = server.getPlayerList();
-		WorldServer startWorld = server.worldServerForDimension(startDimension);
-		WorldServer destinationWorld = server.worldServerForDimension(dimension);
+		WorldServer startWorld = server.getWorld(startDimension);
+		WorldServer destinationWorld = server.getWorld(dimension);
 		
 		player.dimension = dimension;
 		player.connection.sendPacket(new SPacketRespawn(
-				dimension,
-				destinationWorld.getDifficulty(),
-				destinationWorld.getWorldInfo().getTerrainType(),
-				player.interactionManager.getGameType()));
+			dimension,
+			destinationWorld.getDifficulty(),
+			destinationWorld.getWorldInfo().getTerrainType(),
+			player.interactionManager.getGameType()));
 
 		playerList.updatePermissionLevel(player);
 		startWorld.removeEntityDangerously(player);
 		player.isDead = false;
 
 		player.setLocationAndAngles(
-				destination.getX() + 0.5d,
-				destination.getY(),
-				destination.getZ() + 0.5d,
-				yaw,
-				player.rotationPitch);
+			destination.getX() + 0.5d,
+			destination.getY(),
+			destination.getZ() + 0.5d,
+			yaw,
+			player.rotationPitch);
 		
 		destinationWorld.spawnEntity(player);
 		destinationWorld.updateEntityWithOptionalForce(player, false);
@@ -266,11 +240,11 @@ public final class Utils
 
 		playerList.preparePlayer(player, startWorld);
 		player.connection.setPlayerLocation(
-				destination.getX() + 0.5d,
-				destination.getY(),
-				destination.getZ() + 0.5d,
-				yaw,
-				player.rotationPitch);
+			destination.getX() + 0.5d,
+			destination.getY(),
+			destination.getZ() + 0.5d,
+			yaw,
+			player.rotationPitch);
 		
 		player.interactionManager.setWorld(destinationWorld);
 		player.connection.sendPacket(new SPacketPlayerAbilities(player.capabilities));
@@ -287,9 +261,26 @@ public final class Utils
 		// Resend player XP otherwise the XP bar won't show up until XP is either gained or lost 
 		player.connection.sendPacket(new SPacketSetExperience(player.experience, player.experienceTotal, player.experienceLevel));
 
+		// Remove the ender dragon hp bar when porting out of the End, otherwise if the dragon is still alive
+		// the hp bar won't go away and if you then reenter the End, you will have multiple boss hp bars.
+		if (startDimension == 1 && dimension != 1)
+		{
+			DragonFightManager fightManager = ((WorldProviderEnd)startWorld.provider).getDragonFightManager();
+			BossInfoServer bossInfo = getBossInfo(fightManager);
+
+			if (bossInfo != null)
+			{
+				bossInfo.removePlayer(player);
+			}
+			else
+			{
+				SimplePortals.log.error("Unable to remove boss hp bar: Could not access the DragonFightManagers 'bossInfo' field.");
+			}
+		}
+
 		FMLCommonHandler.instance().firePlayerChangedDimensionEvent(player, startDimension, dimension);
 	}
-	
+
 	/**
 	 * Teleport a non-player entity to the specified position in the specified dimension
 	 * facing the specified direction.
@@ -307,19 +298,19 @@ public final class Utils
 	private static final void teleportNonPlayerEntityToDimension(Entity entity, int dimension, BlockPos destination, float yaw)
 	{
 		MinecraftServer server = entity.getServer();
-		WorldServer startWorld = server.worldServerForDimension(entity.dimension);
-		WorldServer destinationWorld = server.worldServerForDimension(dimension);
+		WorldServer startWorld = server.getWorld(entity.dimension);
+		WorldServer destinationWorld = server.getWorld(dimension);
 		
 		entity.dimension = dimension;
 		startWorld.removeEntity(entity);
 		entity.isDead = false;
 		
 		entity.setLocationAndAngles(
-				destination.getX() + 0.5d,
-				destination.getY(),
-				destination.getZ() + 0.5d,
-				yaw,
-				entity.rotationPitch);
+			destination.getX() + 0.5d,
+			destination.getY(),
+			destination.getZ() + 0.5d,
+			yaw,
+			entity.rotationPitch);
 
 		startWorld.updateEntityWithOptionalForce(entity, false);
 		
@@ -331,11 +322,11 @@ public final class Utils
 		{
 			copyEntityNBT(entity, portedEntity);
 			portedEntity.setLocationAndAngles(
-					destination.getX() + 0.5d,
-					destination.getY(),
-					destination.getZ() + 0.5d,
-					yaw,
-					entity.rotationPitch);
+				destination.getX() + 0.5d,
+				destination.getY(),
+				destination.getZ() + 0.5d,
+				yaw,
+				entity.rotationPitch);
 			
 			boolean forceSpawn = portedEntity.forceSpawn;
 			portedEntity.forceSpawn = true;
@@ -383,8 +374,7 @@ public final class Utils
 		{
 			if (invulnerableDimensionChange == null)
 			{
-				Class<EntityPlayerMP> playerClass = (Class<EntityPlayerMP>) Class.forName("net.minecraft.entity.player.EntityPlayerMP");
-				invulnerableDimensionChange = playerClass.getDeclaredField("invulnerableDimensionChange");  // invulnerableDimensionChange field
+				invulnerableDimensionChange = EntityPlayerMP.class.getDeclaredField("invulnerableDimensionChange");  // invulnerableDimensionChange field
 				invulnerableDimensionChange.setAccessible(true);
 			}
 			
@@ -395,6 +385,37 @@ public final class Utils
 		catch (Exception ex)
 		{
 			return false;
+		}
+	}
+
+	/**
+	 * Gets the contents of the DragonFightManagers bossInfo field. This is needed to remove the
+	 * boss hp bar when porting away from the ender dragon.
+	 *
+	 * @param dragonFightManager
+	 * The DragonFightManager handling the ender dragon fight.
+	 * @return
+	 * A BossInfoServer or <c>null</c> if the bossInfo field could not be accessed.
+	 */
+	private static final BossInfoServer getBossInfo(DragonFightManager dragonFightManager)
+	{
+		if (dragonFightManager == null) return null;
+
+		try
+		{
+			if (dragonBossInfo == null)
+			{
+				dragonBossInfo = DragonFightManager.class.getDeclaredField("bossInfo");
+				dragonBossInfo.setAccessible(true);
+			}
+
+			Object fieldValue = dragonBossInfo.get(dragonFightManager);
+
+			return (fieldValue != null) ? (BossInfoServer)fieldValue : null;
+		}
+		catch (Exception ex)
+		{
+			return null;
 		}
 	}
 	

@@ -1,7 +1,5 @@
 package net.zarathul.simpleportals.blocks;
 
-import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.state.IBlockState;
@@ -15,7 +13,8 @@ import net.minecraft.world.World;
 import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.registration.Portal;
 import net.zarathul.simpleportals.registration.PortalRegistry;
-import net.zarathul.simpleportals.registration.Registry;
+
+import java.util.List;
 
 /**
  * Represents the frame of the portal mutliblock.
@@ -24,7 +23,7 @@ public class BlockPortalFrame extends Block
 {
 	public BlockPortalFrame()
 	{
-		this(Registry.BLOCK_PORTAL_FRAME_NAME);
+		this(SimplePortals.BLOCK_PORTAL_FRAME_NAME);
 	}
 	
 	public BlockPortalFrame(String registryName)
@@ -53,22 +52,18 @@ public class BlockPortalFrame extends Block
 		if (!world.isRemote)
 		{
 			ItemStack heldStack = player.getHeldItem(hand);
-			
-			if (heldStack != null)
+			Item usedItem = heldStack.getItem();
+
+			if (usedItem == SimplePortals.itemPortalActivator)
 			{
-				Item usedItem = heldStack.getItem();
-				
-				if (usedItem == SimplePortals.itemPortalActivator)
+				if (player.isSneaking())
 				{
-					if (player.isSneaking())
-					{
-						world.setBlockToAir(pos);
-						dropBlockAsItem(world, pos, this.getDefaultState(), 0);
-					}
-					else if (!PortalRegistry.isPortalAt(pos, player.dimension))
-					{
-						PortalRegistry.activatePortal(world, pos, side);
-					}
+					world.setBlockToAir(pos);
+					dropBlockAsItem(world, pos, this.getDefaultState(), 0);
+				}
+				else if (!PortalRegistry.isPortalAt(pos, player.dimension))
+				{
+					PortalRegistry.activatePortal(world, pos, side);
 				}
 			}
 		}

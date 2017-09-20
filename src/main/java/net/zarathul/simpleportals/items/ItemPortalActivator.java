@@ -1,12 +1,8 @@
 package net.zarathul.simpleportals.items;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.lwjgl.input.Keyboard;
-
 import net.minecraft.block.BlockDispenser;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.dispenser.BehaviorDefaultDispenseItem;
 import net.minecraft.dispenser.IBehaviorDispenseItem;
 import net.minecraft.dispenser.IBlockSource;
@@ -28,15 +24,19 @@ import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.common.Utils;
 import net.zarathul.simpleportals.registration.PortalRegistry;
-import net.zarathul.simpleportals.registration.Registry;
+import org.lwjgl.input.Keyboard;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The item used to activate portals.
  */
 public class ItemPortalActivator extends Item
 {
-	private static final String toolTipKey = "item." + Registry.ITEM_PORTAL_ACTIVATOR_NAME + ".toolTip";
-	private static final String toolTipDetailsKey = "item." + Registry.ITEM_PORTAL_ACTIVATOR_NAME + ".toolTipDetails";
+	private static final String toolTipKey = "item." + SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME + ".toolTip";
+	private static final String toolTipDetailsKey = "item." + SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME + ".toolTipDetails";
 	
 	public ItemPortalActivator()
 	{
@@ -44,26 +44,26 @@ public class ItemPortalActivator extends Item
 
 		setMaxStackSize(1);
 		setCreativeTab(SimplePortals.creativeTab);
-		setRegistryName(Registry.ITEM_PORTAL_ACTIVATOR_NAME);
-		setUnlocalizedName(Registry.ITEM_PORTAL_ACTIVATOR_NAME);
+		setRegistryName(SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME);
+		setUnlocalizedName(SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME);
 		
 		BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.putObject(this, dispenserBehavior);
 	}
-	
+
 	@Override
 	@SideOnly(Side.CLIENT)
-	public void addInformation(ItemStack items, EntityPlayer player, List list, boolean advancedItemTooltipsEnabled)
+	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn)
 	{
 		if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
 		{
-			list.addAll(Utils.multiLineTranslateToLocal(toolTipDetailsKey, 1));
+			tooltip.addAll(Utils.multiLineTranslateToLocal(toolTipDetailsKey, 1));
 		}
 		else
 		{
-			list.add(I18n.translateToLocal(toolTipKey));
+			tooltip.add(I18n.translateToLocal(toolTipKey));
 		}
 	}
-	
+
 	@Override
 	public boolean doesSneakBypassUse(ItemStack stack, IBlockAccess world, BlockPos pos, EntityPlayer player)
 	{
@@ -107,7 +107,7 @@ public class ItemPortalActivator extends Item
 					// Search along the other two axis besides the one the dispenser is facing in.
 					// E.g. dispenser faces south: Search one block south of the dispenser, up, down,
 					// east and west.
-					List<EnumFacing> searchDirections = new ArrayList<EnumFacing>();
+					List<EnumFacing> searchDirections = new ArrayList<>();
 					Axis dispenserAxis = dispenserFacing.getAxis();
 					
 					for (Axis axis : Axis.values())

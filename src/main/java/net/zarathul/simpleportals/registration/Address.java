@@ -1,13 +1,12 @@
 package net.zarathul.simpleportals.registration;
 
-import java.util.HashMap;
-import java.util.Map.Entry;
-
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.INBTSerializable;
+
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 /**
  * Represents the address of a portal.<br>
@@ -21,11 +20,11 @@ public class Address implements INBTSerializable<NBTTagCompound>
 	
 	private String readableName;
 	
-	private HashMap<String, Integer> blockCounts;
+	private Map<String, Integer> blockCounts;
 
 	public Address()
 	{
-		blockCounts = Maps.newHashMap();
+		blockCounts = new TreeMap<>();
 	}
 	
 	public Address(String ... blockIds)
@@ -109,12 +108,9 @@ public class Address implements INBTSerializable<NBTTagCompound>
 		
 		Address other = (Address) obj;
 		
-		for (Entry<String, Integer> blockCount : blockCounts.entrySet())
-		{
-			if (blockCount.getValue() != other.getBlockCount(blockCount.getKey())) return false;
-		}
-		
-		return true;
+		// Because the block counts are stored in a TreeMap the order and therefore the readable name
+		// should always be identical.
+		return readableName.equals(other.toString());
 	}
 	
 	@Override

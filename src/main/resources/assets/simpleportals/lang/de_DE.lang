@@ -31,11 +31,6 @@ item.itemPortalActivator.toolTipDetails5=benutzt werden.
 
 # ConfigUI Category Labels
 configui.category.misc=Verschiedenes
-configui.category.blocks=Blöcke
-configui.category.recipes=Rezepte
-configui.category.portalFrame=Portalrahmen
-configui.category.powerGauge=Energiemesser
-configui.category.portalActivator=Portalaktivierer
 
 # ConfigUI Element Labels
 configui.maxSize=Maximale Portalgröße
@@ -64,11 +59,8 @@ configui.yield.tooltip=Die Menge an Blöcken/Gegenständen die das Rezept ergieb
 configui.components.tooltip=Die Blöcke/Gegenstände die für das Rezept benötigt werden. Format: [MusterId], [ModId], [GegenstandsId]. Benutze "-" als MusterId für formlose Rezepte. Benutze "oreDict" als ModId für Ore Dictionary Gegenstände.
 configui.pattern.tooltip=Das Muster des Rezepts für die Werkbank. Benutze "-" für leere Positionen.
 
-# Waila Option Labels
-waila.powerCapacity=Energiekapazität
-waila.address=Addresse
-
-# Waila Tooltip Texts
-waila.toolTip.powerCapacity=Energie: §b%,d/%,d§r (%d%%)
-waila.toolTip.address=Addresse:
-waila.toolTip.addressComponent=- §b%s
+# TheOneProbe Tooltip Texts
+portalInfo.powerCapacity=Energie: §b%,d/%,d§r (%d%%)
+portalInfo.powerSources=Energiequellen:
+portalInfo.address=Adresse:
+portalInfo.redstonePower=Stärke: §b%s

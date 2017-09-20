@@ -1,15 +1,15 @@
 package net.zarathul.simpleportals.blocks;
 
-import java.util.List;
-
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.registration.Portal;
 import net.zarathul.simpleportals.registration.PortalRegistry;
-import net.zarathul.simpleportals.registration.Registry;
+
+import java.util.List;
 
 /**
  * Represents a frame of the portal multiblock that supplies comparators with a redstone
@@ -19,7 +19,7 @@ public class BlockPowerGauge extends BlockPortalFrame
 {
 	public BlockPowerGauge()
 	{
-		super(Registry.BLOCK_POWER_GAUGE_NAME);
+		super(SimplePortals.BLOCK_POWER_GAUGE_NAME);
 	}
 	
 	@Override

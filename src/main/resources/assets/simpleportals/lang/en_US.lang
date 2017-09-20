@@ -31,11 +31,6 @@ item.itemPortalActivator.toolTipDetails5=Can be used by a §bDispenser.
 
 # ConfigUI Category Labels
 configui.category.misc=Misc
-configui.category.blocks=Blocks
-configui.category.recipes=Recipes
-configui.category.portalFrame=Portal Frame
-configui.category.powerGauge=Power Gauge
-configui.category.portalActivator=Portal Activator
 
 # ConfigUI Element Labels
 configui.maxSize=Max Portal Size
@@ -64,11 +59,8 @@ configui.yield.tooltip=The amount of blocks/items the recipe yields.
 configui.components.tooltip=The blocks/items needed to complete the recipe. Format: [patternId], [modId], [itemId]. Use "-" as the patternId for shapeless recipes. Use "oreDict" as the modId for ore dictionary items.
 configui.pattern.tooltip=The crafting table pattern for the recipe. Use "-" for empty slots.
 
-# Waila Option Labels
-waila.powerCapacity=Power capacity
-waila.address=Address
-
-# Waila Tooltip Texts
-waila.toolTip.powerCapacity=Power: §b%,d/%,d§r (%d%%)
-waila.toolTip.address=Address:
-waila.toolTip.addressComponent=- §b%s
+# TheOneProbe Tooltip Texts
+portalInfo.powerCapacity=Power: §b%,d/%,d§r (%d%%)
+portalInfo.powerSources=Power sources:
+portalInfo.address=Address:
+portalInfo.redstonePower=Power: §b%s

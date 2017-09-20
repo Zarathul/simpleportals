@@ -1,9 +1,5 @@
 package net.zarathul.simpleportals.registration;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
@@ -14,6 +10,10 @@ import net.minecraftforge.common.util.INBTSerializable;
 import net.zarathul.simpleportals.blocks.BlockPortal;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.common.Utils;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Represents a portal.<br>
@@ -331,12 +331,12 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 		
 		BlockPos feetPos = null;
 		BlockPos searchStartPos1 = (axis == Axis.Z)
-				? new BlockPos(middle, startHeight, portal1.south(1).getZ())
-				: new BlockPos(portal1.east(1).getX(), startHeight, middle);
+			? new BlockPos(middle, startHeight, portal1.south(1).getZ())
+			: new BlockPos(portal1.east(1).getX(), startHeight, middle);
 		
 		BlockPos searchStartPos2 = (axis == Axis.Z)
-				? new BlockPos(middle, startHeight, portal1.north(1).getZ())
-				: new BlockPos(portal1.west(1).getX(), startHeight, middle);
+			? new BlockPos(middle, startHeight, portal1.north(1).getZ())
+			: new BlockPos(portal1.west(1).getX(), startHeight, middle);
 		
 		BlockPos[] searchStartPositions = new BlockPos[] { searchStartPos1, searchStartPos2 };
 		
@@ -386,10 +386,10 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 		if (world == null) return false;
 		
 		Address actualAddress = new Address(
-				PortalRegistry.getAddressBlockId(world.getBlockState(corner1.getPos())),
-				PortalRegistry.getAddressBlockId(world.getBlockState(corner2.getPos())),
-				PortalRegistry.getAddressBlockId(world.getBlockState(corner3.getPos())),
-				PortalRegistry.getAddressBlockId(world.getBlockState(corner4.getPos())));
+			PortalRegistry.getAddressBlockId(world.getBlockState(corner1.getPos())),
+			PortalRegistry.getAddressBlockId(world.getBlockState(corner2.getPos())),
+			PortalRegistry.getAddressBlockId(world.getBlockState(corner3.getPos())),
+			PortalRegistry.getAddressBlockId(world.getBlockState(corner4.getPos())));
 		
 		return !actualAddress.equals(address);
 	}

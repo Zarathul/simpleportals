@@ -1,9 +1,8 @@
 package net.zarathul.simpleportals;
 
-import org.apache.logging.log4j.Logger;
-
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
@@ -11,11 +10,16 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import net.zarathul.simpleportals.blocks.BlockPortal;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.blocks.BlockPowerGauge;
 import net.zarathul.simpleportals.common.PortalWorldSaveData;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
+import org.apache.logging.log4j.Logger;
+
+import java.util.Arrays;
 
 @Mod(modid = SimplePortals.MOD_ID, name = SimplePortals.MOD_READABLE_NAME, version = SimplePortals.VERSION,
      updateJSON = "https://raw.githubusercontent.com/Zarathul/mcmodversions/master/simpleportals.json",
@@ -27,6 +31,14 @@ public class SimplePortals
 
 	@SidedProxy(clientSide = "net.zarathul.simpleportals.ClientProxy", serverSide = "net.zarathul.simpleportals.ServerProxy")
 	public static CommonProxy proxy;
+
+	// block and item names
+	public static final String BLOCK_PORTAL_NAME = "blockPortal";
+	public static final String BLOCK_PORTAL_FRAME_NAME = "blockPortalFrame";
+	public static final String BLOCK_POWER_GAUGE_NAME = "blockPowerGauge";
+	public static final String ITEM_PORTAL_FRAME_NAME = "itemPortalFrame";
+	public static final String ITEM_POWER_GAUGE_NAME = "itemPowerGauge";
+	public static final String ITEM_PORTAL_ACTIVATOR_NAME = "itemPortalActivator";
 
 	// blocks
 	public static BlockPortal blockPortal;
@@ -41,7 +53,7 @@ public class SimplePortals
 	// creative tabs
 	public static CreativeTabs creativeTab;
 
-	// event  hub
+	// event hubs
 	public static ClientEventHub clientEventHub;
 	public static CommonEventHub commonEventHub;
 	
@@ -73,5 +85,37 @@ public class SimplePortals
 	public void postInit(FMLPostInitializationEvent event)
 	{
 		proxy.postInit(event);
+	}
+
+	/**
+	 * Adds a creative mode tab.
+	 */
+	@SideOnly(Side.CLIENT)
+	public static final void addCreativeTab()
+	{
+		// Check if a a "Simple Mods" tab already exists, otherwise make one.
+		creativeTab = Arrays.stream(CreativeTabs.CREATIVE_TAB_ARRAY)
+			.filter(tab -> tab.getTabLabel().equals(SimplePortals.MOD_TAB_NAME))
+			.findFirst()
+			.orElseGet(() ->
+				new CreativeTabs(SimplePortals.MOD_TAB_NAME)
+				{
+					private ItemStack iconStack;
+
+					@Override
+					public String getTranslatedTabLabel()
+					{
+						return this.getTabLabel();
+					}
+
+					@Override
+					public ItemStack getTabIconItem()
+					{
+						if (iconStack == null) iconStack = new ItemStack(SimplePortals.itemPortalFrame);
+
+						return iconStack;
+					}
+				}
+			);
 	}
 }

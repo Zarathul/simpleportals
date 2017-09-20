@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "E E",
+    " I ",
+    " G "
+  ],
+  "key": {
+    "E": {
+      "type": "forge:ore_dict",
+	  "ore": "gemEmerald"
+    },
+    "I": {
+      "item": "minecraft:ender_eye"
+    },
+    "G": {
+      "type": "forge:ore_dict",
+      "ore": "ingotGold"
+    }
+  },
+  "result": {
+    "item": "simpleportals:itemPortalActivator",
+    "count": 1
+  }
+}

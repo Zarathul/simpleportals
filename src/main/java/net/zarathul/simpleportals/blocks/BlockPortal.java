@@ -1,18 +1,9 @@
 package net.zarathul.simpleportals.blocks;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import com.google.common.collect.Maps;
-
 import net.minecraft.block.BlockBreakable;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
@@ -38,21 +29,24 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
+import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.common.Utils;
 import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.registration.Portal;
 import net.zarathul.simpleportals.registration.PortalRegistry;
-import net.zarathul.simpleportals.registration.Registry;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents the actual portals in the center of the portal multiblock.
  */
 public class BlockPortal extends BlockBreakable
 {
-	public static final PropertyEnum<EnumFacing.Axis> AXIS = PropertyEnum.<EnumFacing.Axis>create(
-			"axis",
-			EnumFacing.Axis.class,
-			new EnumFacing.Axis[] { EnumFacing.Axis.X, EnumFacing.Axis.Y, EnumFacing.Axis.Z });
+	public static final PropertyEnum<EnumFacing.Axis> AXIS = PropertyEnum.create(
+		"axis",
+		EnumFacing.Axis.class,
+		Axis.X, Axis.Y, Axis.Z);
 	
 	private static final HashMap<UUID, Long> entityCooldowns = Maps.newHashMap();
 	private static long lastCooldownUpdate = 0;
@@ -63,8 +57,8 @@ public class BlockPortal extends BlockBreakable
 	{
 		super(Material.PORTAL, false);
 		
-		setRegistryName(Registry.BLOCK_PORTAL_NAME);
-		setUnlocalizedName(Registry.BLOCK_PORTAL_NAME);
+		setRegistryName(SimplePortals.BLOCK_PORTAL_NAME);
+		setUnlocalizedName(SimplePortals.BLOCK_PORTAL_NAME);
 		setDefaultState(this.blockState.getBaseState().withProperty(AXIS, EnumFacing.Axis.X));
 		setHardness(-1.0F); // indestructible by normal means
 		setLightLevel(0.75F);
@@ -74,7 +68,7 @@ public class BlockPortal extends BlockBreakable
 	@Override
 	protected BlockStateContainer createBlockState()
 	{
-		return new BlockStateContainer(this, new IProperty[] { AXIS });
+		return new BlockStateContainer(this, AXIS);
 	}
 	
 	@Override
@@ -189,7 +183,7 @@ public class BlockPortal extends BlockBreakable
 			
 			if (entity instanceof EntityItem && Config.powerCost > 0 && Config.powerCapacity > 0)
 			{
-				ItemStack item = ((EntityItem)entity).getEntityItem();
+				ItemStack item = ((EntityItem)entity).getItem();
 				
 				if (PortalRegistry.getPower(start) < Config.powerCapacity && OreDictionary.containsMatch(false, Config.powerSources, item))
 				{
@@ -222,8 +216,8 @@ public class BlockPortal extends BlockBreakable
 			
 			// Get a shuffled list of possible destination portals (portals with the same address)
 			List<Portal> destinations = portals.stream()
-					.filter(e -> !e.equals(start))
-					.collect(Collectors.toList());
+				.filter(e -> !e.equals(start))
+				.collect(Collectors.toList());
 			
 			Collections.shuffle(destinations);
 			
@@ -238,7 +232,7 @@ public class BlockPortal extends BlockBreakable
 				// Pick the first not blocked destination portal
 				for (Portal portal : destinations)
 				{
-					server = mcServer.worldServerForDimension(portal.getDimension());
+					server = mcServer.getWorld(portal.getDimension());
 					portTarget = portal.getPortDestination(server, entityHeight);
 					
 					if (portTarget != null)
@@ -254,14 +248,14 @@ public class BlockPortal extends BlockBreakable
 					// will always be behind the entity. When porting to a horizontal portal the initial
 					// facing is not changed.
 					EnumFacing entityFacing = (destination.getAxis() == Axis.Y)
-							? entity.getHorizontalFacing()
-							: (destination.getAxis() == Axis.Z)
-							? (portTarget.getZ() > destination.getCorner1().getPos().getZ())
-							? EnumFacing.SOUTH
-							: EnumFacing.NORTH
-							: (portTarget.getX() > destination.getCorner1().getPos().getX())
-							? EnumFacing.EAST
-							: EnumFacing.WEST;
+						? entity.getHorizontalFacing()
+						: (destination.getAxis() == Axis.Z)
+						? (portTarget.getZ() > destination.getCorner1().getPos().getZ())
+						? EnumFacing.SOUTH
+						: EnumFacing.NORTH
+						: (portTarget.getX() > destination.getCorner1().getPos().getX())
+						? EnumFacing.EAST
+						: EnumFacing.WEST;
 					
 					Utils.teleportTo(entity, destination.getDimension(), portTarget, entityFacing);
 					PortalRegistry.updatePowerGauges(world, start);
@@ -363,7 +357,7 @@ public class BlockPortal extends BlockBreakable
 					d5 = (double)(rand.nextFloat() * 2.0F * (float)j);
 				}
 
-				world.spawnParticle(EnumParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5, new int[0]);
+				world.spawnParticle(EnumParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5);
 			}
 		}
 	}

@@ -1,19 +1,9 @@
 package net.zarathul.simpleportals.registration;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
@@ -27,6 +17,9 @@ import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.blocks.BlockPowerGauge;
 import net.zarathul.simpleportals.common.Utils;
 import net.zarathul.simpleportals.configuration.Config;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The central registration for all portals.
@@ -120,7 +113,7 @@ public final class PortalRegistry
 		
 		IBlockState addBlock2 = world.getBlockState(corner2.getPos());
 		
-		if (!isValidAddressBlock(addBlock2))return false;
+		if (!isValidAddressBlock(addBlock2)) return false;
 		
 		IBlockState addBlock3 = world.getBlockState(corner3.getPos());
 		
@@ -135,25 +128,25 @@ public final class PortalRegistry
 		int corner1Y = corner1.getPos().getY();
 		
 		boolean isHorizontal = (corner1Y == corner2.getPos().getY()
-				&& corner1Y == corner3.getPos().getY()
-				&& corner1Y == corner4.getPos().getY());
+			&& corner1Y == corner3.getPos().getY()
+			&& corner1Y == corner4.getPos().getY());
 		
 		// Only relevant for vertical portals.
 		Axis horizontalCornerFacing = (corner1.getFacingA().getAxis() != Axis.Y)
-				? corner1.getFacingA().getAxis()
-				: corner1.getFacingB().getAxis();
+			? corner1.getFacingA().getAxis()
+			: corner1.getFacingB().getAxis();
 		
 		Axis portalAxis = isHorizontal
-				? Axis.Y
-				: Utils.getOrthogonalTo(horizontalCornerFacing);
+			? Axis.Y
+			: Utils.getOrthogonalTo(horizontalCornerFacing);
 		
 		// Create portal data structure
 		
 		Address address = new Address(
-				getAddressBlockId(addBlock1),
-				getAddressBlockId(addBlock2),
-				getAddressBlockId(addBlock3),
-				getAddressBlockId(addBlock4));
+			getAddressBlockId(addBlock1),
+			getAddressBlockId(addBlock2),
+			getAddressBlockId(addBlock3),
+			getAddressBlockId(addBlock4));
 		
 		int dimension = world.provider.getDimension();
 		
@@ -177,7 +170,7 @@ public final class PortalRegistry
 		
 		// Find power gauges in the frame
 		
-		List<BlockPos> powerGauges = new ArrayList<BlockPos>();
+		List<BlockPos> powerGauges = new ArrayList<>();
 		
 		for (BlockPos framePos : portal.getFramePositions(false))
 		{
@@ -209,7 +202,7 @@ public final class PortalRegistry
 		if (world == null || pos == null) return;
 		
 		// Copying of the Collection is required because unregister() changes it.
-		List<Portal> affectedPortals = portals.get(pos).stream().collect(Collectors.toList());
+		List<Portal> affectedPortals = new ArrayList<>(portals.get(pos));
 		
 		// Unregister all affected portals first to avoid unnecessary deactivatePortal()
 		// calls that would otherwise be caused by the destruction of the portal blocks.
@@ -233,7 +226,7 @@ public final class PortalRegistry
 	{
 		List<Portal> portals = getPortalsAt(pos, dimension);
 		
-		return (portals != null) ? (portals.size() > 0) : false;
+		return (portals != null) && (portals.size() > 0);
 	}
 	
 	/**
@@ -270,7 +263,7 @@ public final class PortalRegistry
 	{
 		if (address == null) return null;
 		
-		List<Portal> foundPortals = addresses.get(address).stream().collect(Collectors.toList());
+		List<Portal> foundPortals = new ArrayList<>(addresses.get(address));
 		
 		return Collections.unmodifiableList(foundPortals);
 	}
@@ -288,7 +281,7 @@ public final class PortalRegistry
 	{
 		if (portal == null) return null;
 		
-		List<BlockPos> foundGauges = gauges.get(portal).stream().collect(Collectors.toList());
+		List<BlockPos> foundGauges = new ArrayList<>(gauges.get(portal));
 		
 		return Collections.unmodifiableList(foundGauges);
 	}
@@ -497,7 +490,7 @@ public final class PortalRegistry
 		
 		addresses.put(portal.getAddress(), portal);
 		power.put(portal, 0);
-		powerGauges.stream().forEachOrdered(pos -> gauges.put(portal, pos));
+		powerGauges.forEach(pos -> gauges.put(portal, pos));
 		
 		updatePowerGauges(world, portal);
 		
@@ -529,7 +522,7 @@ public final class PortalRegistry
 		updatePowerGauges(world, portal);
 		
 		List<BlockPos> gaugesToRemove = getPowerGauges(portal);
-		gaugesToRemove.stream().forEachOrdered(pos -> gauges.remove(portal, pos));
+		gaugesToRemove.forEach(pos -> gauges.remove(portal, pos));
 		
 		// Trigger save of portal data
 		
@@ -558,7 +551,7 @@ public final class PortalRegistry
 	 * Checks if the specified block can be used in a portal address.<br>
 	 * Valid blocks may not have TileEntities and must be full blocks.
 	 * 
-	 * @param block
+	 * @param state
 	 * The {@link IBlockState} of the block to check.
 	 * @return
 	 * <code>true</code> if the block is valid, otherwise <code>false</code>.
@@ -592,7 +585,7 @@ public final class PortalRegistry
 		
 		int i = 0;
 		HashMap<Portal, Integer> portalIDs = Maps.newHashMap();
-		Set<Portal> uniquePortals = new HashSet<Portal>(portals.values());
+		Set<Portal> uniquePortals = new HashSet<>(portals.values());
 		
 		for (Portal portal : uniquePortals)
 		{
@@ -643,8 +636,6 @@ public final class PortalRegistry
 		NBTTagCompound portalsTag = nbt.getCompoundTag("portals");
 		NBTTagCompound portalBlocksTag = nbt.getCompoundTag("portalBlocks");
 		NBTTagCompound powerTag = nbt.getCompoundTag("power");
-		
-		if (portalsTag == null || portalBlocksTag == null || powerTag == null) return;
 		
 		int i = 0;
 		String key;
