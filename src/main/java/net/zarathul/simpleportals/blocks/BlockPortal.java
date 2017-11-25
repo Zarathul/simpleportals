@@ -48,10 +48,7 @@ public class BlockPortal extends BlockBreakable
 		EnumFacing.Axis.class,
 		Axis.X, Axis.Y, Axis.Z);
 	
-	private static final HashMap<UUID, Long> entityCooldowns = Maps.newHashMap();
-	private static long lastCooldownUpdate = 0;
 	private static final int COOLDOWN = 60;
-	private static final int COOLDOWN_UPDATE_INTERVAL = 200;
 	
 	public BlockPortal()
 	{
@@ -151,26 +148,9 @@ public class BlockPortal extends BlockBreakable
 		if (!world.isRemote && !entity.isRiding() && !entity.isBeingRidden() && entity.isNonBoss() && !entity.isDead)
 		{
 			// Check if entity is on teleportation cooldown
-			if (entityCooldowns.containsKey(entity.getUniqueID()))
+			if (entity.timeUntilPortal > 0)
 			{
-				if (world.getTotalWorldTime() - entityCooldowns.get(entity.getUniqueID()) < COOLDOWN) return;
-				
-				entityCooldowns.remove(entity.getUniqueID());
-				
-				if (world.getTotalWorldTime() - lastCooldownUpdate >= COOLDOWN_UPDATE_INTERVAL)
-				{
-					if (entityCooldowns.size() > 0)
-					{
-						// Remove expired cooldowns
-						List<UUID> expiredCooldowns = entityCooldowns.keySet().stream()
-							.filter(id -> world.getTotalWorldTime() - entityCooldowns.get(id) >= COOLDOWN)
-							.collect(Collectors.toList());
-						
-						for (UUID id : expiredCooldowns) { entityCooldowns.remove(id); }
-					}
-					
-					lastCooldownUpdate = world.getTotalWorldTime();
-				}
+				return;
 			}
 			
 			List<Portal> portals = PortalRegistry.getPortalsAt(pos, entity.dimension);
@@ -263,7 +243,7 @@ public class BlockPortal extends BlockBreakable
 			}
 			
 			// Put the entity on "cooldown" in order to prevent it from instantly porting again
-			entityCooldowns.put(entity.getUniqueID(), world.getTotalWorldTime());
+			entity.timeUntilPortal = COOLDOWN;
 		}
 	}
 	
