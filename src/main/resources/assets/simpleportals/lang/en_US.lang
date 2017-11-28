@@ -29,6 +29,40 @@ item.itemPortalActivator.toolTipDetails3=§bFrame§7 while §bsneaking§7
 item.itemPortalActivator.toolTipDetails4=to instantly dismantle it.
 item.itemPortalActivator.toolTipDetails5=Can be used by a §bDispenser.
 
+# Commands
+commands.tpd.usage=/tpd <dimensionId> [playerName] [<x> <z>] [y]
+commands.tpd.unknownDimension=Dimension '%d' could not be found.
+commands.tpd.unknownPlayerName=Player '%s' could not be found.
+commands.tpd.unknownSender=Command was not issued by a player and no player name was specified.
+commands.tpd.zMissing='z' coordinate must be specified if 'x' was.
+commands.tpd.destinationOutsideWorldBorder=Destination lies outside the world border.
+commands.tpd.success=Teleported '%s' to %s in dimension %d.
+commands.sportals.usage=/sportals <clear | cooldown | deactivate | list | power>
+commands.sportals.clear.success=Portal registry cleared.
+commands.sportals.list.usage=/sportals list <address | all | dimension>
+commands.sportals.list.address.usage=/sportals list address <addressBlockId> <addressBlockId> <addressBlockId> <addressBlockId>
+commands.sportals.list.dimension.usage=/sportals list dimension <dimensionId>
+commands.sportals.list.success=Successfully requested portal list. Output diverted to log.
+commands.sportals.deactivate.usage=/sportals deactivate <address | position>
+commands.sportals.deactivate.address.usage=/sportals deactivate address <addressBlockId> <addressBlockId> <addressBlockId> <addressBlockId> [dimensionId]
+commands.sportals.deactivate.position.usage=/sportals deactivate position <x> <y> <z> [dimensionId]
+commands.sportals.deactivate.success=Deactivated portal at %s in dimension %d.
+commands.sportals.deactivate.portalNotFoundWithAddress=No portals with the address '%s' could be found in dimension '%s'.
+commands.sportals.deactivate.portalNotFoundAtPos=No portals could be found at %s in dimension %d.
+commands.sportals.power.usage=/sportals power <add | get | remove>
+commands.sportals.power.add.usage=/sportals power add <amount> <x> <y> <z> [dimension]
+commands.sportals.power.remove.usage=/sportals power remove <amount> <x> <y> <z> [dimension]
+commands.sportals.power.get.usage=/sportals power get <x> <y> <z> [dimension]
+commands.sportals.power.addRemove.invalidAmount='%d' is not a valid amount of power.
+commands.sportals.power.unknownSender=No dimension was specified and the command senders dimension could not be determined.
+commands.sportals.power.portalNotFound=No portal could be found at %s in dimension %d.
+commands.sportals.power.multiplePortalsFound=Multiple portals were found at %s in dimension %d. Choose the coordinates of a block that is only part of one portal.
+commands.sportals.power.add.success=Added '%3$d' power to the portal at %s in dimension %d.
+commands.sportals.power.remove.success=Removed '%3$d' power from the portal at %s in dimension %d.
+commands.sportals.power.get.success=The portal at %s in dimension %d has stored '%d' energy.
+commands.sportals.cooldown.usage=/sportals cooldown <playerNamer>
+commands.sportals.cooldown.success=Cooldown for player '%s' is currently '%d' ticks (~%.2f sec).
+
 # ConfigUI Category Labels
 configui.category.misc=Misc
 

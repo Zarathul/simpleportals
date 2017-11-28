@@ -19,6 +19,7 @@ import net.minecraft.world.BossInfoServer;
 import net.minecraft.world.WorldProviderEnd;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.end.DragonFightManager;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.zarathul.simpleportals.SimplePortals;
@@ -134,7 +135,8 @@ public final class Utils
 	 */
 	public static final void teleportTo(Entity entity, int dimension, BlockPos destination, EnumFacing facing)
 	{
-		if (entity == null || destination == null || entity.isBeingRidden() || entity.isRiding() || !entity.isNonBoss()) return;
+		if (entity == null || destination == null || entity.isBeingRidden() || entity.isRiding() || !entity.isNonBoss()
+			|| !DimensionManager.isDimensionRegistered(dimension)) return;
 		
 		EntityPlayerMP player = (entity instanceof EntityPlayerMP) ? (EntityPlayerMP)entity : null;
 		boolean interdimensional = (entity.dimension != dimension);
@@ -155,7 +157,7 @@ public final class Utils
 				}
 				else
 				{
-					SimplePortals.log.warn(String.format("Teleportation of player %s [%s] to dimension %d canceled by other mod.",
+					SimplePortals.log.warn(String.format("Teleportation of player %s [%s] to dimension %d canceled by another mod.",
 							player.getName(), player.getPosition(), dimension));
 				}
 			}
@@ -259,10 +261,12 @@ public final class Utils
 		}
 
 		// Resend player XP otherwise the XP bar won't show up until XP is either gained or lost 
+
 		player.connection.sendPacket(new SPacketSetExperience(player.experience, player.experienceTotal, player.experienceLevel));
 
 		// Remove the ender dragon hp bar when porting out of the End, otherwise if the dragon is still alive
 		// the hp bar won't go away and if you then reenter the End, you will have multiple boss hp bars.
+
 		if (startDimension == 1 && dimension != 1)
 		{
 			DragonFightManager fightManager = ((WorldProviderEnd)startWorld.provider).getDragonFightManager();

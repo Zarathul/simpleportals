@@ -1,9 +1,6 @@
 package net.zarathul.simpleportals.registration;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
@@ -27,9 +24,9 @@ import java.util.stream.Collectors;
 public final class PortalRegistry
 {
 	private static ImmutableMap<EnumFacing,EnumFacing[]> cornerSearchDirs;
-	private static Multimap<BlockPos, Portal> portals;
-	private static Multimap<Address, Portal> addresses;
-	private static Multimap<Portal, BlockPos> gauges;
+	private static ListMultimap<BlockPos, Portal> portals;
+	private static ListMultimap<Address, Portal> addresses;
+	private static ListMultimap<Portal, BlockPos> gauges;
 	private static HashMap<Portal, Integer> power;
 	
 	static
@@ -228,7 +225,29 @@ public final class PortalRegistry
 		
 		return (portals != null) && (portals.size() > 0);
 	}
-	
+
+	/**
+	 * Gets all registered portals and their positions.
+	 *
+ 	 * @return
+	 * An immutable map containing all portals and their positions.
+	 */
+	public static ImmutableListMultimap<BlockPos, Portal> getPortals()
+	{
+		return ImmutableListMultimap.copyOf(portals);
+	}
+
+	/**
+	 * Gets all registered portals and their addresses.
+	 *
+	 * @return
+	 * An immutable map containing all portals and their addresses.
+	 */
+	public static ImmutableListMultimap<Address, Portal> getAddresses()
+	{
+		return ImmutableListMultimap.copyOf(addresses);
+	}
+
 	/**
 	 * Gets the portals registered at the specified position in the
 	 * specified dimension.
@@ -249,7 +268,23 @@ public final class PortalRegistry
 		
 		return Collections.unmodifiableList(foundPortals);
 	}
-	
+
+	/**
+	 * Gets all the portals registered in the specified dimension.
+	 *
+	 * @param dimension
+	 * The dimension the portals should be in.
+	 * @return
+	 * A read-only list of found portals (may be empty).
+	 */
+	public static List<Portal> getPortalsInDimension(int dimension)
+	{
+		Set<Portal> uniquePortals = new HashSet<>(portals.values());
+		List<Portal> foundPortals = uniquePortals.stream().filter(portal -> portal.getDimension() == dimension).collect(Collectors.toList());
+
+		return foundPortals;
+	}
+
 	/**
 	 * Gets all portals with the specified address.
 	 * 
@@ -267,7 +302,7 @@ public final class PortalRegistry
 		
 		return Collections.unmodifiableList(foundPortals);
 	}
-	
+
 	/**
 	 * Gets the positions of all power gauges for the specified portal.
 	 * 

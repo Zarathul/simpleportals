@@ -10,11 +10,14 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.zarathul.simpleportals.blocks.BlockPortal;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.blocks.BlockPowerGauge;
+import net.zarathul.simpleportals.commands.CommandPortals;
+import net.zarathul.simpleportals.commands.CommandTeleport;
 import net.zarathul.simpleportals.common.PortalWorldSaveData;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
 import org.apache.logging.log4j.Logger;
@@ -85,6 +88,13 @@ public class SimplePortals
 	public void postInit(FMLPostInitializationEvent event)
 	{
 		proxy.postInit(event);
+	}
+
+	@EventHandler
+	public void onServerStarting(FMLServerStartingEvent event)
+	{
+		event.registerServerCommand(new CommandTeleport());
+		event.registerServerCommand(new CommandPortals());
 	}
 
 	/**

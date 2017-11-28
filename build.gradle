@@ -17,7 +17,7 @@ buildscript
 
 apply plugin: 'net.minecraftforge.gradle.forge'
 
-version = "1.12.1-1.5.0.0"
+version = "1.12.2-1.5.1.0"
 group= "net.zarathul.simpleportals" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "simpleportals"
 
@@ -31,9 +31,9 @@ jar
 
 minecraft
 {
-    version = "1.12.1-14.22.1.2485"
+    version = "1.12.2-14.23.1.2555"
     runDir = "run"
-    mappings = "snapshot_20170624"
+    mappings = "snapshot_20171003"
 
     replaceIn "SimplePortals.java"
     replace "@VERSION@", project.version
