@@ -2,6 +2,7 @@ package net.zarathul.simpleportals.commands;
 
 import net.minecraft.command.*;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -10,7 +11,7 @@ import net.zarathul.simpleportals.common.Utils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommandTeleport extends CommandBase
@@ -39,7 +40,7 @@ public class CommandTeleport extends CommandBase
 		switch (args.length)
 		{
 			case 1:
-				return getListOfStringsMatchingLastWord(args, Arrays.asList(DimensionManager.getIDs()));
+				return getListOfStringsMatchingLastWord(args, generateTabCompletionList(DimensionManager.getIDs(), server.getPlayerList().getOnlinePlayerNames()));
 
 			case 2:
 				return getListOfStringsMatchingLastWord(args, server.getPlayerList().getOnlinePlayerNames());
@@ -57,81 +58,145 @@ public class CommandTeleport extends CommandBase
 	{
 		if (args.length < 1 || args.length > 5)
 		{
-			// tpd <dimensionId> [playerName] [<x> <z>] [y]
+			// tpd <dimensionId> [playerName] [<x> <z>] [y] or tpd [target playerName] <destination playerName>
 			throw new WrongUsageException("commands.tpd.usage");
 		}
 		else
 		{
-			int argumentOffset = 0;
-			int dimensionId = parseInt(args[0]);
+			Entity targetPlayer = null;
+			BlockPos destination = null;
+			int dimension;
 
-			if (!DimensionManager.isDimensionRegistered(dimensionId))
+			if (StringUtils.isNumeric(args[0]))
 			{
-				throw new CommandException("commands.tpd.unknownDimension", dimensionId);
-			}
+				// tpd <dimensionId> [playerName] [<x> <z>] [y]
 
-			boolean playerNameSpecified = false;
-			Entity player = null;
+				int argumentOffset = 0;
+				dimension = parseInt(args[0]);
 
-			if (args.length >= 2)
-			{
-				playerNameSpecified = !StringUtils.isNumeric(args[1]);
-				player = server.getPlayerList().getPlayerByUsername(args[1]);
-			}
-
-			// If 3 arguments are supplied and one of them is a player name, 'z' is missing.
-			if ((args.length == 3 && playerNameSpecified) || (args.length == 2 && !playerNameSpecified))
-			{
-				throw new SyntaxErrorException("commands.tpd.zMissing");
-			}
-
-			if (player == null)
-			{
-				if (playerNameSpecified)
+				if (!DimensionManager.isDimensionRegistered(dimension))
 				{
-					throw new PlayerNotFoundException("commands.tpd.unknownPlayerName", args[1]);
+					throw new CommandException("commands.tpd.unknownDimension", dimension);
+				}
+
+				boolean playerNameSpecified = false;
+
+				if (args.length >= 2)
+				{
+					playerNameSpecified = !StringUtils.isNumeric(args[1]) || args.length == 5;
+					targetPlayer = server.getPlayerList().getPlayerByUsername(args[1]);
+				}
+
+				// If 3 arguments are supplied and one of them is a player name, 'z' is missing.
+				if ((args.length == 3 && playerNameSpecified) || (args.length == 2 && !playerNameSpecified))
+				{
+					throw new SyntaxErrorException("commands.tpd.zMissing");
+				}
+
+				if (targetPlayer == null)
+				{
+					if (playerNameSpecified)
+					{
+						throw new PlayerNotFoundException("commands.tpd.unknownPlayerName", args[1]);
+					}
+					else
+					{
+						// Teleport the command user if no player name was specified.
+						targetPlayer = sender.getCommandSenderEntity();
+
+						if (targetPlayer == null)
+						{
+							throw new PlayerNotFoundException("commands.tpd.unknownSender");
+						}
+
+						argumentOffset = 1;
+					}
+				}
+
+				BlockPos start = sender.getPosition();
+				double x = start.getX();
+				double z = start.getZ();
+				double y = start.getY();
+
+				if (args.length >= 3)
+				{
+					x = parseDouble((double)start.getX(), args[2 - argumentOffset], true);
+					z = parseDouble((double)start.getZ(), args[3 - argumentOffset], true);
+				}
+
+				if ((args.length == 4 && !playerNameSpecified) || args.length == 5)
+				{
+					y = parseDouble((double)start.getY(), args[4 - argumentOffset], true);
+				}
+
+				destination = new BlockPos(x, y, z);
+			}
+			else
+			{
+				// tpd [target playerName] <destination playerName>
+
+				EntityPlayerMP destinationPlayer;
+
+				if (args.length == 2)
+				{
+					targetPlayer = server.getPlayerList().getPlayerByUsername(args[0]);
+					destinationPlayer = server.getPlayerList().getPlayerByUsername(args[1]);
+
+					if (targetPlayer == null || destinationPlayer == null)
+					{
+						throw new PlayerNotFoundException("commands.tpd.unknownPlayerName", args[(targetPlayer == null) ? 0 : 1]);
+					}
 				}
 				else
 				{
 					// Teleport the command user if no player name was specified.
-					player = sender.getCommandSenderEntity();
+					targetPlayer = sender.getCommandSenderEntity();
 
-					if (player == null)
+					if (targetPlayer == null)
 					{
 						throw new PlayerNotFoundException("commands.tpd.unknownSender");
 					}
 
-					argumentOffset = 1;
+					destinationPlayer = server.getPlayerList().getPlayerByUsername(args[0]);
+
+					if (destinationPlayer == null)
+					{
+						throw new PlayerNotFoundException("commands.tpd.unknownPlayerName", args[0]);
+					}
+				}
+
+				destination = destinationPlayer.getPosition();
+				dimension = destinationPlayer.dimension;
+			}
+
+			Utils.teleportTo(targetPlayer, dimension, destination, EnumFacing.NORTH);
+			notifyCommandListener(sender, this, "commands.tpd.success", targetPlayer.getName(), destination, dimension);
+		}
+	}
+
+	/**
+	 * Accumulates all elements from the passed in arrays, converts them to String and puts them in a list.
+	 *
+	 * @param input
+	 * The input arrays.
+	 * @return
+	 * The list containing the converted elements. Never returns <c>null</c> but the list may be empty.
+	 */
+	private List<String> generateTabCompletionList(Object[]... input)
+	{
+		List<String> completionStrings = new ArrayList<>();
+
+		if (input != null)
+		{
+			for (Object[] array : input)
+			{
+				for (Object element : array)
+				{
+					completionStrings.add(element.toString());
 				}
 			}
-
-			BlockPos start = sender.getPosition();
-			double x = start.getX();
-			double z = start.getZ();
-			double y = start.getY();
-
-			if (args.length >= 3)
-			{
-				x = parseDouble((double)start.getX(), args[2 - argumentOffset], true);
-				z = parseDouble((double)start.getZ(), args[3 - argumentOffset], true);
-			}
-
-			if ((args.length == 4 && !playerNameSpecified) || args.length == 5)
-			{
-				y = parseDouble((double)start.getY(), args[4 - argumentOffset], true);
-			}
-
-			BlockPos destination = new BlockPos(x, y, z);
-
-			if (!server.getWorld(dimensionId).getWorldBorder().contains(destination))
-			{
-				throw new CommandException("commands.tpd.destinationOutsideWorldBorder");
-			}
-			else
-			{
-				Utils.teleportTo(player, dimensionId, destination, EnumFacing.NORTH);
-				notifyCommandListener(sender, this, "commands.tpd.success", player.getName(), destination, dimensionId);
-			}
 		}
+
+		return completionStrings;
 	}
 }

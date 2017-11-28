@@ -50,6 +50,10 @@ public class CommandPortals extends CommandBase
 		{
 			return getListOfStringsMatchingLastWord(args, "all", "address", "dimension");
 		}
+		else if (args.length == 2 && "deactivate".equals(args[0]))
+		{
+			return getListOfStringsMatchingLastWord(args, "address", "position");
+		}
 		else if (args.length == 2 && "power".equals(args[0]))
 		{
 			return getListOfStringsMatchingLastWord(args, "add", "remove", "get");
@@ -57,10 +61,6 @@ public class CommandPortals extends CommandBase
 		else if (args.length == 2 && "cooldown".equals(args[0]))
 		{
 			return getListOfStringsMatchingLastWord(args, server.getPlayerList().getOnlinePlayerNames());
-		}
-		else if (args.length == 2 && "deactivate".equals(args[0]))
-		{
-			return getListOfStringsMatchingLastWord(args, "address", "position");
 		}
 		else if (args.length >= 3 && args.length <= 7 && "deactivate".equals(args[0]) && "address".equals(args[1]))
 		{
@@ -132,6 +132,12 @@ public class CommandPortals extends CommandBase
 
 		if ("clear".equals(args[0]))
 		{
+			if (args.length < 2 || !"confirmed".equals(args[1]))
+			{
+				// sportals clear confirmed
+				throw new WrongUsageException("commands.sportals.clear.usage");
+			}
+
 			Set<Portal> portals = new HashSet<>(PortalRegistry.getPortals().values());
 
 			for (Portal portal : portals)
@@ -188,17 +194,17 @@ public class CommandPortals extends CommandBase
 			}
 
 			SimplePortals.log.info("Registered portals");
-			SimplePortals.log.info("|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
-			SimplePortals.log.info("| Dimension | Position                         | Address                                                                                                                                                |");
-			SimplePortals.log.info("|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
+			SimplePortals.log.info("|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
+			SimplePortals.log.info("| Dimension | Position                         | Power | Address                                                                                                                                                |");
+			SimplePortals.log.info("|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
 
 			for (Portal portal : portals)
 			{
-				SimplePortals.log.info(String.format("| %9s | %32s | %-150s |",
-					portal.getDimension(), portal.getCorner1().getPos(), portal.getAddress()));
+				SimplePortals.log.info(String.format("| %9s | %32s | %5d | %-150s |",
+					portal.getDimension(), portal.getCorner1().getPos(), PortalRegistry.getPower(portal), portal.getAddress()));
 			}
 
-			SimplePortals.log.info("|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
+			SimplePortals.log.info("|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
 
 			notifyCommandListener(sender, this, "commands.sportals.list.success", sender.getName());
 		}

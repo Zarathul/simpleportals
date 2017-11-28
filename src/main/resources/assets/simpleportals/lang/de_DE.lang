@@ -30,26 +30,26 @@ item.itemPortalActivator.toolTipDetails4=sofort abzubauen. Kann von §bWerfern
 item.itemPortalActivator.toolTipDetails5=benutzt werden.
 
 # Commands
-commands.tpd.usage=/tpd <dimensionId> [playerName] [<x> <z>] [y]
+commands.tpd.usage=/tpd <dimensionId> [playerName] [<x> <z>] [y]§r oder §c/tpd [target playerName] <destination playerName>§r  ->  Teleportiert einen Spieler. Funktioniert zwischen Dimensionen.
 commands.tpd.unknownDimension=Dimension '%d' konnte nicht gefunden werden.
 commands.tpd.unknownPlayerName=Spieler '%s' konnte nicht gefunden werden.
 commands.tpd.unknownSender=Befehl wurde weder von einem Spieler abgesandt, noch wurde ein Spielername angegeben.
 commands.tpd.zMissing='z' Koordinate muss angegeben werden, wenn 'x' angegeben wurde.
-commands.tpd.destinationOutsideWorldBorder=Ziel liegt außerhalb der Weltbarriere.
 commands.tpd.success='%s' wurde nach %s in Dimension %d teleportiert.
-commands.sportals.usage=/sportals <clear | cooldown | deactivate | list | power>
+commands.sportals.usage=/sportals <clear | cooldown | deactivate | list | power>§r  ->  Simpleportals Befehle zur Wartung/Fehlerbehebung. Hinweis: 'Tab' drücken während man einen Block ansieht, fügt dem Befehl dessen Position oder Addressen-Id hinzu.
+commands.sportals.clear.usage=/sportals clear confirmed§r  ->  Leert die Portalregistrierung, was die Deaktivierung aller Portale zur Folge hat.
 commands.sportals.clear.success=Portal Registrierung geleert.
-commands.sportals.list.usage=/sportals list <address | all | dimension>
+commands.sportals.list.usage=/sportals list <address | all | dimension>§r  ->  Listet Portal Daten auf.
 commands.sportals.list.address.usage=/sportals list address <addressBlockId> <addressBlockId> <addressBlockId> <addressBlockId>
 commands.sportals.list.dimension.usage=/sportals list dimension <dimensionId>
-commands.sportals.list.success=Anfrage der Portalliste war erfolgreich. Ausgabe in Log umgeleitet.
-commands.sportals.deactivate.usage=/sportals deactivate <address | position>
+commands.sportals.list.success=Abfrage der Portalliste war erfolgreich. Ausgabe in Log umgeleitet.
+commands.sportals.deactivate.usage=/sportals deactivate <address | position>§r  ->  Deaktiviert Portale.
 commands.sportals.deactivate.address.usage=/sportals deactivate address <addressBlockId> <addressBlockId> <addressBlockId> <addressBlockId> [dimensionId]
 commands.sportals.deactivate.position.usage=/sportals deactivate position <x> <y> <z> [dimensionId]
 commands.sportals.deactivate.success=Portal bei '%s' in Dimension %d deaktiviert.
 commands.sportals.deactivate.portalNotFoundWithAddress=Es konnten keine Portale mit der Addresse %s in Dimension '%s' gefunden werden.
 commands.sportals.deactivate.portalNotFoundAtPos=Es konnten keine Portale bei %s in Dimension %d gefunden werden.
-commands.sportals.power.usage=/sportals power <add | get | remove>
+commands.sportals.power.usage=/sportals power <add | get | remove>§r  ->  Verwaltet Portalenergie.
 commands.sportals.power.add.usage=/sportals power add <amount> <x> <y> <z> [dimension]
 commands.sportals.power.remove.usage=/sportals power remove <amount> <x> <y> <z> [dimension]
 commands.sportals.power.get.usage=/sportals power get <x> <y> <z> [dimension]
@@ -60,7 +60,7 @@ commands.sportals.power.multiplePortalsFound=Es wurden mehrere Portale bei %s in
 commands.sportals.power.add.success='%3$d' Energie wurde dem Portal bei %s in Dimension %d hinzugefügt.
 commands.sportals.power.remove.success='%3$d' Energie wurde dem Portal bei %s in Dimension %d entzogen.
 commands.sportals.power.get.success=Das Portal bei %s in Dimension %d hat '%d' Energie gespeichert.
-commands.sportals.cooldown.usage=/sportals cooldown <playerNamer>
+commands.sportals.cooldown.usage=/sportals cooldown <playerNamer>§r  ->  Fragt die Abklingzeit eines Spielers ab. Portale können nur benutzt werden wenn die Abklingzeit 0 ist.
 commands.sportals.cooldown.success=Abklingzeit für Spieler '%s' ist gegenwärtig '%d' ticks (~%.2f sek).
 
 # ConfigUI Category Labels
