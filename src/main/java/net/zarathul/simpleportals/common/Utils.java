@@ -459,4 +459,28 @@ public final class Utils
 		
 		return yaw;
 	}
+
+	/**
+	 * Determines if a string represents an integer (may be negative).
+	 *
+	 * @param numberString
+	 * The string to check.
+	 * @return
+	 * <code>true</code> if numberString can be converted to an integer, otherwise <code>false</code>.
+	 */
+	public static final boolean isInteger(String numberString)
+	{
+		boolean success = true;
+
+		try
+		{
+			int value = Integer.parseInt(numberString);
+		}
+		catch (NumberFormatException ex)
+		{
+			success = false;
+		}
+
+		return success;
+	}
 }

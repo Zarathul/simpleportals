@@ -8,7 +8,6 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.DimensionManager;
 import net.zarathul.simpleportals.common.Utils;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -67,7 +66,7 @@ public class CommandTeleport extends CommandBase
 			BlockPos destination = null;
 			int dimension;
 
-			if (StringUtils.isNumeric(args[0]))
+			if (Utils.isInteger(args[0]))
 			{
 				// tpd <dimensionId> [playerName] [<x> <z>] [y]
 
@@ -83,7 +82,7 @@ public class CommandTeleport extends CommandBase
 
 				if (args.length >= 2)
 				{
-					playerNameSpecified = !StringUtils.isNumeric(args[1]) || args.length == 5;
+					playerNameSpecified = !Utils.isInteger(args[1]) || args.length == 5;
 					targetPlayer = server.getPlayerList().getPlayerByUsername(args[1]);
 				}
 
