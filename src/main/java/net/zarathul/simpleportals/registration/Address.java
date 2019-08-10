@@ -1,7 +1,7 @@
 package net.zarathul.simpleportals.registration;
 
 import com.google.common.base.Strings;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import java.util.Map;
@@ -11,10 +11,10 @@ import java.util.TreeMap;
 /**
  * Represents the address of a portal.<br>
  * The address consists of 4 blockIds as provided by
- * {@link PortalRegistry#getAddressBlockId(net.minecraft.block.state.IBlockState)}.
+ * {@link PortalRegistry#getAddressBlockId(net.minecraft.block.BlockState)}.
  * Multiple blocks with the same name/meta are allowed.
  */
-public class Address implements INBTSerializable<NBTTagCompound>
+public class Address implements INBTSerializable<CompoundNBT>
 {
 	private static final int LENGTH = 4;
 	
@@ -53,38 +53,38 @@ public class Address implements INBTSerializable<NBTTagCompound>
 	}
 	
 	@Override
-	public NBTTagCompound serializeNBT()
+	public CompoundNBT serializeNBT()
 	{
-		NBTTagCompound mainTag = new NBTTagCompound();
-		NBTTagCompound countTag;
+		CompoundNBT mainTag = new CompoundNBT();
+		CompoundNBT countTag;
 		
 		int i = 0;
 		
 		for (Entry<String, Integer> blockCount : blockCounts.entrySet())
 		{
-			countTag = new NBTTagCompound();
-			countTag.setString("id", blockCount.getKey());
-			countTag.setInteger("count", blockCount.getValue());
+			countTag = new CompoundNBT();
+			countTag.putString("id", blockCount.getKey());
+			countTag.putInt("count", blockCount.getValue());
 			
-			mainTag.setTag(String.valueOf(i++), countTag);
+			mainTag.put(String.valueOf(i++), countTag);
 		}
 		
 		return mainTag;
 	}
 	
 	@Override
-	public void deserializeNBT(NBTTagCompound nbt)
+	public void deserializeNBT(CompoundNBT nbt)
 	{
 		if (nbt == null) return;
 		
 		int i = 0;
 		String key;
-		NBTTagCompound countTag;
+		CompoundNBT countTag;
 		
-		while (nbt.hasKey(key = String.valueOf(i++)))
+		while (nbt.contains(key = String.valueOf(i++)))
 		{
-			countTag = nbt.getCompoundTag(key);
-			blockCounts.put(countTag.getString("id"), countTag.getInteger("count"));
+			countTag = nbt.getCompound(key);
+			blockCounts.put(countTag.getString("id"), countTag.getInt("count"));
 		}
 		
 		readableName = generateReadableName();

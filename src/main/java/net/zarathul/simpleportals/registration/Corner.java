@@ -1,24 +1,24 @@
 package net.zarathul.simpleportals.registration;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.util.INBTSerializable;
 
 /**
  * Represents a corner of a portal.
  */
-public class Corner implements INBTSerializable<NBTTagCompound>
+public class Corner implements INBTSerializable<CompoundNBT>
 {
 	private BlockPos pos;
-	private EnumFacing facingA;
-	private EnumFacing facingB;
+	private Direction facingA;
+	private Direction facingB;
 	
 	public Corner()
 	{
 	}
 	
-	public Corner(BlockPos pos, EnumFacing facingA, EnumFacing facingB)
+	public Corner(BlockPos pos, Direction facingA, Direction facingB)
 	{
 		this.pos = pos;
 		this.facingA = facingA;
@@ -40,9 +40,9 @@ public class Corner implements INBTSerializable<NBTTagCompound>
 	 * The first direction where portal frames are located.
 	 * 
 	 * @return
-	 * One of the {@link EnumFacing} values.
+	 * One of the {@link Direction} values.
 	 */
-	public EnumFacing getFacingA()
+	public Direction getFacingA()
 	{
 		return facingA;
 	}
@@ -51,9 +51,9 @@ public class Corner implements INBTSerializable<NBTTagCompound>
 	 * The second direction where portal frames are located.
 	 * 
 	 * @return
-	 * One of the {@link EnumFacing} values.
+	 * One of the {@link Direction} values.
 	 */
-	public EnumFacing getFacingB()
+	public Direction getFacingB()
 	{
 		return facingB;
 	}
@@ -72,24 +72,24 @@ public class Corner implements INBTSerializable<NBTTagCompound>
 	}
 	
 	@Override
-	public NBTTagCompound serializeNBT()
+	public CompoundNBT serializeNBT()
 	{
-		NBTTagCompound tag = new NBTTagCompound();
-		tag.setLong("pos", pos.toLong());
-		tag.setString("facingA", facingA.name());
-		tag.setString("facingB", facingB.name());
+		CompoundNBT tag = new CompoundNBT();
+		tag.putLong("pos", pos.toLong());
+		tag.putString("facingA", facingA.name());
+		tag.putString("facingB", facingB.name());
 		
 		return tag;
 	}
 	
 	@Override
-	public void deserializeNBT(NBTTagCompound nbt)
+	public void deserializeNBT(CompoundNBT nbt)
 	{
 		if (nbt == null) return;
 		
 		pos = BlockPos.fromLong(nbt.getLong("pos"));
-		facingA = EnumFacing.byName(nbt.getString("facingA"));
-		facingB = EnumFacing.byName(nbt.getString("facingB"));
+		facingA = Direction.byName(nbt.getString("facingA"));
+		facingB = Direction.byName(nbt.getString("facingB"));
 	}
 	
 	@Override

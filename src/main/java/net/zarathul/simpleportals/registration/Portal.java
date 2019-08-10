@@ -1,9 +1,9 @@
 package net.zarathul.simpleportals.registration;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumFacing.Axis;
-import net.minecraft.util.EnumFacing.AxisDirection;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Direction.Axis;
+import net.minecraft.util.Direction.AxisDirection
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -20,7 +20,7 @@ import java.util.List;
  * Note: Corner1 and Corner4 must be diagonal to each other,
  * same for Corner2 and Corner3.
  */
-public class Portal implements INBTSerializable<NBTTagCompound>
+public class Portal implements INBTSerializable<CompoundNBT>
 {
 	private int dimension;
 	private Address address;
@@ -172,10 +172,10 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 		
 		// Get relative directions of the first and forth corners to their adjacent corners.
 		
-		EnumFacing dir1To2 = Utils.getRelativeDirection(corner1.getPos(), corner2.getPos());
-		EnumFacing dir1To3 = Utils.getRelativeDirection(corner1.getPos(), corner3.getPos());
-		EnumFacing dir4To2 = Utils.getRelativeDirection(corner4.getPos(), corner2.getPos());
-		EnumFacing dir4To3 = Utils.getRelativeDirection(corner4.getPos(), corner3.getPos());
+		Direction dir1To2 = Utils.getRelativeDirection(corner1.getPos(), corner2.getPos());
+		Direction dir1To3 = Utils.getRelativeDirection(corner1.getPos(), corner3.getPos());
+		Direction dir4To2 = Utils.getRelativeDirection(corner4.getPos(), corner2.getPos());
+		Direction dir4To3 = Utils.getRelativeDirection(corner4.getPos(), corner3.getPos());
 		
 		// Offset the corner positions towards their adjacent corners and get all positions
 		// in between. This way we get all the frame positions without the corners themselves.
@@ -265,13 +265,13 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 			int halfWidth = Math.floorDiv(width, 2);
 			int halfHeight = Math.floorDiv(height, 2);
 			
-			EnumFacing[] zAxisFacings = new EnumFacing[] { EnumFacing.SOUTH, EnumFacing.NORTH };
+			Direction[] zAxisFacings = new Direction[] { Direction.SOUTH, Direction.NORTH };
 			BlockPos center = new BlockPos(minX + halfWidth, y, minZ + halfHeight);
 			BlockPos currentPos;
 			
 			for (int z = 0; z <= halfHeight; z++)
 			{
-				for (EnumFacing zFacing : zAxisFacings)
+				for (Direction zFacing : zAxisFacings)
 				{
 					for (int x = 0; x <= halfWidth; x++)
 					{
@@ -325,9 +325,9 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 		int middle = lowBound + halfWidth;
 		int startHeight = (portal1.getY() < portal2.getY()) ? portal1.getY() : portal2.getY();
 		
-		// e.g. Axis.Z and AxisDirection.POSITIVE returns EnumFacing.SOUTH.
-		EnumFacing searchDirPositive = EnumFacing.getFacingFromAxis(AxisDirection.POSITIVE, cornerAxis);
-		EnumFacing searchDirNegative = EnumFacing.getFacingFromAxis(AxisDirection.NEGATIVE, cornerAxis);
+		// e.g. Axis.Z and AxisDirection.POSITIVE returns Direction.SOUTH.
+		Direction searchDirPositive = Direction.getFacingFromAxis(AxisDirection.POSITIVE, cornerAxis);
+		Direction searchDirNegative = Direction.getFacingFromAxis(AxisDirection.NEGATIVE, cornerAxis);
 		
 		BlockPos feetPos = null;
 		BlockPos searchStartPos1 = (axis == Axis.Z)
@@ -420,43 +420,43 @@ public class Portal implements INBTSerializable<NBTTagCompound>
 	}
 	
 	@Override
-	public NBTTagCompound serializeNBT()
+	public CompoundNBT serializeNBT()
 	{
-		NBTTagCompound tag = new NBTTagCompound();
-		tag.setInteger("dimension", dimension);
-		tag.setTag("address", address.serializeNBT());
-		tag.setString("axis", axis.name());
-		tag.setTag("corner1", corner1.serializeNBT());
-		tag.setTag("corner2", corner2.serializeNBT());
-		tag.setTag("corner3", corner3.serializeNBT());
-		tag.setTag("corner4", corner4.serializeNBT());
+		CompoundNBT tag = new CompoundNBT();
+		tag.putInt("dimension", dimension);
+		tag.put("address", address.serializeNBT());
+		tag.putString("axis", axis.name());
+		tag.put("corner1", corner1.serializeNBT());
+		tag.put("corner2", corner2.serializeNBT());
+		tag.put("corner3", corner3.serializeNBT());
+		tag.put("corner4", corner4.serializeNBT());
 		
 		return tag;
 	}
 	
 	@Override
-	public void deserializeNBT(NBTTagCompound nbt)
+	public void deserializeNBT(CompoundNBT nbt)
 	{
 		if (nbt == null) return;
 		
-		dimension = nbt.getInteger("dimension");
+		dimension = nbt.getInt("dimension");
 		
 		address = new Address();
-		address.deserializeNBT(nbt.getCompoundTag("address"));
+		address.deserializeNBT(nbt.getCompound("address"));
 		
 		axis = Axis.byName(nbt.getString("axis"));
 		
 		corner1 = new Corner();
-		corner1.deserializeNBT(nbt.getCompoundTag("corner1"));
+		corner1.deserializeNBT(nbt.getCompound("corner1"));
 		
 		corner2 = new Corner();
-		corner2.deserializeNBT(nbt.getCompoundTag("corner2"));
+		corner2.deserializeNBT(nbt.getCompound("corner2"));
 		
 		corner3 = new Corner();
-		corner3.deserializeNBT(nbt.getCompoundTag("corner3"));
+		corner3.deserializeNBT(nbt.getCompound("corner3"));
 		
 		corner4 = new Corner();
-		corner4.deserializeNBT(nbt.getCompoundTag("corner4"));
+		corner4.deserializeNBT(nbt.getCompound("corner4"));
 	}
 	
 	@Override

@@ -2,8 +2,8 @@ package net.zarathul.simpleportals.common;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.play.server.SPacketEntityEffect;
 import net.minecraft.network.play.server.SPacketPlayerAbilities;
 import net.minecraft.network.play.server.SPacketRespawn;
@@ -11,17 +11,17 @@ import net.minecraft.network.play.server.SPacketSetExperience;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerList;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumFacing.Axis;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.translation.I18n;
-import net.minecraft.world.BossInfoServer;
+import net.minecraft.util.text.translation.LanguageMap;
+import net.minecraft.world.BossInfo;
 import net.minecraft.world.WorldProviderEnd;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.end.DragonFightManager;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.zarathul.simpleportals.SimplePortals;
 
 import java.lang.reflect.Field;
@@ -53,10 +53,11 @@ public final class Utils
 		{
 			int x = 0;
 			String currentKey = key + x;
+			LanguageMap i18nMap = LanguageMap.getInstance();
 
-			while (I18n.canTranslate(currentKey))
+			while (i18nMap.exists(currentKey))
 			{
-				lines.add(I18n.translateToLocalFormatted(currentKey, args));
+				lines.add(String.format(i18nMap.translateKey(currentKey), args));
 				currentKey = key + ++x;
 			}
 		}
@@ -93,15 +94,15 @@ public final class Utils
 	 * @param to
 	 * The end point.
 	 * @return
-	 * One of the {@link EnumFacing} values or <code>null</code> if one of the arguments was <code>null</code>.
+	 * One of the {@link Direction} values or <code>null</code> if one of the arguments was <code>null</code>.
 	 */
-	public static final EnumFacing getRelativeDirection(BlockPos from, BlockPos to)
+	public static final Direction getRelativeDirection(BlockPos from, BlockPos to)
 	{
 		if (from == null || to == null) return null;
 		
 		BlockPos directionVec = to.subtract(from);
 		
-		return EnumFacing.getFacingFromVector(directionVec.getX(), directionVec.getY(), directionVec.getZ());
+		return Direction.getFacingFromVector(directionVec.getX(), directionVec.getY(), directionVec.getZ());
 	}
 	
 	/**
@@ -133,13 +134,13 @@ public final class Utils
 	 * @param facing
 	 * The direction the entity should face after porting.
 	 */
-	public static final void teleportTo(Entity entity, int dimension, BlockPos destination, EnumFacing facing)
+	public static final void teleportTo(Entity entity, int dimension, BlockPos destination, Direction facing)
 	{
-		if (entity == null || destination == null || entity.isBeingRidden() || entity.isRiding() || !entity.isNonBoss()
+		if (entity == null || destination == null || entity.isBeingRidden() || entity.isOnePlayerRiding() || !entity.isNonBoss()
 			|| !DimensionManager.isDimensionRegistered(dimension)) return;
 		
-		EntityPlayerMP player = (entity instanceof EntityPlayerMP) ? (EntityPlayerMP)entity : null;
-		boolean interdimensional = (entity.dimension != dimension);
+		ServerPlayerEntity player = (entity instanceof ServerPlayerEntity) ? (ServerPlayerEntity)entity : null;
+		boolean interdimensional = (entity.dimension.getId() != dimension);
 		
 		if (player != null)
 		{
@@ -210,7 +211,7 @@ public final class Utils
 	 * @param yaw
 	 * The rotation yaw the entity should have after porting.
 	 */
-	private static final void teleportPlayerToDimension(EntityPlayerMP player, int dimension, BlockPos destination, float yaw)
+	private static final void teleportPlayerToDimension(ServerPlayerEntity player, int dimension, BlockPos destination, float yaw)
 	{
 		int startDimension = player.dimension;
 		MinecraftServer server = player.getServer();
@@ -270,7 +271,7 @@ public final class Utils
 		if (startDimension == 1 && dimension != 1)
 		{
 			DragonFightManager fightManager = ((WorldProviderEnd)startWorld.provider).getDragonFightManager();
-			BossInfoServer bossInfo = getBossInfo(fightManager);
+			BossInfo bossInfo = getBossInfo(fightManager);
 
 			if (bossInfo != null)
 			{
@@ -282,7 +283,7 @@ public final class Utils
 			}
 		}
 
-		FMLCommonHandler.instance().firePlayerChangedDimensionEvent(player, startDimension, dimension);
+		ForgeHooks.onTravelToDimension(player, dimension);
 	}
 
 	/**
@@ -302,8 +303,8 @@ public final class Utils
 	private static final void teleportNonPlayerEntityToDimension(Entity entity, int dimension, BlockPos destination, float yaw)
 	{
 		MinecraftServer server = entity.getServer();
-		WorldServer startWorld = server.getWorld(entity.dimension);
-		WorldServer destinationWorld = server.getWorld(dimension);
+		ServerWorld startWorld = server.getWorld(entity.dimension);
+		ServerWorld destinationWorld = server.getWorld(dimension);
 		
 		entity.dimension = dimension;
 		startWorld.removeEntity(entity);
@@ -355,10 +356,9 @@ public final class Utils
 	 */
 	private static final void copyEntityNBT(Entity source, Entity target)
 	{
-		NBTTagCompound tag = new NBTTagCompound();
-		source.writeToNBT(tag);
-		tag.removeTag("Dimension");
-		target.readFromNBT(tag);
+		CompoundNBT tag = source.serializeNBT();
+		tag.remove("Dimension");
+		target.deserializeNBT(tag);
 	}
 	
 	/**
@@ -370,7 +370,7 @@ public final class Utils
 	 * @return
 	 * <code>true</code> if the flag was successfully set, otherwise <code>false</code>.
 	 */
-	private static final boolean setInvulnerableDimensionChange(EntityPlayerMP player)
+	private static final boolean setInvulnerableDimensionChange(ServerPlayerEntity player)
 	{
 		if (player == null) return false;
 		
@@ -378,7 +378,7 @@ public final class Utils
 		{
 			if (invulnerableDimensionChange == null)
 			{
-				invulnerableDimensionChange = EntityPlayerMP.class.getDeclaredField("invulnerableDimensionChange");  // invulnerableDimensionChange field
+				invulnerableDimensionChange = ServerPlayerEntity.class.getDeclaredField("invulnerableDimensionChange");  // invulnerableDimensionChange field
 				invulnerableDimensionChange.setAccessible(true);
 			}
 			
@@ -401,7 +401,7 @@ public final class Utils
 	 * @return
 	 * A BossInfoServer or <c>null</c> if the bossInfo field could not be accessed.
 	 */
-	private static final BossInfoServer getBossInfo(DragonFightManager dragonFightManager)
+	private static final BossInfo getBossInfo(DragonFightManager dragonFightManager)
 	{
 		if (dragonFightManager == null) return null;
 
@@ -415,7 +415,7 @@ public final class Utils
 
 			Object fieldValue = dragonBossInfo.get(dragonFightManager);
 
-			return (fieldValue != null) ? (BossInfoServer)fieldValue : null;
+			return (fieldValue != null) ? (BossInfo)fieldValue : null;
 		}
 		catch (Exception ex)
 		{
@@ -432,7 +432,7 @@ public final class Utils
 	 * <code>0</code> if facing is <code>null</code>, otherwise a value between <code>0</code> and <code>270</code> that
 	 * is a multiple of <code>90</code>.
 	 */
-	public static final float getYaw(EnumFacing facing)
+	public static final float getYaw(Direction facing)
 	{
 		if (facing == null) return 0;
 		

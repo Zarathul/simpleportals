@@ -1,5 +1,7 @@
 package net.zarathul.simpleportals.theoneprobe;
 
+/*
+
 import mcjty.theoneprobe.api.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -23,6 +25,7 @@ import java.util.List;
 /**
  * Provides TheOneProbe tooltip information for portals.
  */
+/*
 public class PortalInfoProvider implements IProbeInfoProvider
 {
 	// I18N keys
@@ -153,3 +156,4 @@ public class PortalInfoProvider implements IProbeInfoProvider
 		}
 	}
 }
+*/

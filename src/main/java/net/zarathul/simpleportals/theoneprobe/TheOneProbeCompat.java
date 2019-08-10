@@ -1,5 +1,6 @@
 package net.zarathul.simpleportals.theoneprobe;
 
+/*
 import mcjty.theoneprobe.api.ITheOneProbe;
 import net.zarathul.simpleportals.SimplePortals;
 
@@ -9,6 +10,7 @@ import java.util.function.Function;
 /**
  * Hosts the most complicated callback known to man for TheOneProbe.
  */
+/*
 public final class TheOneProbeCompat
 {
 	public static class GetTheOneProbe implements Function<ITheOneProbe, Void>
@@ -24,3 +26,4 @@ public final class TheOneProbeCompat
 		}
 	}
 }
+*/

@@ -1,3 +1,4 @@
+/*
 package net.zarathul.simpleportals.configuration;
 
 import net.minecraft.client.gui.GuiScreen;
@@ -9,9 +10,11 @@ import net.zarathul.simpleportals.SimplePortals;
 
 import java.util.List;
 
+*/
 /**
  * The in-game config UI.
- */
+ *//*
+
 public class ConfigGui extends GuiConfig
 {
 	public ConfigGui(GuiScreen parentScreen)
@@ -25,3 +28,4 @@ public class ConfigGui extends GuiConfig
 		return new ConfigElement(Config.getConfig().getCategory(Configuration.CATEGORY_GENERAL)).getChildElements();
 	}
 }
+*/

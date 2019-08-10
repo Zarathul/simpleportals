@@ -1,3 +1,4 @@
+/*
 package net.zarathul.simpleportals.configuration;
 
 import net.minecraft.client.Minecraft;
@@ -6,9 +7,11 @@ import net.minecraftforge.fml.client.IModGuiFactory;
 
 import java.util.Set;
 
+*/
 /**
  * The factory providing the in-game config UI.
- */
+ *//*
+
 public class ConfigGuiFactory implements IModGuiFactory
 {
 	@Override
@@ -34,3 +37,4 @@ public class ConfigGuiFactory implements IModGuiFactory
 		return new ConfigGui(parentScreen);
 	}
 }
+*/

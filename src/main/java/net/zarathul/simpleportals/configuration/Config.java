@@ -1,5 +1,6 @@
 package net.zarathul.simpleportals.configuration;
 
+/*
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -11,9 +12,11 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import java.io.File;
 
+*/
 /**
  * Provides helper methods to load the mods config.
- */
+ *//*
+
 public final class Config
 {
 	private static Configuration config = null;
@@ -41,23 +44,27 @@ public final class Config
 
 	public static final String CATEGORY_MISC = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "misc";
 
-	/**
+	*/
+/**
 	 * Gets the loaded configuration.
 	 * 
 	 * @return
 	 * The last loaded configuration or <code>null</code> if no config has been loaded yet.
-	 */
+	 *//*
+
 	public static final Configuration getConfig()
 	{
 		return config;
 	}
 
-	/**
+	*/
+/**
 	 * Loads the mods settings from the specified file.
 	 * 
 	 * @param configFile
 	 * The file to load the settings from.
-	 */
+	 *//*
+
 	public static final void load(File configFile)
 	{
 		config = new Configuration(configFile);
@@ -65,9 +72,11 @@ public final class Config
 		sync();
 	}
 
-	/**
+	*/
+/**
 	 * Synchronizes the config GUI and the config file.
-	 */
+	 *//*
+
 	public static void sync()
 	{
 		Property prop;
@@ -149,3 +158,4 @@ public final class Config
 		}
 	}
 }
+*/

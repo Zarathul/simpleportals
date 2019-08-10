@@ -2,10 +2,11 @@ package net.zarathul.simpleportals.registration;
 
 import com.google.common.collect.*;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumFacing.Axis;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.zarathul.simpleportals.SimplePortals;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  */
 public final class PortalRegistry
 {
-	private static ImmutableMap<EnumFacing,EnumFacing[]> cornerSearchDirs;
+	private static ImmutableMap<Direction,Direction[]> cornerSearchDirs;
 	private static ListMultimap<BlockPos, Portal> portals;
 	private static ListMultimap<Address, Portal> addresses;
 	private static ListMultimap<Portal, BlockPos> gauges;
@@ -31,13 +32,13 @@ public final class PortalRegistry
 	
 	static
 	{
-		EnumMap<EnumFacing,EnumFacing[]> temp = Maps.newEnumMap(EnumFacing.class);
-		temp.put(EnumFacing.DOWN, new EnumFacing[] { EnumFacing.SOUTH, EnumFacing.EAST });
-		temp.put(EnumFacing.UP, new EnumFacing[] { EnumFacing.SOUTH, EnumFacing.EAST });
-		temp.put(EnumFacing.NORTH, new EnumFacing[] { EnumFacing.DOWN, EnumFacing.EAST });
-		temp.put(EnumFacing.SOUTH, new EnumFacing[] { EnumFacing.DOWN, EnumFacing.EAST });
-		temp.put(EnumFacing.WEST, new EnumFacing[] { EnumFacing.DOWN, EnumFacing.SOUTH });
-		temp.put(EnumFacing.EAST, new EnumFacing[] { EnumFacing.DOWN, EnumFacing.SOUTH });
+		EnumMap<Direction,Direction[]> temp = Maps.newEnumMap(Direction.class);
+		temp.put(Direction.DOWN, new Direction[] { Direction.SOUTH, Direction.EAST });
+		temp.put(Direction.UP, new Direction[] { Direction.SOUTH, Direction.EAST });
+		temp.put(Direction.NORTH, new Direction[] { Direction.DOWN, Direction.EAST });
+		temp.put(Direction.SOUTH, new Direction[] { Direction.DOWN, Direction.EAST });
+		temp.put(Direction.WEST, new Direction[] { Direction.DOWN, Direction.SOUTH });
+		temp.put(Direction.EAST, new Direction[] { Direction.DOWN, Direction.SOUTH });
 		cornerSearchDirs = Maps.immutableEnumMap(temp);
 		
 		portals = ArrayListMultimap.create();
@@ -53,12 +54,12 @@ public final class PortalRegistry
 	 * @param pos
 	 * The {@link BlockPos} of the a portal frame.
 	 * @param side
-	 * The {@link EnumFacing} representing the side of the portal frame that was hit
+	 * The {@link Direction} representing the side of the portal frame that was hit
 	 * by the portal activator.
 	 * @return
 	 * <code>true</code> if a portal could be activated, otherwise <code>false</code>.
 	 */
-	public static boolean activatePortal(World world, BlockPos pos, EnumFacing side)
+	public static boolean activatePortal(World world, BlockPos pos, Direction side)
 	{
 		if (world == null || pos == null || side == null) return false;
 		
@@ -67,11 +68,11 @@ public final class PortalRegistry
 		Corner corner2 = null;
 		Corner corner3 = null;
 		Corner corner4 = null;
-		EnumFacing firstSearchDir = null;
+		Direction firstSearchDir = null;
 		
 		// Find corners
 		
-		for (EnumFacing searchDir : cornerSearchDirs.get(side))
+		for (Direction searchDir : cornerSearchDirs.get(side))
 		{
 			corner = findCorner(world, pos, searchDir, side);
 			
@@ -104,19 +105,19 @@ public final class PortalRegistry
 		
 		// Check address blocks validity
 		
-		IBlockState addBlock1 = world.getBlockState(corner1.getPos());
+		BlockState addBlock1 = world.getBlockState(corner1.getPos());
 		
 		if (!isValidAddressBlock(addBlock1)) return false;
 		
-		IBlockState addBlock2 = world.getBlockState(corner2.getPos());
+		BlockState addBlock2 = world.getBlockState(corner2.getPos());
 		
 		if (!isValidAddressBlock(addBlock2)) return false;
 		
-		IBlockState addBlock3 = world.getBlockState(corner3.getPos());
+		BlockState addBlock3 = world.getBlockState(corner3.getPos());
 		
 		if (!isValidAddressBlock(addBlock3)) return false;
 		
-		IBlockState addBlock4 = world.getBlockState(corner4.getPos());
+		BlockState addBlock4 = world.getBlockState(corner4.getPos());
 		
 		if (!isValidAddressBlock(addBlock4)) return false;
 		
@@ -145,7 +146,7 @@ public final class PortalRegistry
 			getAddressBlockId(addBlock3),
 			getAddressBlockId(addBlock4));
 		
-		int dimension = world.provider.getDimension();
+		int dimension = world.getDimension();
 		
 		Portal portal = new Portal(dimension, address, portalAxis, corner1, corner2, corner3, corner4);
 		
@@ -414,12 +415,12 @@ public final class PortalRegistry
 	 * Generates an address block id for the specified block.
 	 * 
 	 * @param blockState
-	 * The {@link IBlockState} to generate the address id for.
+	 * The {@link BlockState} to generate the address id for.
 	 * @return
 	 * A string of the format "registryName#meta" or <code>null</code>
 	 * if <code>blockState</code> is <code>null</code>.
 	 */
-	public static String getAddressBlockId(IBlockState blockState)
+	public static String getAddressBlockId(BlockState blockState)
 	{
 		if (blockState == null) return null;
 		
@@ -441,7 +442,8 @@ public final class PortalRegistry
 	{
 		for (BlockPos portalPos : portal.getPortalPositions())
 		{
-			world.setBlockToAir(portalPos);
+			// FIXME: Not sure if this is correct.
+			world.destroyBlock(portalPos, false);
 		}
 	}
 	
@@ -477,7 +479,7 @@ public final class PortalRegistry
 	 * A {@link Corner} or <code>null</code> if one of the parameters was <code>null</code> or
 	 * no corner could be found.
 	 */
-	private static Corner findCorner(World world, BlockPos startPos, EnumFacing searchDir, EnumFacing cornerFacing)
+	private static Corner findCorner(World world, BlockPos startPos, Direction searchDir, Direction cornerFacing)
 	{
 		if (startPos == null || searchDir == null || cornerFacing == null) return null;
 		
@@ -587,11 +589,11 @@ public final class PortalRegistry
 	 * Valid blocks may not have TileEntities and must be full blocks.
 	 * 
 	 * @param state
-	 * The {@link IBlockState} of the block to check.
+	 * The {@link BlockState} of the block to check.
 	 * @return
 	 * <code>true</code> if the block is valid, otherwise <code>false</code>.
 	 */
-	private static boolean isValidAddressBlock(IBlockState state)
+	private static boolean isValidAddressBlock(BlockState state)
 	{
 		if (state == null
 			|| state.getBlock().hasTileEntity(state)
@@ -605,16 +607,16 @@ public final class PortalRegistry
 	 * Writes the registry data to a NBT compound tag.
 	 * 
 	 * @param nbt
-	 * The {@link NBTTagCompound} to save the registry data in.
+	 * The {@link CompoundNBT} to save the registry data in.
 	 */
-	public static void writeToNBT(NBTTagCompound nbt)
+	public static void writeToNBT(CompoundNBT nbt)
 	{
 		if (nbt == null) return;
 		
-		NBTTagCompound portalsTag = new NBTTagCompound();
-		NBTTagCompound portalBlocksTag = new NBTTagCompound();
-		NBTTagCompound powerTag = new NBTTagCompound();
-		NBTTagCompound subTag;
+		CompoundNBT portalsTag = new CompoundNBT();
+		CompoundNBT portalBlocksTag = new CompoundNBT();
+		CompoundNBT powerTag = new CompoundNBT();
+		CompoundNBT subTag;
 		
 		// Serialization of all Portals into a list.
 		
@@ -625,8 +627,8 @@ public final class PortalRegistry
 		for (Portal portal : uniquePortals)
 		{
 			portalIDs.put(portal, i);
-			powerTag.setInteger(String.valueOf(i), power.get(portal));
-			portalsTag.setTag(String.valueOf(i++), portal.serializeNBT());
+			powerTag.putInt(String.valueOf(i), power.get(portal));
+			portalsTag.put(String.valueOf(i++), portal.serializeNBT());
 		}
 		
 		i = 0;
@@ -636,54 +638,54 @@ public final class PortalRegistry
 		
 		for (BlockPos pos : portals.keySet())
 		{
-			subTag = new NBTTagCompound();
-			subTag.setLong("pos", pos.toLong());
-			subTag.setBoolean("isGauge", gauges.containsValue(pos));
+			subTag = new CompoundNBT();
+			subTag.putLong("pos", pos.toLong());
+			subTag.putBoolean("isGauge", gauges.containsValue(pos));
 			
 			for (Portal portal : portals.get(pos))
 			{
-				subTag.setInteger("portal" + x++, portalIDs.get(portal));
+				subTag.putInt("portal" + x++, portalIDs.get(portal));
 			}
 			
 			x = 0;
 			
-			portalBlocksTag.setTag(String.valueOf(i++), subTag);
+			portalBlocksTag.put(String.valueOf(i++), subTag);
 		}
 		
-		nbt.setTag("portals", portalsTag);
-		nbt.setTag("portalBlocks", portalBlocksTag);
-		nbt.setTag("power", powerTag);
+		nbt.put("portals", portalsTag);
+		nbt.put("portalBlocks", portalBlocksTag);
+		nbt.put("power", powerTag);
 	}
 	
 	/**
 	 * Reads the registry data from a NBT compound tag.
 	 * 
 	 * @param nbt
-	 * The {@link NBTTagCompound} to read the registry data from.
+	 * The {@link CompoundNBT} to read the registry data from.
 	 */
-	public static void readFromNBT(NBTTagCompound nbt)
+	public static void readFromNBT(CompoundNBT nbt)
 	{
 		if (nbt == null) return;
 		
 		portals.clear();
 		addresses.clear();
 		
-		NBTTagCompound portalsTag = nbt.getCompoundTag("portals");
-		NBTTagCompound portalBlocksTag = nbt.getCompoundTag("portalBlocks");
-		NBTTagCompound powerTag = nbt.getCompoundTag("power");
+		CompoundNBT portalsTag = nbt.getCompound("portals");
+		CompoundNBT portalBlocksTag = nbt.getCompound("portalBlocks");
+		CompoundNBT powerTag = nbt.getCompound("power");
 		
 		int i = 0;
 		String key;
-		NBTTagCompound tag;
+		CompoundNBT tag;
 		Portal portal;
 		
 		// Get the portals and their IDs.
 		
 		HashMap<Integer, Portal> portalIDs = Maps.newHashMap();
 		
-		while(portalsTag.hasKey(key = String.valueOf(i)))
+		while(portalsTag.contains(key = String.valueOf(i)))
 		{
-			tag = portalsTag.getCompoundTag(key);
+			tag = portalsTag.getCompound(key);
 			
 			portal = new Portal();
 			portal.deserializeNBT(tag);
@@ -699,16 +701,16 @@ public final class PortalRegistry
 		BlockPos portalPos;
 		boolean isGauge;
 		
-		while (portalBlocksTag.hasKey(key = String.valueOf(i++)))
+		while (portalBlocksTag.contains(key = String.valueOf(i++)))
 		{
-			tag = portalBlocksTag.getCompoundTag(key);
+			tag = portalBlocksTag.getCompound(key);
 			
 			portalPos = BlockPos.fromLong(tag.getLong("pos"));
 			isGauge = tag.getBoolean("isGauge");
 			
-			while (tag.hasKey(subKey = "portal" + x++))
+			while (tag.contains(subKey = "portal" + x++))
 			{
-				portal = portalIDs.get(tag.getInteger(subKey));
+				portal = portalIDs.get(tag.getInt(subKey));
 				portals.put(portalPos, portal);
 				
 				if (isGauge) gauges.put(portal, portalPos);
@@ -728,9 +730,9 @@ public final class PortalRegistry
 		
 		i = 0;
 		
-		while (powerTag.hasKey(key = String.valueOf(i)))
+		while (powerTag.contains(key = String.valueOf(i)))
 		{
-			power.put(portalIDs.get(i++), powerTag.getInteger(key));
+			power.put(portalIDs.get(i++), powerTag.getInt(key));
 		}
 	}
 }
