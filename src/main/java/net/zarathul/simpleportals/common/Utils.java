@@ -143,6 +143,11 @@ public final class Utils
 		
 		if (player != null)
 		{
+			/*
+				IMPORTANT: The 'invulnerableDimensionChange' flag will be reset before the server performs the movement checks in 'net.minecraft.network.NetHandlerPlayServer.processPlayer(CPacketPlayer)'.
+						   This causes the "Player moved too quickly!" log messages AND resets player rotations, which is the root cause for players facing the wrong direction after teleportation in multiplayer.
+						   For 1.12.2 at least there is no way to fix this without a coremod, which I'm not gonna do.
+			 */
 			if (!setInvulnerableDimensionChange(player))
 			{
 				SimplePortals.log.error(String.format("InvulnerableDimensionChange flag could not be set for player '%s' (ID: %s). Aborting teleportation.", player.getName(), player.getCachedUniqueIdString()));
