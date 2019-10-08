@@ -1,25 +1,30 @@
 package net.zarathul.simpleportals.configuration;
 
-/*
-import net.minecraft.creativetab.CreativeTabs;
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.electronwill.nightconfig.core.io.WritingMode;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.text.translation.I18n;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
-import net.minecraftforge.oredict.OreDictionary;
+import net.minecraft.util.text.translation.LanguageMap;
+import net.minecraftforge.common.ForgeConfigSpec;
 
-import java.io.File;
+import java.nio.file.Path;
 
-*/
 /**
  * Provides helper methods to load the mods config.
- *//*
+ */
 
 public final class Config
 {
-	private static Configuration config = null;
+	// Configs
+
+	public static ForgeConfigSpec CommonConfig;
+	public static ForgeConfigSpec ClientConfig;
+
+	// Config builders
+
+	private static final ForgeConfigSpec.Builder CommonBuilder = new ForgeConfigSpec.Builder();
+	private static final ForgeConfigSpec.Builder ClientBuilder = new ForgeConfigSpec.Builder();
 
 	// Default values
 	
@@ -32,99 +37,80 @@ public final class Config
 
 	// Settings
 
-	public static int maxSize;
-	public static int powerCost;
-	public static int powerCapacity;
-	public static boolean particlesEnabled;
-	public static boolean ambientSoundEnabled;
-	public static String powerSource;
+	public static ForgeConfigSpec.IntValue maxSize;
+	public static ForgeConfigSpec.IntValue powerCost;
+	public static ForgeConfigSpec.IntValue powerCapacity;
+	public static ForgeConfigSpec.BooleanValue particlesEnabled;
+	public static ForgeConfigSpec.BooleanValue ambientSoundEnabled;
+	//public static ForgeConfigSpec. powerSource;
 	public static NonNullList<ItemStack> powerSources;
 
 	// Config file categories
 
-	public static final String CATEGORY_MISC = Configuration.CATEGORY_GENERAL + Configuration.CATEGORY_SPLITTER + "misc";
+	public static final String CATEGORY_MISC = "misc";
 
-	*/
-/**
-	 * Gets the loaded configuration.
-	 * 
-	 * @return
-	 * The last loaded configuration or <code>null</code> if no config has been loaded yet.
-	 *//*
-
-	public static final Configuration getConfig()
+	static
 	{
-		return config;
+		LanguageMap i18nMap = LanguageMap.getInstance();
+
+		// Common
+
+		CommonBuilder.comment(i18nMap.translateKey("configui.category.misc")).push(CATEGORY_MISC);
+
+		maxSize = CommonBuilder.comment(i18nMap.translateKey("configui.maxSize.tooltip"))
+				.defineInRange(i18nMap.translateKey("configui.maxSize"), defaultMaxSize, 3, 128);
+
+		powerCost = CommonBuilder.comment(i18nMap.translateKey("configui.powerCost.tooltip"))
+				.defineInRange(i18nMap.translateKey("configui.powerCost.tooltip"), defaultPowerCost, 0, Integer.MAX_VALUE);
+
+		powerCapacity = CommonBuilder.comment(i18nMap.translateKey("configui.powerCapacity.tooltip"))
+				.defineInRange(i18nMap.translateKey("configui.powerCapacity.tooltip"), defaultPowerCapacity, 0, Integer.MAX_VALUE);
+
+		CommonBuilder.pop();
+
+		// Client
+
+		ClientBuilder.comment(i18nMap.translateKey("configui.category.misc")).push(CATEGORY_MISC);
+
+		particlesEnabled = ClientBuilder.comment(i18nMap.translateKey("configui.particlesEnabled.tooltip"))
+				.define(i18nMap.translateKey("configui.particlesEnabled"), defaultParticlesEnabled);
+
+		ambientSoundEnabled = ClientBuilder.comment(i18nMap.translateKey("configui.ambientSoundEnabled.tooltip"))
+				.define(i18nMap.translateKey("configui.ambientSoundEnabled"), defaultAmbientSoundEnabled);
+
+		ClientBuilder.pop();
+
+		CommonConfig = CommonBuilder.build();
+		ClientConfig = ClientBuilder.build();
 	}
 
-	*/
-/**
+	/**
 	 * Loads the mods settings from the specified file.
 	 * 
-	 * @param configFile
-	 * The file to load the settings from.
-	 *//*
+	 * @param configSpec
+	 * The specification for the contents of the config file.
+	 * @param path
+	 * The path to the config file.
+	 */
 
-	public static final void load(File configFile)
+	public static final void load(ForgeConfigSpec configSpec, Path path)
 	{
-		config = new Configuration(configFile);
-		config.load();
-		sync();
+		final CommentedFileConfig configData = CommentedFileConfig.builder(path)
+				.sync()
+				.autosave()
+				.writingMode(WritingMode.REPLACE)
+				.build();
+
+		configData.load();
+		configSpec.setConfig(configData);
 	}
 
-	*/
-/**
-	 * Synchronizes the config GUI and the config file.
-	 *//*
-
-	public static void sync()
+	public static void updateValidPowerSources()
 	{
-		Property prop;
+		// TODO: replace this somehow with recipe
+		powerSources = NonNullList.create();
 
-		// Misc
-
-		config.getCategory(CATEGORY_MISC).setLanguageKey("configui.category.misc").setComment(I18n.translateToLocal("configui.category.misc.tooltip"));
-		
-		prop = config.get(CATEGORY_MISC, "maxSize", defaultMaxSize);
-		prop.setComment(I18n.translateToLocal("configui.maxSize.tooltip"));
-		prop.setLanguageKey("configui.maxSize").setMinValue(3);
-		maxSize = prop.getInt();
-
-		prop = config.get(CATEGORY_MISC, "powerCost", defaultPowerCost);
-		prop.setComment(I18n.translateToLocal("configui.powerCost.tooltip"));
-		prop.setLanguageKey("configui.powerCost").setMinValue(0);
-		powerCost = prop.getInt();
-
-		prop = config.get(CATEGORY_MISC, "powerCapacity", defaultPowerCapacity);
-		prop.setComment(I18n.translateToLocal("configui.powerCapacity.tooltip"));
-		prop.setLanguageKey("configui.powerCapacity").setMinValue(0);
-		powerCapacity = prop.getInt();
-		
-		prop = config.get(CATEGORY_MISC, "powerSource", defaultPowerSource);
-		prop.setComment(I18n.translateToLocal("configui.powerSource.tooltip"));
-		prop.setLanguageKey("configui.powerSource");
-		powerSource = prop.getString();
-		
-		updateValidPowerSources();
-
-		prop = config.get(CATEGORY_MISC, "particlesEnabled", defaultParticlesEnabled);
-		prop.setComment(I18n.translateToLocal("configui.particlesEnabled.tooltip"));
-		prop.setLanguageKey("configui.particlesEnabled");
-		particlesEnabled = prop.getBoolean();
-
-		prop = config.get(CATEGORY_MISC, "ambientSoundEnabled", defaultAmbientSoundEnabled);
-		prop.setComment(I18n.translateToLocal("configui.ambientSoundEnabled.tooltip"));
-		prop.setLanguageKey("configui.ambientSoundEnabled");
-		ambientSoundEnabled = prop.getBoolean();
-
-		if (config.hasChanged())
-		{
-			config.save();
-		}
-	}
-	
-	private static void updateValidPowerSources()
-	{
+		/*
 		Item item = Item.getByNameOrId(powerSource);
 		
 		if (item != null)
@@ -156,6 +142,6 @@ public final class Config
 				}
 			}
 		}
+		*/
 	}
 }
-*/

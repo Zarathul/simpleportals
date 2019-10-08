@@ -1,34 +1,33 @@
 package net.zarathul.simpleportals.blocks;
 
-import com.google.common.collect.Maps;
-import net.minecraft.block.BlockBreakable;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.BreakableBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.state.EnumProperty;
+import net.minecraft.state.StateContainer;
 import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumFacing.Axis;
-import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.oredict.OreDictionary;
+import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.common.Utils;
 import net.zarathul.simpleportals.configuration.Config;
@@ -41,111 +40,58 @@ import java.util.stream.Collectors;
 /**
  * Represents the actual portals in the center of the portal multiblock.
  */
-public class BlockPortal extends BlockBreakable
+public class BlockPortal extends BreakableBlock
 {
-	public static final PropertyEnum<EnumFacing.Axis> AXIS = PropertyEnum.create(
+	private static final VoxelShape X_AABB = Block.makeCuboidShape(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
+	private static final VoxelShape Y_AABB = Block.makeCuboidShape(0.0D, 6.0D, 0.0D, 16.0D, 10.0D, 16.0D);
+	private static final VoxelShape Z_AABB = Block.makeCuboidShape(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D);
+
+	public static final EnumProperty<Axis> AXIS = EnumProperty.create(
 		"axis",
-		EnumFacing.Axis.class,
+		Axis.class,
 		Axis.X, Axis.Y, Axis.Z);
 	
 	private static final int COOLDOWN = 60;
 	
 	public BlockPortal()
 	{
-		super(Material.PORTAL, false);
+		super(Block.Properties.create(Material.PORTAL)
+			.doesNotBlockMovement()
+			.noDrops()
+			.hardnessAndResistance(-1.0F) // indestructible by normal means
+			.lightValue(11)
+			.sound(SoundType.GLASS));
 		
 		setRegistryName(SimplePortals.BLOCK_PORTAL_NAME);
-		setUnlocalizedName(SimplePortals.BLOCK_PORTAL_NAME);
-		setDefaultState(this.blockState.getBaseState().withProperty(AXIS, EnumFacing.Axis.X));
-		setHardness(-1.0F); // indestructible by normal means
-		setLightLevel(0.75F);
-		setSoundType(SoundType.GLASS);
+
+		//setDefaultState(this.tate.blockState.getBaseState().withProperty(AXIS, Direction.Axis.X));
 	}
 
 	@Override
-	protected BlockStateContainer createBlockState()
+	protected void fillStateContainer(StateContainer.Builder<Block, BlockState> stateBuilder)
 	{
-		return new BlockStateContainer(this, AXIS);
-	}
-	
-	@Override
-	public IBlockState getStateFromMeta(int meta)
-	{
-		EnumFacing.Axis axis;
-		
-		switch (meta)
-		{
-			case 0: axis = EnumFacing.Axis.X; break;
-			case 1: axis = EnumFacing.Axis.Y; break;
-			case 2:	axis = EnumFacing.Axis.Z; break;
-			default: axis = EnumFacing.Axis.X; break;
-		}
-		
-		return this.getDefaultState().withProperty(AXIS, axis);
+		stateBuilder.add(AXIS);
 	}
 
 	@Override
-	public int getMetaFromState(IBlockState state)
+	public VoxelShape getShape(BlockState state, IBlockReader blockReader, BlockPos pos, ISelectionContext selection)
 	{
-		switch (state.getValue(AXIS))
+		Axis portalAxis = state.get(AXIS);
+
+		switch (portalAxis)
 		{
-			case X: return 0;
-			case Y: return 1;
-			case Z:	return 2;
-			default: return 0;
-		}
-	}
-	
-	@Override
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos)
-	{
-		return NULL_AABB;
-	}
-	
-	@Override
-	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess world, BlockPos pos)
-	{
-		Axis axis = state.getValue(AXIS);
-		
-		double minX = 0, maxX = 0, minY = 0, maxY = 0, minZ = 0, maxZ = 0;
-		
-		switch (axis)
-		{
+			case Y: return Y_AABB;
+			case Z: return Z_AABB;
 			case X:
-				minX = 0.375;
-				maxX = 0.625;
-				minY = 0;
-				maxY = 1;
-				minZ = 0;
-				maxZ = 1;
-			break;
-			
-			case Y:
-				minX = 0;
-				maxX = 1;
-				minY = 0.375;
-				maxY = 0.625;
-				minZ = 0;
-				maxZ = 1;
-			break;
-			
-			case Z:
-				minX = 0;
-				maxX = 1;
-				minY = 0;
-				maxY = 1;
-				minZ = 0.375;
-				maxZ = 0.625;
-			break;
+			default:
+				return X_AABB;
 		}
-		
-		return new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
 	}
-	
+
 	@Override
-	public void onEntityCollidedWithBlock(World world, BlockPos pos, IBlockState state, Entity entity)
+	public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity)
 	{
-		if (!world.isRemote && !entity.isRiding() && !entity.isBeingRidden() && entity.isNonBoss() && !entity.isDead)
+		if (!world.isRemote && !entity.isOnePlayerRiding() && !entity.isBeingRidden() && entity.isNonBoss() && entity.isAlive())
 		{
 			// Check if entity is on teleportation cooldown
 			if (entity.timeUntilPortal > 0)
@@ -153,7 +99,7 @@ public class BlockPortal extends BlockBreakable
 				return;
 			}
 			
-			List<Portal> portals = PortalRegistry.getPortalsAt(pos, entity.dimension);
+			List<Portal> portals = PortalRegistry.getPortalsAt(pos, entity.dimension.getId());
 			
 			if (portals == null || portals.size() < 1) return;
 			
@@ -161,11 +107,12 @@ public class BlockPortal extends BlockBreakable
 			
 			// Handle power source entering the portal
 			
-			if (entity instanceof EntityItem && Config.powerCost > 0 && Config.powerCapacity > 0)
+			if (entity instanceof ItemEntity && Config.powerCost.get() > 0 && Config.powerCapacity.get() > 0)
 			{
-				ItemStack item = ((EntityItem)entity).getItem();
+				ItemStack item = ((ItemEntity)entity).getItem();
 				
-				if (PortalRegistry.getPower(start) < Config.powerCapacity && OreDictionary.containsMatch(false, Config.powerSources, item))
+				// TODO: fix this
+				if (PortalRegistry.getPower(start) < Config.powerCapacity.get())// && OreDictionary.containsMatch(false, Config.powerSources, item))
 				{
 					int surplus = PortalRegistry.addPower(start, item.getCount());
 					
@@ -177,7 +124,7 @@ public class BlockPortal extends BlockBreakable
 					}
 					else
 					{
-						entity.setDead();
+						entity.remove();
 					}
 					
 					return;
@@ -185,10 +132,10 @@ public class BlockPortal extends BlockBreakable
 			}
 			
 			// Bypass the power cost for players in creative mode
-			boolean bypassPowerCost = (entity instanceof EntityPlayerMP && ((EntityPlayerMP)entity).capabilities.isCreativeMode);
+			boolean bypassPowerCost = (entity instanceof ServerPlayerEntity && ((ServerPlayerEntity)entity).isCreative());
 			
 			// Check if portal has enough power for a port
-			if (!bypassPowerCost && PortalRegistry.getPower(start) < Config.powerCost) return;
+			if (!bypassPowerCost && PortalRegistry.getPower(start) < Config.powerCost.get()) return;
 			
 			portals = PortalRegistry.getPortalsWithAddress(start.getAddress());
 			
@@ -201,18 +148,18 @@ public class BlockPortal extends BlockBreakable
 			
 			Collections.shuffle(destinations);
 			
-			if (destinations.size() > 0 && (bypassPowerCost || Config.powerCost == 0 || PortalRegistry.removePower(start, Config.powerCost)))
+			if (destinations.size() > 0 && (bypassPowerCost || Config.powerCost.get() == 0 || PortalRegistry.removePower(start, Config.powerCost.get())))
 			{
-				WorldServer server;
+				ServerWorld server;
 				BlockPos portTarget = null;
 				Portal destination = null;
 				MinecraftServer mcServer = entity.getServer();
-				int entityHeight = MathHelper.ceil(entity.height);
+				int entityHeight = MathHelper.ceil(entity.getHeight());
 				
 				// Pick the first not blocked destination portal
 				for (Portal portal : destinations)
 				{
-					server = mcServer.getWorld(portal.getDimension());
+					server = mcServer.getWorld(DimensionType.getById(portal.getDimension()));
 					portTarget = portal.getPortDestination(server, entityHeight);
 					
 					if (portTarget != null)
@@ -227,15 +174,15 @@ public class BlockPortal extends BlockBreakable
 					// Get a facing pointing away from the destination portal. After porting, the portal 
 					// will always be behind the entity. When porting to a horizontal portal the initial
 					// facing is not changed.
-					EnumFacing entityFacing = (destination.getAxis() == Axis.Y)
+					Direction entityFacing = (destination.getAxis() == Axis.Y)
 						? entity.getHorizontalFacing()
 						: (destination.getAxis() == Axis.Z)
 						? (portTarget.getZ() > destination.getCorner1().getPos().getZ())
-						? EnumFacing.SOUTH
-						: EnumFacing.NORTH
+						? Direction.SOUTH
+						: Direction.NORTH
 						: (portTarget.getX() > destination.getCorner1().getPos().getX())
-						? EnumFacing.EAST
-						: EnumFacing.WEST;
+						? Direction.EAST
+						: Direction.WEST;
 					
 					Utils.teleportTo(entity, destination.getDimension(), portTarget, entityFacing);
 					PortalRegistry.updatePowerGauges(world, start);
@@ -246,15 +193,15 @@ public class BlockPortal extends BlockBreakable
 			entity.timeUntilPortal = COOLDOWN;
 		}
 	}
-	
+
 	@Override
-	public void breakBlock(World world, BlockPos pos, IBlockState state)
+	public void onReplaced(BlockState oldState, World world, BlockPos pos, BlockState newState, boolean isMoving)
 	{
 		if (!world.isRemote)
 		{
 			// Deactivate damaged portals.
 			
-			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.provider.getDimension());
+			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType().getId());
 			
 			if (affectedPortals == null || affectedPortals.size() < 1) return;
 			
@@ -266,55 +213,30 @@ public class BlockPortal extends BlockBreakable
 			}
 		}
 	}
-	
-	@Override
-	public boolean requiresUpdates()
-	{
-		return false;
-	}
 
 	@Override
-	public boolean isFullCube(IBlockState state)
-	{
-		return false;
-	}
-
-	@Override
-	public ItemStack getItem(World worldIn, BlockPos pos, IBlockState state)
+	public ItemStack getItem(IBlockReader reader, BlockPos pos, BlockState state)
 	{
 		return ItemStack.EMPTY;
 	}
 
 	@Override
-	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos,
-			EntityPlayer player)
-	{
-		return ItemStack.EMPTY;
-	}
-
-	@Override
-	public int quantityDropped(Random random)
-	{
-		return 0;
-	}
-
-	@Override
-	@SideOnly(Side.CLIENT)
-	public BlockRenderLayer getBlockLayer()
+	@OnlyIn(Dist.CLIENT)
+	public BlockRenderLayer getRenderLayer()
 	{
 		return BlockRenderLayer.TRANSLUCENT;
 	}
-	
+
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand)
+	@OnlyIn(Dist.CLIENT)
+	public void animateTick(BlockState state, World world, BlockPos pos, Random rand)
 	{
-		if (Config.ambientSoundEnabled && rand.nextInt(100) == 0)
+		if (Config.ambientSoundEnabled.get() && rand.nextInt(100) == 0)
 		{
 			world.playSound((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, SoundEvents.BLOCK_PORTAL_AMBIENT, SoundCategory.BLOCKS, 0.5F, rand.nextFloat() * 0.4F + 0.8F, false);
 		}
 
-		if (Config.particlesEnabled)
+		if (Config.particlesEnabled.get())
 		{
 			for (int i = 0; i < 4; ++i)
 			{
@@ -337,7 +259,7 @@ public class BlockPortal extends BlockBreakable
 					d5 = (double)(rand.nextFloat() * 2.0F * (float)j);
 				}
 
-				world.spawnParticle(EnumParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5);
+				world.addParticle(ParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5);
 			}
 		}
 	}

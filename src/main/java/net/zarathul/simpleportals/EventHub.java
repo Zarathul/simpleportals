@@ -6,9 +6,12 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.arguments.ArgumentSerializer;
 import net.minecraft.command.arguments.ArgumentTypes;
 import net.minecraft.item.Item;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.world.WorldEvent.Load;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.zarathul.simpleportals.blocks.BlockPortal;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
@@ -16,9 +19,11 @@ import net.zarathul.simpleportals.blocks.BlockPowerGauge;
 import net.zarathul.simpleportals.commands.CommandPortals;
 import net.zarathul.simpleportals.commands.arguments.AddressArgument;
 import net.zarathul.simpleportals.common.PortalWorldSaveData;
+import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
 import net.zarathul.simpleportals.items.ItemPortalFrame;
 import net.zarathul.simpleportals.items.ItemPowerGauge;
+import org.apache.logging.log4j.core.jmx.Server;
 
 /**
  * Hosts Forge event handlers on both the server and client side.
@@ -28,11 +33,25 @@ public final class EventHub
 	// Common
 
 	@SubscribeEvent
+	public static void onConfigLoaded(ModConfig.Loading event)
+	{
+		Config.updateValidPowerSources();
+	}
+
+	@SubscribeEvent
+	public static void onConfigChanged(ModConfig.ConfigReloading event)
+	{
+		Config.updateValidPowerSources();
+	}
+
+	@SubscribeEvent
 	public void OnWorldLoad(Load event)
 	{
-		if (!event.getWorld().getWorld().isRemote)
+		World world = event.getWorld().getWorld();
+
+		if (!world.isRemote)
 		{
-			SimplePortals.portalSaveData = PortalWorldSaveData.get(event.getWorld().getWorld());
+			SimplePortals.portalSaveData = PortalWorldSaveData.get((ServerWorld)world);
 		}
 	}
 
@@ -67,15 +86,6 @@ public final class EventHub
 	// Client
 
 	/*
-	@SubscribeEvent
-	public void OnConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event)
-	{
-		if (SimplePortals.MOD_ID.equals(event.getModID()))
-		{
-			Config.sync();
-		}
-	}
-
 	@SubscribeEvent
 	public void OnModelRegistration(ModelRegistryEvent event)
 	{

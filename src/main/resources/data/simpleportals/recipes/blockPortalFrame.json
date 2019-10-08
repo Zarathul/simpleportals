@@ -7,16 +7,13 @@
   ],
   "key": {
     "L": {
-      "type": "forge:ore_dict",
-	  "ore": "gemLapis"
+      "tag": "forge:gems/lapis"
     },
     "O": {
-      "type": "forge:ore_dict",
-      "ore": "obsidian"
+      "tag": "forge:obsidian"
     },
     "P": {
-      "type": "forge:ore_dict",
-      "ore": "enderpearl"
+      "tag": "forge:ender_pearls"
     }
   },
   "result": {

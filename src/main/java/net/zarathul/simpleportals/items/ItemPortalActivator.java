@@ -1,30 +1,33 @@
 package net.zarathul.simpleportals.items;
 
-import net.minecraft.block.BlockDispenser;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.DispenserBlock;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.dispenser.BehaviorDefaultDispenseItem;
-import net.minecraft.dispenser.IBehaviorDispenseItem;
+import net.minecraft.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.dispenser.IBlockSource;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.dispenser.IDispenseItemBehavior;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumFacing.Axis;
-import net.minecraft.util.EnumFacing.AxisDirection;
-import net.minecraft.util.EnumHand;
+import net.minecraft.item.ItemUseContext;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Direction.Axis;
+import net.minecraft.util.Direction.AxisDirection;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.translation.I18n;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.common.Utils;
 import net.zarathul.simpleportals.registration.PortalRegistry;
-import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -40,55 +43,52 @@ public class ItemPortalActivator extends Item
 	
 	public ItemPortalActivator()
 	{
-		super();
+		super(new Item.Properties().maxStackSize(1).group(SimplePortals.creativeTab));
 
-		setMaxStackSize(1);
-		setCreativeTab(SimplePortals.creativeTab);
 		setRegistryName(SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME);
-		setUnlocalizedName(SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME);
-		
-		BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.putObject(this, dispenserBehavior);
+		DispenserBlock.registerDispenseBehavior(this, dispenserBehavior);
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn)
+	@OnlyIn(Dist.CLIENT)
+	public void addInformation(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn)
 	{
-		if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+		KeyBinding SneakKey = Minecraft.getInstance().gameSettings.keyBindSneak;
+
+		if (SneakKey.isKeyDown())
 		{
 			tooltip.addAll(Utils.multiLineTranslateToLocal(toolTipDetailsKey, 1));
 		}
 		else
 		{
-			tooltip.add(I18n.translateToLocal(toolTipKey));
+			tooltip.add(new StringTextComponent(I18n.format(toolTipKey, null)));
 		}
 	}
 
 	@Override
-	public boolean doesSneakBypassUse(ItemStack stack, IBlockAccess world, BlockPos pos, EntityPlayer player)
+	public boolean doesSneakBypassUse(ItemStack stack, IWorldReader world, BlockPos pos, PlayerEntity player)
 	{
 		return true;
 	}
 
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand,
-			 EnumFacing side, float hitX, float hitY, float hitZ)
+	public ActionResultType onItemUse(ItemUseContext context)
 	{
-		if (world.getBlockState(pos).getBlock() instanceof BlockPortalFrame)
+		if (context.getWorld().getBlockState(context.getPos()).getBlock() instanceof BlockPortalFrame)
 		{
-			player.swingArm(hand);
+			context.getPlayer().swingArm(context.getHand());
 		}
-		
-		return super.onItemUse(player, world, pos, hand, side, hitX, hitY, hitZ);
+
+		return super.onItemUse(context);
 	}
-	
+
 	/**
 	 * Custom dispenser behavior that allows dispensers to activate portals with a contained
 	 * portal activator.
 	 */
-	private final static IBehaviorDispenseItem dispenserBehavior = new IBehaviorDispenseItem()
+	private final static IDispenseItemBehavior dispenserBehavior = new IDispenseItemBehavior()
 	{
-		private final BehaviorDefaultDispenseItem defaultBehavior = new BehaviorDefaultDispenseItem();
+		private final DefaultDispenseItemBehavior defaultBehavior = new DefaultDispenseItemBehavior();
 		
 		@Override
 		public ItemStack dispense(IBlockSource source, ItemStack stack)
@@ -96,10 +96,10 @@ public class ItemPortalActivator extends Item
 			if (ItemStack.areItemsEqual(stack, new ItemStack(SimplePortals.itemPortalActivator)))
 			{
 				World world = source.getWorld();
-				IBlockState dispenser = world.getBlockState(source.getBlockPos());
+				BlockState dispenser = world.getBlockState(source.getBlockPos());
 				
 				// Start searching for portal frame blocks in the direction the dispenser is facing.
-				EnumFacing dispenserFacing = dispenser.getValue(BlockDispenser.FACING);
+				Direction dispenserFacing = dispenser.get(DispenserBlock.FACING);
 				BlockPos searchStartPos = source.getBlockPos().offset(dispenserFacing);
 				
 				if (world.isAirBlock(searchStartPos))
@@ -107,21 +107,21 @@ public class ItemPortalActivator extends Item
 					// Search along the other two axis besides the one the dispenser is facing in.
 					// E.g. dispenser faces south: Search one block south of the dispenser, up, down,
 					// east and west.
-					List<EnumFacing> searchDirections = new ArrayList<>();
+					List<Direction> searchDirections = new ArrayList<>();
 					Axis dispenserAxis = dispenserFacing.getAxis();
 					
 					for (Axis axis : Axis.values())
 					{
 						if (axis != dispenserAxis)
 						{
-							searchDirections.add(EnumFacing.getFacingFromAxis(AxisDirection.POSITIVE, axis));
-							searchDirections.add(EnumFacing.getFacingFromAxis(AxisDirection.NEGATIVE, axis));
+							searchDirections.add(Direction.getFacingFromAxis(AxisDirection.POSITIVE, axis));
+							searchDirections.add(Direction.getFacingFromAxis(AxisDirection.NEGATIVE, axis));
 						}
 					}
 					
 					BlockPos currentPos;
 					
-					for (EnumFacing facing : searchDirections)
+					for (Direction facing : searchDirections)
 					{
 						currentPos = searchStartPos.offset(facing);
 						

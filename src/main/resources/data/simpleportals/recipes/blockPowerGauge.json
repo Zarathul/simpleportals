@@ -7,8 +7,7 @@
   ],
   "key": {
     "R": {
-      "type": "forge:ore_dict",
-	  "ore": "dustRedstone"
+      "tag": "forge:dusts/redstone"
     },
     "F": {
       "item": "simpleportals:itemPortalFrame"

@@ -101,7 +101,8 @@ public final class PortalRegistry
 		
 		// Check size
 		
-		if (getDistance(corner1.getPos(), corner2.getPos()) > Config.maxSize || getDistance(corner1.getPos(), corner3.getPos()) > Config.maxSize) return false;
+		if (getDistance(corner1.getPos(), corner2.getPos()) > Config.maxSize.get()
+			|| getDistance(corner1.getPos(), corner3.getPos()) > Config.maxSize.get()) return false;
 		
 		// Check address blocks validity
 		
@@ -146,7 +147,7 @@ public final class PortalRegistry
 			getAddressBlockId(addBlock3),
 			getAddressBlockId(addBlock4));
 		
-		int dimension = world.getDimension();
+		int dimension = world.getDimension().getType().getId();
 		
 		Portal portal = new Portal(dimension, address, portalAxis, corner1, corner2, corner3, corner4);
 		
@@ -163,7 +164,7 @@ public final class PortalRegistry
 		
 		for (BlockPos portalPos : portalPositions)
 		{
-			world.setBlockState(portalPos, SimplePortals.blockPortal.getDefaultState().withProperty(BlockPortal.AXIS, portalAxis));
+			world.setBlockState(portalPos, SimplePortals.blockPortal.getDefaultState().with(BlockPortal.AXIS, portalAxis));
 		}
 		
 		// Find power gauges in the frame
@@ -337,7 +338,7 @@ public final class PortalRegistry
 		if (portal == null || amount < 1) return amount;
 		
 		int oldAmount = getPower(portal);
-		int freeCapacity = Math.max(Config.powerCapacity - oldAmount, 0);
+		int freeCapacity = Math.max(Config.powerCapacity.get() - oldAmount, 0);
 		int amountToAdd = (freeCapacity >= amount) ? amount : freeCapacity;
 		int surplus = amount - amountToAdd;
 		
@@ -425,9 +426,10 @@ public final class PortalRegistry
 		if (blockState == null) return null;
 		
 		Block block = blockState.getBlock();
-		int meta = block.getMetaFromState(blockState);
+		//TODO: Check how this behaves now with wool etc.
+		//int meta = block.getMetaFromState(blockState);
 		
-		return block.getRegistryName() + "#" + meta;
+		return block.getRegistryName().toString();// + "#" + meta;
 	}
 	
 	/**
@@ -501,7 +503,7 @@ public final class PortalRegistry
 			currentPos = currentPos.offset(searchDir);
 			size++;
 		}
-		while (size <= Config.maxSize - 1);
+		while (size <= Config.maxSize.get() - 1);
 		
 		return null;
 	}
@@ -597,7 +599,8 @@ public final class PortalRegistry
 	{
 		if (state == null
 			|| state.getBlock().hasTileEntity(state)
-			|| !state.getBlock().isFullBlock(state))
+			/*|| !state.getBlock().isFullBlock(state)*/)
+			// TODO: Check behavior
 			return false;
 		
 		return true;

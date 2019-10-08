@@ -1,6 +1,6 @@
 package net.zarathul.simpleportals.blocks;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -21,17 +21,17 @@ public class BlockPowerGauge extends BlockPortalFrame
 	{
 		super(SimplePortals.BLOCK_POWER_GAUGE_NAME);
 	}
-	
+
 	@Override
-	public boolean hasComparatorInputOverride(IBlockState state)
+	public boolean hasComparatorInputOverride(BlockState state)
 	{
 		return true;
 	}
 	
 	@Override
-	public int getComparatorInputOverride(IBlockState state, World world, BlockPos pos)
+	public int getComparatorInputOverride(BlockState state, World world, BlockPos pos)
 	{
-		List<Portal> portals = PortalRegistry.getPortalsAt(pos, world.provider.getDimension());
+		List<Portal> portals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType().getId());
 		
 		if (portals != null && portals.size() > 0)
 		{
@@ -61,14 +61,14 @@ public class BlockPowerGauge extends BlockPortalFrame
 	 */
 	private int getSignalStrength(Portal portal)
 	{
-		if (portal != null && Config.powerCost > 0 && Config.powerCapacity > 0)
+		if (portal != null && Config.powerCost.get() > 0 && Config.powerCapacity.get() > 0)
 		{
-			int maxUses = MathHelper.floor(Config.powerCapacity / (float)Config.powerCost);
+			int maxUses = MathHelper.floor(Config.powerCapacity.get() / (float)Config.powerCost.get());
 			
 			if (maxUses > 0)
 			{
 				int power = PortalRegistry.getPower(portal);
-				int uses = MathHelper.floor(power / (float)Config.powerCost);
+				int uses = MathHelper.floor(power / (float)Config.powerCost.get());
 				
 				int signalStrength = MathHelper.floor((uses / (float)maxUses) * 14.0f) + ((uses > 0) ? 1 : 0);
 				

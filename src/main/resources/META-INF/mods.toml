@@ -1,0 +1,44 @@
+modLoader="javafml" #mandatory
+
+loaderVersion="[28,)" #mandatory (28 is current forge version)
+
+issueTrackerURL="https://github.com/Zarathul/simpleportals/issues" #optional
+
+[[mods]] #mandatory
+
+modId="simpleportals" #mandatory
+
+version="${file.jarVersion}" #mandatory
+
+displayName="Simple Portals" #mandatory
+
+updateJSONURL="https://raw.githubusercontent.com/Zarathul/mcmodversions/master/simpleportals.json" #optional
+
+displayURL="https://www.curseforge.com/minecraft/mc-mods/simpleportals" #optional
+
+logoFile="sp_logo.jpg" #optional
+
+authors="Zarathul" #optional
+
+description='''
+Adds portals for easy intra- and interdimensional travel.
+'''
+
+[[dependencies.simplefluidtanks]] #optional
+    modId="forge" #mandatory
+    mandatory=true #mandatory
+    versionRange="[28,)" #mandatory
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.simplefluidtanks]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.14.4]"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.simpleportals]] #optional
+    modId="theoneprobe" #mandatory
+    mandatory=false #mandatory
+    versionRange="[1.4.37]" #mandatory
+    ordering="BEFORE"
+    side="BOTH"

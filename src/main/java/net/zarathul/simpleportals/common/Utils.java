@@ -1,30 +1,17 @@
 package net.zarathul.simpleportals.common;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.play.server.SPacketEntityEffect;
-import net.minecraft.network.play.server.SPacketPlayerAbilities;
-import net.minecraft.network.play.server.SPacketRespawn;
-import net.minecraft.network.play.server.SPacketSetExperience;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.translation.LanguageMap;
-import net.minecraft.world.BossInfo;
-import net.minecraft.world.WorldProviderEnd;
-import net.minecraft.world.WorldServer;
-import net.minecraft.world.end.DragonFightManager;
+import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.common.DimensionManager;
-import net.minecraftforge.common.ForgeHooks;
-import net.zarathul.simpleportals.SimplePortals;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 /**
@@ -32,9 +19,6 @@ import java.util.ArrayList;
  */
 public final class Utils
 {
-	private static Field invulnerableDimensionChange;
-	private static Field dragonBossInfo;
-
 	/**
 	 * Gets the localized formatted strings for the specified key and formatting arguments.
 	 * 
@@ -45,9 +29,9 @@ public final class Utils
 	 * @return
 	 * A list of localized strings for the specified key, or an empty list if the key was not found.
 	 */
-	public static final ArrayList<String> multiLineTranslateToLocal(String key, Object... args)
+	public static final ArrayList<StringTextComponent> multiLineTranslateToLocal(String key, Object... args)
 	{
-		ArrayList<String> lines = new ArrayList<>();
+		ArrayList<StringTextComponent> lines = new ArrayList<>();
 
 		if (key != null)
 		{
@@ -57,7 +41,7 @@ public final class Utils
 
 			while (i18nMap.exists(currentKey))
 			{
-				lines.add(String.format(i18nMap.translateKey(currentKey), args));
+				lines.add(new StringTextComponent(String.format(i18nMap.translateKey(currentKey), args)));
 				currentKey = key + ++x;
 			}
 		}
@@ -122,63 +106,36 @@ public final class Utils
 	}
 	
 	/**
-	 * Teleport an entity to the specified position in the specified dimension
+	 * Teleport an entity to the specified position in the specified dimensionId
 	 * facing the specified direction.
 	 * 
 	 * @param entity
 	 * The entity to teleport. Can be any entity (item, mob, player).
-	 * @param dimension
-	 * The dimension to port to.
+	 * @param dimensionId
+	 * The id of the dimension to port to.
 	 * @param destination
 	 * The position to port to.
 	 * @param facing
 	 * The direction the entity should face after porting.
 	 */
-	public static final void teleportTo(Entity entity, int dimension, BlockPos destination, Direction facing)
+	public static final void teleportTo(Entity entity, int dimensionId, BlockPos destination, Direction facing)
 	{
-		if (entity == null || destination == null || entity.isBeingRidden() || entity.isOnePlayerRiding() || !entity.isNonBoss()
-			|| !DimensionManager.isDimensionRegistered(dimension)) return;
-		
+		if (entity == null || destination == null || entity.isBeingRidden() || entity.isOnePlayerRiding() || !entity.isNonBoss()) return;
+
+		DimensionType dimension = DimensionType.getById(dimensionId);
+		if (dimension == null) return;
+
 		ServerPlayerEntity player = (entity instanceof ServerPlayerEntity) ? (ServerPlayerEntity)entity : null;
-		boolean interdimensional = (entity.dimension.getId() != dimension);
+		boolean interdimensional = (entity.dimension.getId() != dimensionId);
 		
 		if (player != null)
 		{
-			if (!setInvulnerableDimensionChange(player))
-			{
-				SimplePortals.log.error(String.format("InvulnerableDimensionChange flag could not be set for player '%s' (ID: %s). Aborting teleportation.", player.getName(), player.getCachedUniqueIdString()));
-				return;
-			}
-
-			if (interdimensional)
-			{
-				if (ForgeHooks.onTravelToDimension(player, dimension))
-				{
-					teleportPlayerToDimension(player, dimension, destination, getYaw(facing));
-				}
-				else
-				{
-					SimplePortals.log.warn(String.format("Teleportation of player %s [%s] to dimension %d canceled by another mod.",
-							player.getName(), player.getPosition(), dimension));
-				}
-			}
-			else
-			{
-				player.connection.setPlayerLocation(
-						destination.getX() + 0.5d,
-						destination.getY(),
-						destination.getZ() + 0.5d,
-						getYaw(facing),
-						player.rotationPitch);
-			}
+			teleportPlayerToDimension(player, dimension, destination, getYaw(facing));
 		}
 		else
 		{
-			// setVelocity is marked to be client side only for some reason, so set velocity manually
-			entity.motionX = 0;
-			entity.motionY = 0;
-			entity.motionZ = 0;
-			
+			entity.setMotion(Vec3d.ZERO);
+
 			if (interdimensional)
 			{
 				teleportNonPlayerEntityToDimension(entity, dimension, destination, getYaw(facing));
@@ -194,14 +151,11 @@ public final class Utils
 			}
 		}
 	}
-	
+
 	/**
 	 * Teleport a player entity to the specified position in the specified dimension
 	 * facing the specified direction.
-	 * (Combination of {@link EntityPlayerMP#changeDimension(int)} and
-	 * {@link PlayerList#changePlayerDimension(EntityPlayerMP, int)}  without the 
-	 * hardcoded dimension specific vanilla code)
-	 * 
+	 *
 	 * @param player
 	 * The player to teleport.
 	 * @param dimension
@@ -211,88 +165,20 @@ public final class Utils
 	 * @param yaw
 	 * The rotation yaw the entity should have after porting.
 	 */
-	private static final void teleportPlayerToDimension(ServerPlayerEntity player, int dimension, BlockPos destination, float yaw)
+	private static final void teleportPlayerToDimension(ServerPlayerEntity player, DimensionType dimension, BlockPos destination, float yaw)
 	{
-		int startDimension = player.dimension;
 		MinecraftServer server = player.getServer();
-		PlayerList playerList = server.getPlayerList();
-		WorldServer startWorld = server.getWorld(startDimension);
-		WorldServer destinationWorld = server.getWorld(dimension);
-		
-		player.dimension = dimension;
-		player.connection.sendPacket(new SPacketRespawn(
-			dimension,
-			destinationWorld.getDifficulty(),
-			destinationWorld.getWorldInfo().getTerrainType(),
-			player.interactionManager.getGameType()));
-
-		playerList.updatePermissionLevel(player);
-		startWorld.removeEntityDangerously(player);
-		player.isDead = false;
-
-		player.setLocationAndAngles(
-			destination.getX() + 0.5d,
-			destination.getY(),
-			destination.getZ() + 0.5d,
-			yaw,
-			player.rotationPitch);
-		
-		destinationWorld.spawnEntity(player);
-		destinationWorld.updateEntityWithOptionalForce(player, false);
-		player.setWorld(destinationWorld);
-
-		playerList.preparePlayer(player, startWorld);
-		player.connection.setPlayerLocation(
-			destination.getX() + 0.5d,
-			destination.getY(),
-			destination.getZ() + 0.5d,
-			yaw,
-			player.rotationPitch);
-		
-		player.interactionManager.setWorld(destinationWorld);
-		player.connection.sendPacket(new SPacketPlayerAbilities(player.capabilities));
-		playerList.updateTimeAndWeatherForPlayer(player, destinationWorld);
-		playerList.syncPlayerInventory(player);
-
-		// Reapply potion effects
-
-		for (PotionEffect potionEffect : player.getActivePotionEffects())
-		{
-			player.connection.sendPacket(new SPacketEntityEffect(player.getEntityId(), potionEffect));
-		}
-
-		// Resend player XP otherwise the XP bar won't show up until XP is either gained or lost 
-
-		player.connection.sendPacket(new SPacketSetExperience(player.experience, player.experienceTotal, player.experienceLevel));
-
-		// Remove the ender dragon hp bar when porting out of the End, otherwise if the dragon is still alive
-		// the hp bar won't go away and if you then reenter the End, you will have multiple boss hp bars.
-
-		if (startDimension == 1 && dimension != 1)
-		{
-			DragonFightManager fightManager = ((WorldProviderEnd)startWorld.provider).getDragonFightManager();
-			BossInfo bossInfo = getBossInfo(fightManager);
-
-			if (bossInfo != null)
-			{
-				bossInfo.removePlayer(player);
-			}
-			else
-			{
-				SimplePortals.log.error("Unable to remove boss hp bar: Could not access the DragonFightManagers 'bossInfo' field.");
-			}
-		}
-
-		ForgeHooks.onTravelToDimension(player, dimension);
+		ServerWorld destinationWorld = server.getWorld(dimension);
+		player.teleport(destinationWorld, destination.getX(), destination.getY(), destination.getZ(), yaw, player.rotationPitch);
 	}
 
 	/**
 	 * Teleport a non-player entity to the specified position in the specified dimension
 	 * facing the specified direction.
-	 * ({@link Entity#changeDimension(int)} without the hardcoded dimension specific vanilla code)
+	 * ({@link Entity#changeDimension(DimensionType)} without the hardcoded dimension specific vanilla code)
 	 * 
 	 * @param entity
-	 * The entity to teleport. Can be any entity (item, mob, player).
+	 * The entity to teleport. Can be any entity except players (e.g. item, mob).
 	 * @param dimension
 	 * The dimension to port to.
 	 * @param destination
@@ -300,129 +186,39 @@ public final class Utils
 	 * @param yaw
 	 * The rotation yaw the entity should have after porting.
 	 */
-	private static final void teleportNonPlayerEntityToDimension(Entity entity, int dimension, BlockPos destination, float yaw)
+	private static final void teleportNonPlayerEntityToDimension(Entity entity, DimensionType dimension, BlockPos destination, float yaw)
 	{
-		MinecraftServer server = entity.getServer();
-		ServerWorld startWorld = server.getWorld(entity.dimension);
-		ServerWorld destinationWorld = server.getWorld(dimension);
-		
-		entity.dimension = dimension;
-		startWorld.removeEntity(entity);
-		entity.isDead = false;
-		
-		entity.setLocationAndAngles(
-			destination.getX() + 0.5d,
-			destination.getY(),
-			destination.getZ() + 0.5d,
-			yaw,
-			entity.rotationPitch);
+		if (!entity.world.isRemote && entity.isAlive())
+		{
+			MinecraftServer server = entity.getServer();
+			ServerWorld startWorld = server.getWorld(entity.dimension);
+			ServerWorld destinationWorld = server.getWorld(dimension);
 
-		startWorld.updateEntityWithOptionalForce(entity, false);
-		
-		// Why duplicate the entity and delete the one we just went through the trouble of porting?
-		// - Vanilla does it, and without it there are significantly more errors and missing items.
-		Entity portedEntity = EntityList.createEntityByIDFromName(EntityList.getKey(entity), destinationWorld);
-		
-		if (portedEntity != null)
-		{
-			copyEntityNBT(entity, portedEntity);
-			portedEntity.setLocationAndAngles(
-				destination.getX() + 0.5d,
-				destination.getY(),
-				destination.getZ() + 0.5d,
-				yaw,
-				entity.rotationPitch);
-			
-			boolean forceSpawn = portedEntity.forceSpawn;
-			portedEntity.forceSpawn = true;
-			destinationWorld.spawnEntity(portedEntity);
-			portedEntity.forceSpawn = forceSpawn;
-			destinationWorld.updateEntityWithOptionalForce(portedEntity, false);
-		}
-		
-		entity.isDead = true;
-		startWorld.resetUpdateEntityTick();
-		destinationWorld.resetUpdateEntityTick();
-	}
-	
-	/**
-	 * Copies NBT data from one entity to another, excluding the "Dimension" tag.<br>
-	 * (Copy of {@link Entity#copyDataFromOld(Entity)} because the method is private as of Minecraft 1.9)
-	 * 
-	 * @param source
-	 * The entity to read the NBT data from.
-	 * @param target
-	 * The entity to write the NBT data to.
-	 */
-	private static final void copyEntityNBT(Entity source, Entity target)
-	{
-		CompoundNBT tag = source.serializeNBT();
-		tag.remove("Dimension");
-		target.deserializeNBT(tag);
-	}
-	
-	/**
-	 * Sets the InvulnerableDimensionChange flag on the specified player. This is needed to 
-	 * circumvent the illegal movement checks on the server side.
-	 * 
-	 * @param player
-	 * The player to set the flag for.
-	 * @return
-	 * <code>true</code> if the flag was successfully set, otherwise <code>false</code>.
-	 */
-	private static final boolean setInvulnerableDimensionChange(ServerPlayerEntity player)
-	{
-		if (player == null) return false;
-		
-		try
-		{
-			if (invulnerableDimensionChange == null)
+			entity.world.getProfiler().startSection("changeDimension");
+
+			entity.dimension = dimension;
+			entity.detach();
+
+			entity.world.getProfiler().startSection("reposition");
+			entity.world.getProfiler().endStartSection("reloading");
+
+			Entity portedEntity = entity.getType().create(destinationWorld);
+
+			if (portedEntity != null)
 			{
-				invulnerableDimensionChange = ServerPlayerEntity.class.getDeclaredField("invulnerableDimensionChange");  // invulnerableDimensionChange field
-				invulnerableDimensionChange.setAccessible(true);
-			}
-			
-			invulnerableDimensionChange.set(player, true);
-			
-			return true;
-		}
-		catch (Exception ex)
-		{
-			return false;
-		}
-	}
-
-	/**
-	 * Gets the contents of the DragonFightManagers bossInfo field. This is needed to remove the
-	 * boss hp bar when porting away from the ender dragon.
-	 *
-	 * @param dragonFightManager
-	 * The DragonFightManager handling the ender dragon fight.
-	 * @return
-	 * A BossInfoServer or <c>null</c> if the bossInfo field could not be accessed.
-	 */
-	private static final BossInfo getBossInfo(DragonFightManager dragonFightManager)
-	{
-		if (dragonFightManager == null) return null;
-
-		try
-		{
-			if (dragonBossInfo == null)
-			{
-				dragonBossInfo = DragonFightManager.class.getDeclaredField("bossInfo");
-				dragonBossInfo.setAccessible(true);
+				portedEntity.copyDataFromOld(entity);
+				portedEntity.moveToBlockPosAndAngles(destination, yaw, portedEntity.rotationPitch);
+				destinationWorld.func_217460_e(portedEntity);
 			}
 
-			Object fieldValue = dragonBossInfo.get(dragonFightManager);
-
-			return (fieldValue != null) ? (BossInfo)fieldValue : null;
-		}
-		catch (Exception ex)
-		{
-			return null;
+			entity.remove(false);
+			entity.world.getProfiler().endSection();
+			startWorld.resetUpdateEntityTick();
+			destinationWorld.resetUpdateEntityTick();
+			entity.world.getProfiler().endSection();
 		}
 	}
-	
+
 	/**
 	 * Converts the specified facing to a degree value.
 	 * 

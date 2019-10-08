@@ -3,7 +3,7 @@ package net.zarathul.simpleportals.registration;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.Direction.AxisDirection
+import net.minecraft.util.Direction.AxisDirection;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -132,7 +132,7 @@ public class Portal implements INBTSerializable<CompoundNBT>
 	 */
 	public Iterable<BlockPos> getAllPositions()
 	{
-		return BlockPos.getAllInBox(corner1.getPos(), corner4.getPos());
+		return BlockPos.getAllInBoxMutable(corner1.getPos(), corner4.getPos());
 	}
 	
 	/**
@@ -143,7 +143,7 @@ public class Portal implements INBTSerializable<CompoundNBT>
 	 */
 	public Iterable<BlockPos> getPortalPositions()
 	{
-		return BlockPos.getAllInBox(corner1.getInnerCornerPos(), corner4.getInnerCornerPos());
+		return BlockPos.getAllInBoxMutable(corner1.getInnerCornerPos(), corner4.getInnerCornerPos());
 	}
 	
 	/**

@@ -1,38 +1,64 @@
 package net.zarathul.simpleportals.commands;
 
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import net.minecraft.command.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.common.DimensionManager;
-import net.zarathul.simpleportals.common.Utils;
+import net.minecraft.command.arguments.DimensionArgument;
+import net.minecraft.command.arguments.EntityArgument;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.world.dimension.DimensionType;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommandTeleport extends CommandBase
+public class CommandTeleport
 {
-	@Override
-	public String getName()
+	// tpd <dimensionId> [playerName] [<x> <z>] [y] or tpd [targetPlayerName] <destinationPlayerName>
+	public static void register(CommandDispatcher<CommandSource> dispatcher)
 	{
-		return "tpd";
+		// TODO: Report this idiotic naming ... DimensionArgument.getDimension() should be dimension()
+		dispatcher.register(
+			Commands.literal("tpd").requires((commandSource) -> {
+				return commandSource.hasPermissionLevel(2);
+			})
+				.then(
+					Commands.argument("dimension", DimensionArgument.getDimension())
+						.executes(context -> {
+							return tp(context.getSource(), DimensionArgument.func_212592_a(context, "dimension"), null, null, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+						})
+				)
+				.then(
+					Commands.argument("player", EntityArgument.player())
+						.executes(context -> {
+							return tp(context.getSource(), null, EntityArgument.getPlayer(context, "player"), null, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+						})
+				)
+				.then(
+					Commands.argument("x", IntegerArgumentType.integer())
+				)
+				.then(
+					Commands.argument("z", IntegerArgumentType.integer())
+						.executes(context -> {
+							return tp(context.getSource(), DimensionArgument.func_212592_a(context, "dimension"), EntityArgument.getPlayer(context, "player"), null,
+								IntegerArgumentType.getInteger(context, "x"), IntegerArgumentType.getInteger(context, "z"), Integer.MIN_VALUE);
+						})
+				)
+				.then(
+					Commands.argument("y", IntegerArgumentType.integer())
+						.executes(context -> {
+							return tp(context.getSource(), DimensionArgument.func_212592_a(context, "dimension"), EntityArgument.getPlayer(context, "player"), null,
+									IntegerArgumentType.getInteger(context, "x"), IntegerArgumentType.getInteger(context, "z"), IntegerArgumentType.getInteger(context, "y"));
+						})
+				)
+		);
+		// TODO: figure out how to use fork() to make the second variant of the command work
 	}
 
-	@Override
-	public String getUsage(ICommandSender sender)
+	private static int tp(CommandSource source, DimensionType dimension, ServerPlayerEntity player, ServerPlayerEntity targetPlayer, int x, int y, int z)
 	{
-		return "commands.tpd.usage";
+		return 0;
 	}
-
-	@Override
-	public int getRequiredPermissionLevel()
-	{
-		return 2;
-	}
-
+/*
 	@Override
 	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos)
 	{
@@ -172,6 +198,8 @@ public class CommandTeleport extends CommandBase
 			notifyCommandListener(sender, this, "commands.tpd.success", targetPlayer.getName(), destination, dimension);
 		}
 	}
+
+ */
 
 	/**
 	 * Accumulates all elements from the passed in arrays, converts them to String and puts them in a list.
