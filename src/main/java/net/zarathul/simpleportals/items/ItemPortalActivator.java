@@ -20,6 +20,7 @@ import net.minecraft.util.Direction.AxisDirection;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -28,6 +29,7 @@ import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.common.Utils;
 import net.zarathul.simpleportals.registration.PortalRegistry;
+import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -38,8 +40,8 @@ import java.util.List;
  */
 public class ItemPortalActivator extends Item
 {
-	private static final String toolTipKey = "item." + SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME + ".toolTip";
-	private static final String toolTipDetailsKey = "item." + SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME + ".toolTipDetails";
+	private static final String toolTipKey = "item." + SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME + ".tooltip";
+	private static final String toolTipDetailsKey = "item." + SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME + ".tooltip_details";
 	
 	public ItemPortalActivator()
 	{
@@ -51,17 +53,23 @@ public class ItemPortalActivator extends Item
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn)
+	public void addInformation(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
 	{
-		KeyBinding SneakKey = Minecraft.getInstance().gameSettings.keyBindSneak;
+		long windowHandle = Minecraft.getInstance().mainWindow.getHandle();
+		int leftShiftState = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_LEFT_SHIFT);
+		int rightShiftState = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_RIGHT_SHIFT);
 
-		if (SneakKey.isKeyDown())
+		// This does not work for some reason.
+		//KeyBinding SneakKey = Minecraft.getInstance().gameSettings.keyBindSneak;
+		//if (SneakKey.isKeyDown())
+
+		if (leftShiftState == GLFW.GLFW_PRESS || rightShiftState == GLFW.GLFW_PRESS)
 		{
 			tooltip.addAll(Utils.multiLineTranslateToLocal(toolTipDetailsKey, 1));
 		}
 		else
 		{
-			tooltip.add(new StringTextComponent(I18n.format(toolTipKey, null)));
+			tooltip.add(new TranslationTextComponent(toolTipKey));
 		}
 	}
 

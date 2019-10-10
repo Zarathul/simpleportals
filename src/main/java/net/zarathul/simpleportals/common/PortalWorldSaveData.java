@@ -1,6 +1,7 @@
 package net.zarathul.simpleportals.common;
 
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.world.ServerMultiWorld;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraft.world.storage.DimensionSavedDataManager;
 import net.minecraft.world.storage.WorldSavedData;
@@ -37,8 +38,8 @@ public class PortalWorldSaveData extends WorldSavedData
 		if (world == null) return null;
 		
 		DimensionSavedDataManager storage = world.getSavedData();
-		PortalWorldSaveData instance = storage.get(PortalWorldSaveData::new, DATA_NAME);
-		
+		PortalWorldSaveData instance = storage.getOrCreate(PortalWorldSaveData::new, DATA_NAME);
+
 		return instance;
 	}
 }

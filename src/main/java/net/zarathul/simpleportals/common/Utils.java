@@ -169,7 +169,7 @@ public final class Utils
 	{
 		MinecraftServer server = player.getServer();
 		ServerWorld destinationWorld = server.getWorld(dimension);
-		player.teleport(destinationWorld, destination.getX(), destination.getY(), destination.getZ(), yaw, player.rotationPitch);
+		player.teleport(destinationWorld, destination.getX() + 0.5f, destination.getY(), destination.getZ() + 0.5f, yaw, player.rotationPitch);
 	}
 
 	/**

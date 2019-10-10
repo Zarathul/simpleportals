@@ -10,11 +10,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.common.Utils;
+import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -24,8 +26,8 @@ import java.util.List;
  */
 public class ItemPortalFrame extends BlockItem
 {
-	private static final String toolTipKey = "item." + SimplePortals.ITEM_PORTAL_FRAME_NAME + ".toolTip";
-	private static final String toolTipDetailsKey = "item." + SimplePortals.ITEM_PORTAL_FRAME_NAME + ".toolTipDetails";
+	private static final String toolTipKey = "item." + SimplePortals.ITEM_PORTAL_FRAME_NAME + ".tooltip";
+	private static final String toolTipDetailsKey = "item." + SimplePortals.ITEM_PORTAL_FRAME_NAME + ".tooltip_details";
 
 	public ItemPortalFrame(Block block)
 	{
@@ -36,17 +38,23 @@ public class ItemPortalFrame extends BlockItem
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn)
+	public void addInformation(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
 	{
-		KeyBinding SneakKey = Minecraft.getInstance().gameSettings.keyBindSneak;
+		long windowHandle = Minecraft.getInstance().mainWindow.getHandle();
+		int leftShiftState = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_LEFT_SHIFT);
+		int rightShiftState = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_RIGHT_SHIFT);
 
-		if (SneakKey.isKeyDown())
+		// This does not work for some reason.
+		//KeyBinding SneakKey = Minecraft.getInstance().gameSettings.keyBindSneak;
+		//if (SneakKey.isKeyDown())
+
+		if (leftShiftState == GLFW.GLFW_PRESS || rightShiftState == GLFW.GLFW_PRESS)
 		{
 			tooltip.addAll(Utils.multiLineTranslateToLocal(toolTipDetailsKey, 1));
 		}
 		else
 		{
-			tooltip.add(new StringTextComponent(I18n.format(toolTipKey, null)));
+			tooltip.add(new TranslationTextComponent(toolTipKey));
 		}
 	}
 }

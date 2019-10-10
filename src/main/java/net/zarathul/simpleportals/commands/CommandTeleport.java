@@ -2,228 +2,108 @@ package net.zarathul.simpleportals.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.*;
+import net.minecraft.command.arguments.BlockPosArgument;
 import net.minecraft.command.arguments.DimensionArgument;
 import net.minecraft.command.arguments.EntityArgument;
+import net.minecraft.command.arguments.EntitySelectorParser;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.dimension.DimensionType;
+import net.zarathul.simpleportals.common.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CommandTeleport
 {
-	// tpd <dimensionId> [playerName] [<x> <z>] [y] or tpd [targetPlayerName] <destinationPlayerName>
+	private enum TeleportMode
+	{
+		ToPlayer,
+		ToPosition
+	}
+
 	public static void register(CommandDispatcher<CommandSource> dispatcher)
 	{
-		// TODO: Report this idiotic naming ... DimensionArgument.getDimension() should be dimension()
 		dispatcher.register(
 			Commands.literal("tpd").requires((commandSource) -> {
 				return commandSource.hasPermissionLevel(2);
 			})
-				.then(
-					Commands.argument("dimension", DimensionArgument.getDimension())
-						.executes(context -> {
-							return tp(context.getSource(), DimensionArgument.func_212592_a(context, "dimension"), null, null, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
-						})
-				)
-				.then(
-					Commands.argument("player", EntityArgument.player())
-						.executes(context -> {
-							return tp(context.getSource(), null, EntityArgument.getPlayer(context, "player"), null, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
-						})
-				)
-				.then(
-					Commands.argument("x", IntegerArgumentType.integer())
-				)
-				.then(
-					Commands.argument("z", IntegerArgumentType.integer())
-						.executes(context -> {
-							return tp(context.getSource(), DimensionArgument.func_212592_a(context, "dimension"), EntityArgument.getPlayer(context, "player"), null,
-								IntegerArgumentType.getInteger(context, "x"), IntegerArgumentType.getInteger(context, "z"), Integer.MIN_VALUE);
-						})
-				)
-				.then(
-					Commands.argument("y", IntegerArgumentType.integer())
-						.executes(context -> {
-							return tp(context.getSource(), DimensionArgument.func_212592_a(context, "dimension"), EntityArgument.getPlayer(context, "player"), null,
-									IntegerArgumentType.getInteger(context, "x"), IntegerArgumentType.getInteger(context, "z"), IntegerArgumentType.getInteger(context, "y"));
-						})
-				)
+			.executes(context -> {
+				SendTranslatedMessage(context.getSource(), "commands.tpd.info");
+				return 1;
+			})
+			.then(
+				Commands.argument("dimension", DimensionArgument.getDimension())
+					.executes(context -> {
+						return tp(context.getSource(), TeleportMode.ToPosition, DimensionArgument.func_212592_a(context, "dimension"), null, null, null);
+					})
+					.then(
+						Commands.argument("position", BlockPosArgument.blockPos())
+							.executes(context -> {
+								return tp(context.getSource(), TeleportMode.ToPosition, DimensionArgument.func_212592_a(context, "dimension"), BlockPosArgument.getBlockPos(context, "position"), null, null);
+							})
+							.then(
+								Commands.argument("player", EntityArgument.player())		// tpd <dimension> [<x> <y> <z>] [player]
+									.executes(context -> {
+										return tp(context.getSource(), TeleportMode.ToPosition, DimensionArgument.func_212592_a(context, "dimension"), BlockPosArgument.getBlockPos(context, "position"), null, EntityArgument.getPlayer(context, "player"));
+									})
+							)
+					)
+			)
+			.then(
+				Commands.argument("targetPlayer", EntityArgument.player())
+					.executes(context -> {
+						return tp(context.getSource(), TeleportMode.ToPlayer, null, null, EntityArgument.getPlayer(context, "targetPlayer"), null);
+					})
+					.then(
+						Commands.argument("player", EntityArgument.player())		// tpd <targetPlayer> [player]
+							.executes(context -> {
+								return tp(context.getSource(), TeleportMode.ToPlayer, null, null, EntityArgument.getPlayer(context, "targetPlayer"), EntityArgument.getPlayer(context, "player"));
+							})
+					)
+			)
 		);
-		// TODO: figure out how to use fork() to make the second variant of the command work
 	}
 
-	private static int tp(CommandSource source, DimensionType dimension, ServerPlayerEntity player, ServerPlayerEntity targetPlayer, int x, int y, int z)
+	private static int tp(CommandSource source, TeleportMode mode, DimensionType dimension, BlockPos destination, ServerPlayerEntity targetPlayer, ServerPlayerEntity player)
 	{
-		return 0;
-	}
-/*
-	@Override
-	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos)
-	{
-		switch (args.length)
+		if (player == null)
 		{
-			case 1:
-				return getListOfStringsMatchingLastWord(args, generateTabCompletionList(DimensionManager.getIDs(), server.getPlayerList().getOnlinePlayerNames()));
-
-			case 2:
-				return getListOfStringsMatchingLastWord(args, server.getPlayerList().getOnlinePlayerNames());
-
-			case 3:
-				return getListOfStringsMatchingLastWord(args, (targetPos != null) ? String.format("%d %d %d", targetPos.getX(), targetPos.getZ(), targetPos.getY() + 1) : "");
-
-			default:
-				return super.getTabCompletions(server, sender, args, targetPos);
-		}
-	}
-
-	@Override
-	public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
-	{
-		if (args.length < 1 || args.length > 5)
-		{
-			// tpd <dimensionId> [playerName] [<x> <z>] [y] or tpd [target playerName] <destination playerName>
-			throw new WrongUsageException("commands.tpd.usage");
-		}
-		else
-		{
-			Entity targetPlayer = null;
-			BlockPos destination = null;
-			int dimension;
-
-			if (Utils.isInteger(args[0]))
+			try
 			{
-				// tpd <dimensionId> [playerName] [<x> <z>] [y]
-
-				int argumentOffset = 0;
-				dimension = parseInt(args[0]);
-
-				if (!DimensionManager.isDimensionRegistered(dimension))
-				{
-					throw new CommandException("commands.tpd.unknownDimension", dimension);
-				}
-
-				boolean playerNameSpecified = false;
-
-				if (args.length >= 2)
-				{
-					playerNameSpecified = !Utils.isInteger(args[1]) || args.length == 5;
-					targetPlayer = server.getPlayerList().getPlayerByUsername(args[1]);
-				}
-
-				// If 3 arguments are supplied and one of them is a player name, 'z' is missing.
-				if ((args.length == 3 && playerNameSpecified) || (args.length == 2 && !playerNameSpecified))
-				{
-					throw new SyntaxErrorException("commands.tpd.zMissing");
-				}
-
-				if (targetPlayer == null)
-				{
-					if (playerNameSpecified)
-					{
-						throw new PlayerNotFoundException("commands.tpd.unknownPlayerName", args[1]);
-					}
-					else
-					{
-						// Teleport the command user if no player name was specified.
-						targetPlayer = sender.getCommandSenderEntity();
-
-						if (targetPlayer == null)
-						{
-							throw new PlayerNotFoundException("commands.tpd.unknownSender");
-						}
-
-						argumentOffset = 1;
-					}
-				}
-
-				BlockPos start = sender.getPosition();
-				double x = start.getX();
-				double z = start.getZ();
-				double y = start.getY();
-
-				if (args.length >= 3)
-				{
-					x = parseDouble((double)start.getX(), args[2 - argumentOffset], true);
-					z = parseDouble((double)start.getZ(), args[3 - argumentOffset], true);
-				}
-
-				if ((args.length == 4 && !playerNameSpecified) || args.length == 5)
-				{
-					y = parseDouble((double)start.getY(), args[4 - argumentOffset], true);
-				}
-
-				destination = new BlockPos(x, y, z);
+				player = source.asPlayer();
 			}
-			else
+			catch (CommandSyntaxException ex)
 			{
-				// tpd [target playerName] <destination playerName>
-
-				EntityPlayerMP destinationPlayer;
-
-				if (args.length == 2)
-				{
-					targetPlayer = server.getPlayerList().getPlayerByUsername(args[0]);
-					destinationPlayer = server.getPlayerList().getPlayerByUsername(args[1]);
-
-					if (targetPlayer == null || destinationPlayer == null)
-					{
-						throw new PlayerNotFoundException("commands.tpd.unknownPlayerName", args[(targetPlayer == null) ? 0 : 1]);
-					}
-				}
-				else
-				{
-					// Teleport the command user if no player name was specified.
-					targetPlayer = sender.getCommandSenderEntity();
-
-					if (targetPlayer == null)
-					{
-						throw new PlayerNotFoundException("commands.tpd.unknownSender");
-					}
-
-					destinationPlayer = server.getPlayerList().getPlayerByUsername(args[0]);
-
-					if (destinationPlayer == null)
-					{
-						throw new PlayerNotFoundException("commands.tpd.unknownPlayerName", args[0]);
-					}
-				}
-
-				destination = destinationPlayer.getPosition();
-				dimension = destinationPlayer.dimension;
-			}
-
-			Utils.teleportTo(targetPlayer, dimension, destination, EnumFacing.NORTH);
-			notifyCommandListener(sender, this, "commands.tpd.success", targetPlayer.getName(), destination, dimension);
-		}
-	}
-
- */
-
-	/**
-	 * Accumulates all elements from the passed in arrays, converts them to String and puts them in a list.
-	 *
-	 * @param input
-	 * The input arrays.
-	 * @return
-	 * The list containing the converted elements. Never returns <c>null</c> but the list may be empty.
-	 */
-	private List<String> generateTabCompletionList(Object[]... input)
-	{
-		List<String> completionStrings = new ArrayList<>();
-
-		if (input != null)
-		{
-			for (Object[] array : input)
-			{
-				for (Object element : array)
-				{
-					completionStrings.add(element.toString());
-				}
+				throw new CommandException(new TranslationTextComponent("commands.errors.unknown_sender"));
 			}
 		}
 
-		return completionStrings;
+		switch (mode)
+		{
+			case ToPosition:
+				if (destination == null) destination = player.getPosition();
+				break;
+
+			case ToPlayer:
+				destination = targetPlayer.getPosition();
+				dimension = targetPlayer.dimension;
+
+				break;
+		}
+
+		Utils.teleportTo(player, dimension.getId(), destination, Direction.NORTH);
+		SendTranslatedMessage(source, "commands.tpd.success", player.getName(), destination.getX(), destination.getY(), destination.getZ(), dimension.getRegistryName().toString());
+
+		return 1;
+	}
+
+	private static void SendTranslatedMessage(CommandSource source, String message, Object... args)
+	{
+		source.sendFeedback(new TranslationTextComponent(message, args), true);
 	}
 }

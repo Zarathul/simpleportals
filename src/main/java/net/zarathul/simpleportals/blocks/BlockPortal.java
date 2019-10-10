@@ -13,11 +13,8 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.Direction;
+import net.minecraft.util.*;
 import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -42,9 +39,9 @@ import java.util.stream.Collectors;
  */
 public class BlockPortal extends BreakableBlock
 {
-	private static final VoxelShape X_AABB = Block.makeCuboidShape(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
+	private static final VoxelShape X_AABB = Block.makeCuboidShape(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D);
 	private static final VoxelShape Y_AABB = Block.makeCuboidShape(0.0D, 6.0D, 0.0D, 16.0D, 10.0D, 16.0D);
-	private static final VoxelShape Z_AABB = Block.makeCuboidShape(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D);
+	private static final VoxelShape Z_AABB = Block.makeCuboidShape(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
 
 	public static final EnumProperty<Axis> AXIS = EnumProperty.create(
 		"axis",
@@ -63,8 +60,6 @@ public class BlockPortal extends BreakableBlock
 			.sound(SoundType.GLASS));
 		
 		setRegistryName(SimplePortals.BLOCK_PORTAL_NAME);
-
-		//setDefaultState(this.tate.blockState.getBaseState().withProperty(AXIS, Direction.Axis.X));
 	}
 
 	@Override
@@ -111,8 +106,8 @@ public class BlockPortal extends BreakableBlock
 			{
 				ItemStack item = ((ItemEntity)entity).getItem();
 				
-				// TODO: fix this
-				if (PortalRegistry.getPower(start) < Config.powerCapacity.get())// && OreDictionary.containsMatch(false, Config.powerSources, item))
+				// TODO: Make the power source item configurable once again
+				if ((PortalRegistry.getPower(start) < Config.powerCapacity.get()) && item.getItem().getTags().contains(new ResourceLocation("forge", "ender_pearls")))
 				{
 					int surplus = PortalRegistry.addPower(start, item.getCount());
 					

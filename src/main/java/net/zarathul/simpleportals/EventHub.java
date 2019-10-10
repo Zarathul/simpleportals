@@ -7,6 +7,7 @@ import net.minecraft.command.arguments.ArgumentSerializer;
 import net.minecraft.command.arguments.ArgumentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.world.WorldEvent.Load;
@@ -17,13 +18,13 @@ import net.zarathul.simpleportals.blocks.BlockPortal;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.blocks.BlockPowerGauge;
 import net.zarathul.simpleportals.commands.CommandPortals;
-import net.zarathul.simpleportals.commands.arguments.AddressArgument;
+import net.zarathul.simpleportals.commands.CommandTeleport;
+import net.zarathul.simpleportals.commands.arguments.BlockArgument;
 import net.zarathul.simpleportals.common.PortalWorldSaveData;
 import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
 import net.zarathul.simpleportals.items.ItemPortalFrame;
 import net.zarathul.simpleportals.items.ItemPowerGauge;
-import org.apache.logging.log4j.core.jmx.Server;
 
 /**
  * Hosts Forge event handlers on both the server and client side.
@@ -45,18 +46,19 @@ public final class EventHub
 	}
 
 	@SubscribeEvent
-	public void OnWorldLoad(Load event)
+	public static void OnWorldLoad(Load event)
 	{
 		World world = event.getWorld().getWorld();
 
-		if (!world.isRemote)
+		// WorldSavedData can no longer be stored per map but only per dimension. So store the registry in the overworld.
+		if (!world.isRemote && world.dimension.getType() == DimensionType.OVERWORLD && world instanceof ServerWorld)
 		{
 			SimplePortals.portalSaveData = PortalWorldSaveData.get((ServerWorld)world);
 		}
 	}
 
 	@SubscribeEvent
-	public void OnBlockRegistration(RegistryEvent.Register<Block> event)
+	public static void OnBlockRegistration(RegistryEvent.Register<Block> event)
 	{
 		SimplePortals.blockPortal = new BlockPortal();
 		SimplePortals.blockPortalFrame = new BlockPortalFrame();
@@ -70,7 +72,7 @@ public final class EventHub
 	}
 
 	@SubscribeEvent
-	public void OnItemRegistration(RegistryEvent.Register<Item> event)
+	public static void OnItemRegistration(RegistryEvent.Register<Item> event)
 	{
 		SimplePortals.itemPortalFrame = new ItemPortalFrame(SimplePortals.blockPortalFrame);
 		SimplePortals.itemPowerGauge = new ItemPowerGauge(SimplePortals.blockPowerGauge);
@@ -83,26 +85,12 @@ public final class EventHub
 		);
 	}
 
-	// Client
-
-	/*
-	@SubscribeEvent
-	public void OnModelRegistration(ModelRegistryEvent event)
-	{
-		// register item models
-		ModelLoader.setCustomModelResourceLocation(SimplePortals.itemPortalFrame, 0, new ModelResourceLocation(SimplePortals.blockPortalFrame.getRegistryName(), "inventory"));
-		ModelLoader.setCustomModelResourceLocation(SimplePortals.itemPowerGauge, 0, new ModelResourceLocation(SimplePortals.blockPowerGauge.getRegistryName(), "inventory"));
-		ModelLoader.setCustomModelResourceLocation(SimplePortals.itemPortalActivator, 0, new ModelResourceLocation(SimplePortals.itemPortalActivator.getRegistryName(), "inventory"));
-	}
-	 */
-
 	// Server
 
 	@SubscribeEvent
-	public void onServerStarting(FMLServerStartingEvent event)
+	public static void onServerStarting(FMLServerStartingEvent event)
 	{
-		ArgumentTypes.register("sportals_address", AddressArgument.class, new ArgumentSerializer<>(AddressArgument::create));
-		CommandDispatcher<CommandSource> dispatcher = event.getCommandDispatcher();
-		CommandPortals.register(dispatcher);
+		CommandPortals.register(event.getCommandDispatcher());
+		CommandTeleport.register(event.getCommandDispatcher());
 	}
 }

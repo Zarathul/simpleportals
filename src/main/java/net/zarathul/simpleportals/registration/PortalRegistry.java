@@ -46,6 +46,20 @@ public final class PortalRegistry
 		gauges = ArrayListMultimap.create();
 		power = Maps.newHashMap();
 	}
+
+	/**
+	 * :WARNING: Completely clears the registry. :WARNING:
+	 * This does not deactivate any portals, meaning no portals blocks will get removed.
+	 */
+	public static void clear()
+	{
+		portals.clear();
+		addresses.clear();
+		gauges.clear();
+		power.clear();
+
+		SimplePortals.portalSaveData.markDirty();
+	}
 	
 	/**
 	 * Activate a portal at the specified position.
@@ -142,10 +156,10 @@ public final class PortalRegistry
 		// Create portal data structure
 		
 		Address address = new Address(
-			getAddressBlockId(addBlock1),
-			getAddressBlockId(addBlock2),
-			getAddressBlockId(addBlock3),
-			getAddressBlockId(addBlock4));
+			getAddressBlockId(addBlock1.getBlock()),
+			getAddressBlockId(addBlock2.getBlock()),
+			getAddressBlockId(addBlock3.getBlock()),
+			getAddressBlockId(addBlock4.getBlock()));
 		
 		int dimension = world.getDimension().getType().getId();
 		
@@ -200,7 +214,7 @@ public final class PortalRegistry
 	{
 		if (world == null || pos == null) return;
 		
-		// Copying of the Collection is required because unregister() changes it.
+		// Copying of the list is required because unregister() changes it.
 		List<Portal> affectedPortals = new ArrayList<>(portals.get(pos));
 		
 		// Unregister all affected portals first to avoid unnecessary deactivatePortal()
@@ -415,21 +429,17 @@ public final class PortalRegistry
 	/**
 	 * Generates an address block id for the specified block.
 	 * 
-	 * @param blockState
-	 * The {@link BlockState} to generate the address id for.
+	 * @param block
+	 * The {@link Block} to generate the address id for.
 	 * @return
 	 * A string of the format "registryName#meta" or <code>null</code>
 	 * if <code>blockState</code> is <code>null</code>.
 	 */
-	public static String getAddressBlockId(BlockState blockState)
+	public static String getAddressBlockId(Block block)
 	{
-		if (blockState == null) return null;
+		if (block == null) return null;
 		
-		Block block = blockState.getBlock();
-		//TODO: Check how this behaves now with wool etc.
-		//int meta = block.getMetaFromState(blockState);
-		
-		return block.getRegistryName().toString();// + "#" + meta;
+		return block.getRegistryName().toString();
 	}
 	
 	/**
@@ -444,7 +454,6 @@ public final class PortalRegistry
 	{
 		for (BlockPos portalPos : portal.getPortalPositions())
 		{
-			// FIXME: Not sure if this is correct.
 			world.destroyBlock(portalPos, false);
 		}
 	}
@@ -524,7 +533,7 @@ public final class PortalRegistry
 		
 		for (BlockPos portalPos : portal.getAllPositions())
 		{
-			portals.put(portalPos, portal);
+			portals.put(portalPos.toImmutable(), portal);
 		}
 		
 		addresses.put(portal.getAddress(), portal);
@@ -597,11 +606,7 @@ public final class PortalRegistry
 	 */
 	private static boolean isValidAddressBlock(BlockState state)
 	{
-		if (state == null
-			|| state.getBlock().hasTileEntity(state)
-			/*|| !state.getBlock().isFullBlock(state)*/)
-			// TODO: Check behavior
-			return false;
+		if (state == null || state.getBlock().hasTileEntity(state))	return false;
 		
 		return true;
 	}

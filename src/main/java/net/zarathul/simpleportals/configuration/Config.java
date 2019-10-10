@@ -2,7 +2,6 @@ package net.zarathul.simpleportals.configuration;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.translation.LanguageMap;
@@ -18,13 +17,13 @@ public final class Config
 {
 	// Configs
 
-	public static ForgeConfigSpec CommonConfig;
+	public static ForgeConfigSpec ServerConfig;
 	public static ForgeConfigSpec ClientConfig;
 
 	// Config builders
 
-	private static final ForgeConfigSpec.Builder CommonBuilder = new ForgeConfigSpec.Builder();
-	private static final ForgeConfigSpec.Builder ClientBuilder = new ForgeConfigSpec.Builder();
+	private static final ForgeConfigSpec.Builder ServerConfigBuilder = new ForgeConfigSpec.Builder();
+	private static final ForgeConfigSpec.Builder ClientConfigBuilder = new ForgeConfigSpec.Builder();
 
 	// Default values
 	
@@ -33,7 +32,8 @@ public final class Config
 	private static final int defaultPowerCapacity = 64;
 	private static final boolean defaultParticlesEnabled = true;
 	private static final boolean defaultAmbientSoundEnabled = false;
-	private static final String defaultPowerSource = "oredict:enderpearl";
+
+	//private static final String defaultPowerSource = "oredict:enderpearl";
 
 	// Settings
 
@@ -53,35 +53,35 @@ public final class Config
 	{
 		LanguageMap i18nMap = LanguageMap.getInstance();
 
-		// Common
+		// Server
 
-		CommonBuilder.comment(i18nMap.translateKey("configui.category.misc")).push(CATEGORY_MISC);
+		ServerConfigBuilder.comment(i18nMap.translateKey("configui.category.misc")).push(CATEGORY_MISC);
 
-		maxSize = CommonBuilder.comment(i18nMap.translateKey("configui.maxSize.tooltip"))
-				.defineInRange(i18nMap.translateKey("configui.maxSize"), defaultMaxSize, 3, 128);
+		maxSize = ServerConfigBuilder.comment(i18nMap.translateKey("configui.maxSize.tooltip"))
+				.defineInRange("maxSize", defaultMaxSize, 3, 128);
 
-		powerCost = CommonBuilder.comment(i18nMap.translateKey("configui.powerCost.tooltip"))
-				.defineInRange(i18nMap.translateKey("configui.powerCost.tooltip"), defaultPowerCost, 0, Integer.MAX_VALUE);
+		powerCost = ServerConfigBuilder.comment(i18nMap.translateKey("configui.powerCost.tooltip"))
+				.defineInRange("powerCost", defaultPowerCost, -1, Integer.MAX_VALUE);
 
-		powerCapacity = CommonBuilder.comment(i18nMap.translateKey("configui.powerCapacity.tooltip"))
-				.defineInRange(i18nMap.translateKey("configui.powerCapacity.tooltip"), defaultPowerCapacity, 0, Integer.MAX_VALUE);
+		powerCapacity = ServerConfigBuilder.comment(i18nMap.translateKey("configui.powerCapacity.tooltip"))
+				.defineInRange("powerCapacity", defaultPowerCapacity, 0, Integer.MAX_VALUE);
 
-		CommonBuilder.pop();
+		ServerConfigBuilder.pop();
 
 		// Client
 
-		ClientBuilder.comment(i18nMap.translateKey("configui.category.misc")).push(CATEGORY_MISC);
+		ClientConfigBuilder.comment(i18nMap.translateKey("configui.category.misc")).push(CATEGORY_MISC);
 
-		particlesEnabled = ClientBuilder.comment(i18nMap.translateKey("configui.particlesEnabled.tooltip"))
-				.define(i18nMap.translateKey("configui.particlesEnabled"), defaultParticlesEnabled);
+		particlesEnabled = ClientConfigBuilder.comment(i18nMap.translateKey("configui.particlesEnabled.tooltip"))
+				.define("particlesEnabled", defaultParticlesEnabled);
 
-		ambientSoundEnabled = ClientBuilder.comment(i18nMap.translateKey("configui.ambientSoundEnabled.tooltip"))
-				.define(i18nMap.translateKey("configui.ambientSoundEnabled"), defaultAmbientSoundEnabled);
+		ambientSoundEnabled = ClientConfigBuilder.comment(i18nMap.translateKey("configui.ambientSoundEnabled.tooltip"))
+				.define("ambientSoundEnabled", defaultAmbientSoundEnabled);
 
-		ClientBuilder.pop();
+		ClientConfigBuilder.pop();
 
-		CommonConfig = CommonBuilder.build();
-		ClientConfig = ClientBuilder.build();
+		ServerConfig = ServerConfigBuilder.build();
+		ClientConfig = ClientConfigBuilder.build();
 	}
 
 	/**

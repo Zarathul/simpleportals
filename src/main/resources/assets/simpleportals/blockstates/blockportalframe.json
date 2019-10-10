@@ -1,5 +1,5 @@
 {
     "variants": {
-        "normal": { "model": "simpleportals:block/blockportalframe" }
+        "": { "model": "simpleportals:block/blockportalframe" }
     }
 }

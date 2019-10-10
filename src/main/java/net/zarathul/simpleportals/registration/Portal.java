@@ -150,9 +150,9 @@ public class Portal implements INBTSerializable<CompoundNBT>
 	 * Gets the positions of all blocks making up the portals frame including the corners.
 	 * 
 	 * @return
-	 * An {@link Iterable} of {@link BlockPos}.
+	 * A list of {@link BlockPos}.
 	 */
-	public Iterable<BlockPos> getFramePositions()
+	public List<BlockPos> getFramePositions()
 	{
 		return getFramePositions(true);
 	}
@@ -164,12 +164,12 @@ public class Portal implements INBTSerializable<CompoundNBT>
 	 * @param includeCorners
 	 * Determines if corner blocks should be included.
 	 * @return
-	 * An {@link Iterable} of {@link BlockPos}.
+	 * A list of {@link BlockPos}.
 	 */
-	public Iterable<BlockPos> getFramePositions(boolean includeCorners)
+	public List<BlockPos> getFramePositions(boolean includeCorners)
 	{
-		List<BlockPos> frame = new ArrayList<>();
-		
+		ArrayList<BlockPos> frame = new ArrayList<>();
+
 		// Get relative directions of the first and forth corners to their adjacent corners.
 		
 		Direction dir1To2 = Utils.getRelativeDirection(corner1.getPos(), corner2.getPos());
@@ -180,11 +180,25 @@ public class Portal implements INBTSerializable<CompoundNBT>
 		// Offset the corner positions towards their adjacent corners and get all positions
 		// in between. This way we get all the frame positions without the corners themselves.
 		
-		BlockPos.getAllInBox(corner1.getPos().offset(dir1To2), corner2.getPos().offset(dir1To2.getOpposite())).forEach(e -> frame.add(e));
-		BlockPos.getAllInBox(corner1.getPos().offset(dir1To3), corner3.getPos().offset(dir1To3.getOpposite())).forEach(e -> frame.add(e));
-		BlockPos.getAllInBox(corner4.getPos().offset(dir4To2), corner2.getPos().offset(dir4To2.getOpposite())).forEach(e -> frame.add(e));
-		BlockPos.getAllInBox(corner4.getPos().offset(dir4To3), corner3.getPos().offset(dir4To3.getOpposite())).forEach(e -> frame.add(e));
-		
+		BlockPos from1 = corner1.getPos().offset(dir1To2);
+		BlockPos to1   = corner2.getPos().offset(dir1To2.getOpposite());
+
+		BlockPos from2 = corner1.getPos().offset(dir1To3);
+		BlockPos to2   = corner3.getPos().offset(dir1To3.getOpposite());
+
+		BlockPos from3 = corner4.getPos().offset(dir4To2);
+		BlockPos to3   = corner2.getPos().offset(dir4To2.getOpposite());
+
+		BlockPos from4 = corner4.getPos().offset(dir4To3);
+		BlockPos to4   = corner3.getPos().offset(dir4To3.getOpposite());
+
+		// BlockPos.getAllInBox() delivers wrong results (duplicates and missing positions).
+		// So I have to do this nonsense. Minecraft 1.14.4 (10.10.2019)
+		for (BlockPos pos : BlockPos.getAllInBoxMutable(from1, to1)) frame.add(pos.toImmutable());
+		for (BlockPos pos : BlockPos.getAllInBoxMutable(from2, to2)) frame.add(pos.toImmutable());
+		for (BlockPos pos : BlockPos.getAllInBoxMutable(from3, to3)) frame.add(pos.toImmutable());
+		for (BlockPos pos : BlockPos.getAllInBoxMutable(from4, to4)) frame.add(pos.toImmutable());
+
 		if (includeCorners)
 		{
 			frame.add(corner1.getPos());
@@ -193,14 +207,7 @@ public class Portal implements INBTSerializable<CompoundNBT>
 			frame.add(corner4.getPos());
 		}
 		
-		return new Iterable<BlockPos>()
-		{
-			@Override
-			public Iterator<BlockPos> iterator()
-			{
-				return frame.iterator();
-			}
-		};
+		return frame;
 	}
 	
 	/**
@@ -221,7 +228,7 @@ public class Portal implements INBTSerializable<CompoundNBT>
 		
 		if (axis == Axis.Y)
 		{
-			Iterable<BlockPos> framePositions = getFramePositions();
+			List<BlockPos> framePositions = getFramePositions();
 			
 			BlockPos spawnLocation = null;
 			
@@ -386,10 +393,10 @@ public class Portal implements INBTSerializable<CompoundNBT>
 		if (world == null) return false;
 		
 		Address actualAddress = new Address(
-			PortalRegistry.getAddressBlockId(world.getBlockState(corner1.getPos())),
-			PortalRegistry.getAddressBlockId(world.getBlockState(corner2.getPos())),
-			PortalRegistry.getAddressBlockId(world.getBlockState(corner3.getPos())),
-			PortalRegistry.getAddressBlockId(world.getBlockState(corner4.getPos())));
+			PortalRegistry.getAddressBlockId(world.getBlockState(corner1.getPos()).getBlock()),
+			PortalRegistry.getAddressBlockId(world.getBlockState(corner2.getPos()).getBlock()),
+			PortalRegistry.getAddressBlockId(world.getBlockState(corner3.getPos()).getBlock()),
+			PortalRegistry.getAddressBlockId(world.getBlockState(corner4.getPos()).getBlock()));
 		
 		return !actualAddress.equals(address);
 	}

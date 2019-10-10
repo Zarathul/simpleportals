@@ -1,5 +1,7 @@
 package net.zarathul.simpleportals;
 
+import net.minecraft.command.arguments.ArgumentSerializer;
+import net.minecraft.command.arguments.ArgumentTypes;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
@@ -10,13 +12,12 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.zarathul.simpleportals.blocks.BlockPortal;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.blocks.BlockPowerGauge;
+import net.zarathul.simpleportals.commands.arguments.BlockArgument;
 import net.zarathul.simpleportals.common.PortalWorldSaveData;
 import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
@@ -29,12 +30,12 @@ import java.util.Arrays;
 public class SimplePortals
 {
 	// block and item names
-	public static final String BLOCK_PORTAL_NAME = "blockPortal";
-	public static final String BLOCK_PORTAL_FRAME_NAME = "blockPortalFrame";
-	public static final String BLOCK_POWER_GAUGE_NAME = "blockPowerGauge";
-	public static final String ITEM_PORTAL_FRAME_NAME = "itemPortalFrame";
-	public static final String ITEM_POWER_GAUGE_NAME = "itemPowerGauge";
-	public static final String ITEM_PORTAL_ACTIVATOR_NAME = "itemPortalActivator";
+	public static final String BLOCK_PORTAL_NAME = "blockportal";
+	public static final String BLOCK_PORTAL_FRAME_NAME = "blockportalframe";
+	public static final String BLOCK_POWER_GAUGE_NAME = "blockpowergauge";
+	public static final String ITEM_PORTAL_FRAME_NAME = "itemportalframe";
+	public static final String ITEM_POWER_GAUGE_NAME = "itempowergauge";
+	public static final String ITEM_PORTAL_ACTIVATOR_NAME = "itemportalactivator";
 
 	// blocks
 	public static BlockPortal blockPortal;
@@ -46,54 +47,44 @@ public class SimplePortals
 	public static BlockItem itemPortalFrame;
 	public static BlockItem itemPowerGauge;
 
-	// creative tabs
-	public static ItemGroup creativeTab;
-
+	// creative tab
+	public static ItemGroup creativeTab = MakeCreativeTab();
 	// world save data handler
 	public static PortalWorldSaveData portalSaveData;
 	
 	// constants
 	public static final String MOD_ID = "simpleportals";
-	public static final String MOD_READABLE_NAME = "Simple Portals";
-	public static final String MOD_TAB_NAME = "Simple Mods";
-	public static final String VERSION = "@VERSION@";
 
 	// logger
 	public static final Logger log = LogManager.getLogger(MOD_ID);
 
 	public SimplePortals()
 	{
+		// Register custom argument types for command parser
+		ArgumentTypes.register("sportals_block", BlockArgument.class, new ArgumentSerializer<>(BlockArgument::block));
+
 		// Setup configs
 		ModLoadingContext Mlc = ModLoadingContext.get();
-		Mlc.registerConfig(ModConfig.Type.COMMON, Config.CommonConfig);
+		Mlc.registerConfig(ModConfig.Type.SERVER, Config.ServerConfig);
 		Mlc.registerConfig(ModConfig.Type.CLIENT, Config.ClientConfig);
 
-		Config.load(Config.CommonConfig, FMLPaths.CONFIGDIR.get().resolve(MOD_ID + "-common.toml"));
+		Config.load(Config.ServerConfig, FMLPaths.CONFIGDIR.get().resolve(MOD_ID + "-server.toml"));
 		Config.load(Config.ClientConfig, FMLPaths.CONFIGDIR.get().resolve(MOD_ID + "-client.toml"));
 
 		// Setup event listeners
 		IEventBus SetupEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-		//SetupEventBus.addListener(this::CommonInit);
-		SetupEventBus.addListener(this::ClientInit);
-
+		SetupEventBus.register(EventHub.class);
 		MinecraftForge.EVENT_BUS.register(EventHub.class);
 	}
 
-	/*
-	private void CommonInit(final FMLCommonSetupEvent event)
+	private static ItemGroup MakeCreativeTab()
 	{
-		//Config.load(event.getSuggestedConfigurationFile());
-	}
-    */
-
-	private void ClientInit(final FMLClientSetupEvent event)
-	{
-		// Check if a a "Simple Mods" tab already exists, otherwise make one.
-		creativeTab = Arrays.stream(ItemGroup.GROUPS)
-			.filter(tab -> tab.getTabLabel().equals(SimplePortals.MOD_TAB_NAME))
+		// Checks if a "Simple Mods" tab already exists, otherwise makes one.
+		return Arrays.stream(ItemGroup.GROUPS)
+			.filter(tab -> tab.getTabLabel().equals(SimplePortals.MOD_ID))
 			.findFirst()
 			.orElseGet(() ->
-				new ItemGroup(SimplePortals.MOD_TAB_NAME)
+				new ItemGroup(SimplePortals.MOD_ID)
 				{
 					private ItemStack iconStack;
 
