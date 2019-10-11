@@ -65,11 +65,8 @@ public class SimplePortals
 
 		// Setup configs
 		ModLoadingContext Mlc = ModLoadingContext.get();
-		Mlc.registerConfig(ModConfig.Type.SERVER, Config.ServerConfig);
-		Mlc.registerConfig(ModConfig.Type.CLIENT, Config.ClientConfig);
-
-		Config.load(Config.ServerConfig, FMLPaths.CONFIGDIR.get().resolve(MOD_ID + "-server.toml"));
-		Config.load(Config.ClientConfig, FMLPaths.CONFIGDIR.get().resolve(MOD_ID + "-client.toml"));
+		Mlc.registerConfig(ModConfig.Type.COMMON, Config.ConfigSpec);
+		Config.load(Config.ConfigSpec, FMLPaths.CONFIGDIR.get().resolve(MOD_ID + ".toml"));
 
 		// Setup event listeners
 		IEventBus SetupEventBus = FMLJavaModLoadingContext.get().getModEventBus();

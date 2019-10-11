@@ -13,8 +13,11 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
-import net.minecraft.util.*;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -31,7 +34,9 @@ import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.registration.Portal;
 import net.zarathul.simpleportals.registration.PortalRegistry;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -106,8 +111,7 @@ public class BlockPortal extends BreakableBlock
 			{
 				ItemStack item = ((ItemEntity)entity).getItem();
 				
-				// TODO: Make the power source item configurable once again
-				if ((PortalRegistry.getPower(start) < Config.powerCapacity.get()) && item.getItem().getTags().contains(new ResourceLocation("forge", "ender_pearls")))
+				if ((PortalRegistry.getPower(start) < Config.powerCapacity.get()) && item.getItem().getTags().contains(Config.powerSource))
 				{
 					int surplus = PortalRegistry.addPower(start, item.getCount());
 					

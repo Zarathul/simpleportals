@@ -12,7 +12,6 @@ import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.common.Utils;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**

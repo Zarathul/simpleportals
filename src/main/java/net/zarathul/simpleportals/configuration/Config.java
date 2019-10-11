@@ -2,9 +2,7 @@ package net.zarathul.simpleportals.configuration;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.text.translation.LanguageMap;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.nio.file.Path;
@@ -17,13 +15,11 @@ public final class Config
 {
 	// Configs
 
-	public static ForgeConfigSpec ServerConfig;
-	public static ForgeConfigSpec ClientConfig;
+	public static ForgeConfigSpec ConfigSpec;
 
 	// Config builders
 
-	private static final ForgeConfigSpec.Builder ServerConfigBuilder = new ForgeConfigSpec.Builder();
-	private static final ForgeConfigSpec.Builder ClientConfigBuilder = new ForgeConfigSpec.Builder();
+	private static final ForgeConfigSpec.Builder ConfigBuilder = new ForgeConfigSpec.Builder();
 
 	// Default values
 	
@@ -32,8 +28,7 @@ public final class Config
 	private static final int defaultPowerCapacity = 64;
 	private static final boolean defaultParticlesEnabled = true;
 	private static final boolean defaultAmbientSoundEnabled = false;
-
-	//private static final String defaultPowerSource = "oredict:enderpearl";
+	private static final String defaultPowerSource = "forge:ender_pearls";
 
 	// Settings
 
@@ -42,46 +37,49 @@ public final class Config
 	public static ForgeConfigSpec.IntValue powerCapacity;
 	public static ForgeConfigSpec.BooleanValue particlesEnabled;
 	public static ForgeConfigSpec.BooleanValue ambientSoundEnabled;
-	//public static ForgeConfigSpec. powerSource;
-	public static NonNullList<ItemStack> powerSources;
+	public static ResourceLocation powerSource;
 
-	// Config file categories
-
-	public static final String CATEGORY_MISC = "misc";
+	private static ForgeConfigSpec.ConfigValue<String> powerSourceString;
 
 	static
 	{
-		LanguageMap i18nMap = LanguageMap.getInstance();
-
 		// Server
 
-		ServerConfigBuilder.comment(i18nMap.translateKey("configui.category.misc")).push(CATEGORY_MISC);
+		ConfigBuilder.push("server");
 
-		maxSize = ServerConfigBuilder.comment(i18nMap.translateKey("configui.maxSize.tooltip"))
+		maxSize = ConfigBuilder.translation("config.max_size")
+				.comment("The maximum size including the frame of a portal.")
 				.defineInRange("maxSize", defaultMaxSize, 3, 128);
 
-		powerCost = ServerConfigBuilder.comment(i18nMap.translateKey("configui.powerCost.tooltip"))
+		powerCost = ConfigBuilder.translation("config.power_cost")
+				.comment("The power cost per port. Set to 0 for no cost.")
 				.defineInRange("powerCost", defaultPowerCost, -1, Integer.MAX_VALUE);
 
-		powerCapacity = ServerConfigBuilder.comment(i18nMap.translateKey("configui.powerCapacity.tooltip"))
+		powerCapacity = ConfigBuilder.translation("config.power_capacity")
+				.comment("The amount of power a portal can store.")
 				.defineInRange("powerCapacity", defaultPowerCapacity, 0, Integer.MAX_VALUE);
 
-		ServerConfigBuilder.pop();
+		powerSourceString = ConfigBuilder.translation("config.power_source")
+				.comment("The item that gets converted to power when thrown into a portal (1 power per item). This MUST be a tag.")
+				.define("powerSource", defaultPowerSource);
+
+		ConfigBuilder.pop();
 
 		// Client
 
-		ClientConfigBuilder.comment(i18nMap.translateKey("configui.category.misc")).push(CATEGORY_MISC);
+		ConfigBuilder.push("client");
 
-		particlesEnabled = ClientConfigBuilder.comment(i18nMap.translateKey("configui.particlesEnabled.tooltip"))
+		particlesEnabled = ConfigBuilder.translation("config.particles_enabled")
+				.comment("Enables the portal particle effect.")
 				.define("particlesEnabled", defaultParticlesEnabled);
 
-		ambientSoundEnabled = ClientConfigBuilder.comment(i18nMap.translateKey("configui.ambientSoundEnabled.tooltip"))
+		ambientSoundEnabled = ConfigBuilder.translation("config.ambient_sound_enabled")
+				.comment("Enables the portal ambient sound.")
 				.define("ambientSoundEnabled", defaultAmbientSoundEnabled);
 
-		ClientConfigBuilder.pop();
+		ConfigBuilder.pop();
 
-		ServerConfig = ServerConfigBuilder.build();
-		ClientConfig = ClientConfigBuilder.build();
+		ConfigSpec = ConfigBuilder.build();
 	}
 
 	/**
@@ -93,7 +91,7 @@ public final class Config
 	 * The path to the config file.
 	 */
 
-	public static final void load(ForgeConfigSpec configSpec, Path path)
+	public static void load(ForgeConfigSpec configSpec, Path path)
 	{
 		final CommentedFileConfig configData = CommentedFileConfig.builder(path)
 				.sync()
@@ -105,43 +103,8 @@ public final class Config
 		configSpec.setConfig(configData);
 	}
 
-	public static void updateValidPowerSources()
+	public static void updatePowerSource()
 	{
-		// TODO: replace this somehow with recipe
-		powerSources = NonNullList.create();
-
-		/*
-		Item item = Item.getByNameOrId(powerSource);
-		
-		if (item != null)
-		{
-			powerSources = NonNullList.withSize(1, new ItemStack(item));
-		}
-		else
-		{
-			String[] oreDictComponents = powerSource.split(":");
-			String oreDictName = (oreDictComponents.length > 1 && oreDictComponents[0].toLowerCase().equals("oredict"))
-				? oreDictComponents[1]
-				: null;
-
-			NonNullList<ItemStack> oreDictEntries = OreDictionary.getOres(oreDictName, false);
-
-			// Compile list of the ItemStacks returned by the ore dictionary and their respective subtypes
-
-			powerSources = NonNullList.create();
-
-			for (ItemStack stack : oreDictEntries)
-			{
-				if (stack.getMetadata() == OreDictionary.WILDCARD_VALUE)
-				{
-					stack.getItem().getSubItems(CreativeTabs.SEARCH, powerSources);
-				}
-				else
-				{
-					powerSources.add(stack);
-				}
-			}
-		}
-		*/
+		powerSource = new ResourceLocation(powerSourceString.get());
 	}
 }

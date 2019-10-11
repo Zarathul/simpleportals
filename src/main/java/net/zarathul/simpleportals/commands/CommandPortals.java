@@ -1,20 +1,17 @@
 package net.zarathul.simpleportals.commands;
 
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.Iterables;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.exceptions.CommandExceptionType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import jdk.nashorn.internal.ir.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.command.*;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.CommandSource;
+import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.BlockPosArgument;
 import net.minecraft.command.arguments.DimensionArgument;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.dimension.DimensionType;
 import net.zarathul.simpleportals.SimplePortals;
@@ -23,7 +20,10 @@ import net.zarathul.simpleportals.registration.Address;
 import net.zarathul.simpleportals.registration.Portal;
 import net.zarathul.simpleportals.registration.PortalRegistry;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CommandPortals
@@ -318,7 +318,7 @@ public class CommandPortals
 						SendTranslatedMessage(source, "commands.errors.portal_not_found_with_address", address);
 					}
 
-					return 0; // TODO: test if this return value makes sense or what is does actually
+					return 0;
 				}
 
 				if (dimension != null)

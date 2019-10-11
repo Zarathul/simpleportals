@@ -1,10 +1,6 @@
 package net.zarathul.simpleportals;
 
-import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.block.Block;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.arguments.ArgumentSerializer;
-import net.minecraft.command.arguments.ArgumentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
@@ -19,7 +15,6 @@ import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.blocks.BlockPowerGauge;
 import net.zarathul.simpleportals.commands.CommandPortals;
 import net.zarathul.simpleportals.commands.CommandTeleport;
-import net.zarathul.simpleportals.commands.arguments.BlockArgument;
 import net.zarathul.simpleportals.common.PortalWorldSaveData;
 import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
@@ -36,13 +31,13 @@ public final class EventHub
 	@SubscribeEvent
 	public static void onConfigLoaded(ModConfig.Loading event)
 	{
-		Config.updateValidPowerSources();
+		Config.updatePowerSource();
 	}
 
 	@SubscribeEvent
 	public static void onConfigChanged(ModConfig.ConfigReloading event)
 	{
-		Config.updateValidPowerSources();
+		Config.updatePowerSource();
 	}
 
 	@SubscribeEvent

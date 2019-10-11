@@ -11,7 +11,7 @@ import java.util.TreeMap;
 /**
  * Represents the address of a portal.<br>
  * The address consists of 4 blockIds as provided by
- * {@link PortalRegistry#getAddressBlockId(net.minecraft.block.BlockState)}.
+ * {@link PortalRegistry#getAddressBlockId(net.minecraft.block.Block)}.
  * Multiple blocks with the same name/meta are allowed.
  */
 public class Address implements INBTSerializable<CompoundNBT>
