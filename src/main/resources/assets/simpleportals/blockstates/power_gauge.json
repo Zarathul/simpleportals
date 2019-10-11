@@ -1,0 +1,5 @@
+{
+    "variants": {
+        "": { "model": "simpleportals:block/power_gauge" }
+    }
+}

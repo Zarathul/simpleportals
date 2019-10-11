@@ -86,7 +86,7 @@ dependencies
 
 jar
 {
-    //exclude 'mcjty/**'
+    exclude 'mcjty/**'
     
 	manifest
 	{

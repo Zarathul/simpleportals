@@ -1,6 +1,6 @@
 {
     "parent": "item/handheld",
     "textures": {
-        "layer0": "simpleportals:item/portalactivator"
+        "layer0": "simpleportals:item/portal_activator"
     }
 }

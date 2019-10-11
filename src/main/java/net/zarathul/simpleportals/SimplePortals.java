@@ -30,12 +30,12 @@ import java.util.Arrays;
 public class SimplePortals
 {
 	// block and item names
-	public static final String BLOCK_PORTAL_NAME = "blockportal";
-	public static final String BLOCK_PORTAL_FRAME_NAME = "blockportalframe";
-	public static final String BLOCK_POWER_GAUGE_NAME = "blockpowergauge";
-	public static final String ITEM_PORTAL_FRAME_NAME = "itemportalframe";
-	public static final String ITEM_POWER_GAUGE_NAME = "itempowergauge";
-	public static final String ITEM_PORTAL_ACTIVATOR_NAME = "itemportalactivator";
+	public static final String BLOCK_PORTAL_NAME = "portal";
+	public static final String BLOCK_PORTAL_FRAME_NAME = "portal_frame";
+	public static final String BLOCK_POWER_GAUGE_NAME = "power_gauge";
+	public static final String ITEM_PORTAL_FRAME_NAME = "portal_frame";
+	public static final String ITEM_POWER_GAUGE_NAME = "power_gauge";
+	public static final String ITEM_PORTAL_ACTIVATOR_NAME = "portal_activator";
 
 	// blocks
 	public static BlockPortal blockPortal;

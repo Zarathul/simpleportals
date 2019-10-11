@@ -8,7 +8,10 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.world.WorldEvent.Load;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.InterModComms;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.zarathul.simpleportals.blocks.BlockPortal;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
@@ -20,6 +23,7 @@ import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
 import net.zarathul.simpleportals.items.ItemPortalFrame;
 import net.zarathul.simpleportals.items.ItemPowerGauge;
+import net.zarathul.simpleportals.theoneprobe.TheOneProbeCompat;
 
 /**
  * Hosts Forge event handlers on both the server and client side.
@@ -87,5 +91,19 @@ public final class EventHub
 	{
 		CommandPortals.register(event.getCommandDispatcher());
 		CommandTeleport.register(event.getCommandDispatcher());
+	}
+
+	@SubscribeEvent
+	public static void onCommonSetup(FMLCommonSetupEvent event)
+	{
+		if (ModList.get().isLoaded("theoneprobe"))
+		{
+			SimplePortals.log.info("Sending compatibility request to TheOneProbe.");
+			InterModComms.sendTo("theoneprobe", "getTheOneProbe", () -> new TheOneProbeCompat());
+		}
+		else
+		{
+			SimplePortals.log.info("TheOneProbe not found. Skipping compatibility request.");
+		}
 	}
 }

@@ -1,7 +1,0 @@
-{
-    "variants": {
-        "axis=z": { "model": "simpleportals:block/blockportal_z" },
-        "axis=x": { "model": "simpleportals:block/blockportal_x" },
-        "axis=y": { "model": "simpleportals:block/blockportal_y" }
-    }
-}

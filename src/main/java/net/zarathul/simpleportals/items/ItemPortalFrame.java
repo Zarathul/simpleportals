@@ -23,8 +23,8 @@ import java.util.List;
  */
 public class ItemPortalFrame extends BlockItem
 {
-	private static final String toolTipKey = "item." + SimplePortals.ITEM_PORTAL_FRAME_NAME + ".tooltip";
-	private static final String toolTipDetailsKey = "item." + SimplePortals.ITEM_PORTAL_FRAME_NAME + ".tooltip_details";
+	private static final String toolTipKey = "item." + SimplePortals.MOD_ID + "." + SimplePortals.ITEM_PORTAL_FRAME_NAME + ".tooltip";
+	private static final String toolTipDetailsKey = "item." + SimplePortals.MOD_ID + "." + SimplePortals.ITEM_PORTAL_FRAME_NAME + ".tooltip_details";
 
 	public ItemPortalFrame(Block block)
 	{

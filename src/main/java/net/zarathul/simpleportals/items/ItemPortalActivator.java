@@ -37,8 +37,8 @@ import java.util.List;
  */
 public class ItemPortalActivator extends Item
 {
-	private static final String toolTipKey = "item." + SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME + ".tooltip";
-	private static final String toolTipDetailsKey = "item." + SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME + ".tooltip_details";
+	private static final String toolTipKey = "item." + SimplePortals.MOD_ID + "." + SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME + ".tooltip";
+	private static final String toolTipDetailsKey = "item." + SimplePortals.MOD_ID + "." + SimplePortals.ITEM_PORTAL_ACTIVATOR_NAME + ".tooltip_details";
 	
 	public ItemPortalActivator()
 	{
