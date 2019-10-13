@@ -31,22 +31,25 @@ public class BlockPowerGauge extends BlockPortalFrame
 	@Override
 	public int getComparatorInputOverride(BlockState state, World world, BlockPos pos)
 	{
-		List<Portal> portals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType().getId());
-		
-		if (portals != null && portals.size() > 0)
+		if (!world.isRemote)
 		{
-			int signalSum = 0;
-			
-			for (Portal portal : portals)
+			List<Portal> portals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType().getId());
+
+			if (portals != null && portals.size() > 0)
 			{
-				signalSum += getSignalStrength(portal);
+				int signalSum = 0;
+
+				for (Portal portal : portals)
+				{
+					signalSum += getSignalStrength(portal);
+				}
+
+				int combinedSignal = MathHelper.floor(signalSum / (float)portals.size());
+
+				return combinedSignal;
 			}
-			
-			int combinedSignal = MathHelper.floor(signalSum / (float)portals.size());
-			
-			return combinedSignal;
 		}
-		
+
 		return 0;
 	}
 	

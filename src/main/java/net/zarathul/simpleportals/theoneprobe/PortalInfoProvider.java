@@ -3,8 +3,6 @@ package net.zarathul.simpleportals.theoneprobe;
 import mcjty.theoneprobe.api.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.command.impl.TagCommand;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -15,9 +13,9 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.zarathul.simpleportals.SimplePortals;
+import net.zarathul.simpleportals.common.Utils;
 import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.registration.Portal;
 import net.zarathul.simpleportals.registration.PortalRegistry;
@@ -34,6 +32,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 	private static final String PORTAL_INFO = "interop.top.";
 	private static final String POWER_CAPACITY = PORTAL_INFO + "power_capacity";
 	private static final String POWER_SOURCES = PORTAL_INFO + "power_sources";
+	private static final String INVALID_POWER_SOURCE = PORTAL_INFO + "invalid_power_source";
 	private static final String ADDRESS = PORTAL_INFO + "address";
 	private static final String REDSTONE_POWER = PORTAL_INFO + "redstone_power";
 
@@ -48,8 +47,9 @@ public class PortalInfoProvider implements IProbeInfoProvider
 	@Override
 	public void addProbeInfo(ProbeMode mode, IProbeInfo probeInfo, PlayerEntity player, World world, BlockState blockState, IProbeHitData data)
 	{
-		List<Portal> portals = PortalRegistry.getPortalsAt(data.getPos(), world.getDimension().getType().getId());
+		// Note: Text translations will only work in singleplayer. On a dedicated server everything will be english only unfortunately.
 
+		List<Portal> portals = PortalRegistry.getPortalsAt(data.getPos(), world.getDimension().getType().getId());
 		if (portals == null) return;
 
 		for (Portal portal : portals)
@@ -60,27 +60,36 @@ public class PortalInfoProvider implements IProbeInfoProvider
 			{
 				int power = PortalRegistry.getPower(portal);
 				int percentage = (Config.powerCapacity.get() > 0)
-						? MathHelper.clamp((int) ((long) power * 100 / Config.powerCapacity.get()), 0, 100)
-						: 100;
+								 ? MathHelper.clamp((int) ((long) power * 100 / Config.powerCapacity.get()), 0, 100)
+								 : 100;
 
-				probeInfo.text(I18n.format(POWER_CAPACITY, power, Config.powerCapacity.get(), percentage));
+				probeInfo.text(Utils.translate(POWER_CAPACITY, power, Config.powerCapacity.get(), percentage));
 				probeInfo.progress(power, Config.powerCapacity.get(), probeInfo.defaultProgressStyle().showText(false));
 
 				if (mode == ProbeMode.EXTENDED)
 				{
 					// Add a list of items that are considered valid power sources for the portal (4 max)
 
-					probeInfo.text(I18n.format(POWER_SOURCES));
+					probeInfo.text(Utils.translate(POWER_SOURCES));
 					IProbeInfo powerSourceInfo =  probeInfo.horizontal();
-					Collection<Item> itemsWithPowerTag = ItemTags.getCollection().get(Config.powerSource).getAllElements();
-					int powerItemCount = 0;
+					Tag<Item> powerTag = ItemTags.getCollection().get(Config.powerSource);
 
-					for (Item powerSource : itemsWithPowerTag)
+					if (powerTag != null)
 					{
-						powerSourceInfo.item(new ItemStack(powerSource));
-						powerItemCount++;
+						Collection<Item> itemsWithPowerTag = powerTag.getAllElements();
+						int powerItemCount = 0;
 
-						if (powerItemCount == 4) break;
+						for (Item powerSource : itemsWithPowerTag)
+						{
+							powerSourceInfo.item(new ItemStack(powerSource));
+							powerItemCount++;
+
+							if (powerItemCount == 4) break;
+						}
+					}
+					else
+					{
+						powerSourceInfo.text(Utils.translate(INVALID_POWER_SOURCE, Config.powerSource));
 					}
 				}
 			}
@@ -89,7 +98,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 			{
 				// Add the address as block icons
 
-				probeInfo.text(I18n.format(ADDRESS));
+				probeInfo.text(Utils.translate(ADDRESS));
 				IProbeInfo addressInfo = probeInfo.horizontal();
 
 				String address = portal.getAddress().toString();
@@ -114,7 +123,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 						{
 							// Note: There used to be code here to deal with sub-items based on meta data.
 							// Since wool, logs and all the other blocks are all separate blocks now we don't
-							// care about sub-items anymore (for now).
+							// care about sub-items anymore I guess ?.
 							addressItem = new ItemStack(blockItem, 1);
 						}
 					}
@@ -142,7 +151,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 
 					probeInfo.horizontal(probeInfo.defaultLayoutStyle().alignment(ElementAlignment.ALIGN_CENTER))
 							.item(new ItemStack(Items.REDSTONE))
-							.text(I18n.format(REDSTONE_POWER, gaugeLevel));
+							.text(Utils.translate(REDSTONE_POWER, gaugeLevel));
 
 				}
 			}
@@ -150,7 +159,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 			{
 				// Add the address in plain text in debug mode
 
-				probeInfo.text(I18n.format(ADDRESS));
+				probeInfo.text(Utils.translate(ADDRESS));
 
 				String address = portal.getAddress().toString();
 				String[] addressComponents = address.split(",");

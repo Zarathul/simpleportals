@@ -98,7 +98,10 @@ public class BlockPortal extends BreakableBlock
 			{
 				return;
 			}
-			
+
+			// Put the entity on "cooldown" in order to prevent it from instantly porting again
+			entity.timeUntilPortal = COOLDOWN;
+
 			List<Portal> portals = PortalRegistry.getPortalsAt(pos, entity.dimension.getId());
 			
 			if (portals == null || portals.size() < 1) return;
@@ -187,9 +190,6 @@ public class BlockPortal extends BreakableBlock
 					PortalRegistry.updatePowerGauges(world, start);
 				}
 			}
-			
-			// Put the entity on "cooldown" in order to prevent it from instantly porting again
-			entity.timeUntilPortal = COOLDOWN;
 		}
 	}
 

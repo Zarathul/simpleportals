@@ -48,7 +48,7 @@ public class SimplePortals
 	public static BlockItem itemPowerGauge;
 
 	// creative tab
-	public static ItemGroup creativeTab = MakeCreativeTab();
+	public static ItemGroup creativeTab;
 	// world save data handler
 	public static PortalWorldSaveData portalSaveData;
 	
@@ -60,13 +60,17 @@ public class SimplePortals
 
 	public SimplePortals()
 	{
+		MakeCreativeTab();
+
 		// Register custom argument types for command parser
 		ArgumentTypes.register("sportals_block", BlockArgument.class, new ArgumentSerializer<>(BlockArgument::block));
 
 		// Setup configs
 		ModLoadingContext Mlc = ModLoadingContext.get();
-		Mlc.registerConfig(ModConfig.Type.COMMON, Config.ConfigSpec);
-		Config.load(Config.ConfigSpec, FMLPaths.CONFIGDIR.get().resolve(MOD_ID + ".toml"));
+		Mlc.registerConfig(ModConfig.Type.COMMON, Config.CommonConfigSpec, MOD_ID + "-common.toml");
+		Mlc.registerConfig(ModConfig.Type.CLIENT, Config.ClientConfigSpec, MOD_ID + "-client.toml");
+		Config.load(Config.CommonConfigSpec, FMLPaths.CONFIGDIR.get().resolve(MOD_ID + "-common.toml"));
+		Config.load(Config.ClientConfigSpec, FMLPaths.CONFIGDIR.get().resolve(MOD_ID + "-client.toml"));
 
 		// Setup event listeners
 		IEventBus SetupEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -74,15 +78,16 @@ public class SimplePortals
 		MinecraftForge.EVENT_BUS.register(EventHub.class);
 	}
 
-	private static ItemGroup MakeCreativeTab()
+	static void MakeCreativeTab()
 	{
 		// Checks if a "Simple Mods" tab already exists, otherwise makes one.
-		return Arrays.stream(ItemGroup.GROUPS)
-			.filter(tab -> tab.getTabLabel().equals(SimplePortals.MOD_ID))
+		creativeTab = Arrays.stream(ItemGroup.GROUPS)
+			.filter(tab -> tab.getPath().equals(SimplePortals.MOD_ID))
 			.findFirst()
 			.orElseGet(() ->
 				new ItemGroup(SimplePortals.MOD_ID)
 				{
+					@OnlyIn(Dist.CLIENT)
 					private ItemStack iconStack;
 
 					@Override

@@ -605,7 +605,7 @@ public final class PortalRegistry
 	 */
 	private static boolean isValidAddressBlock(BlockState state)
 	{
-		if (state == null || state.getBlock().hasTileEntity(state))	return false;
+		if (state == null || state.getBlock().hasTileEntity(state) || state.isAir())	return false;
 		
 		return true;
 	}

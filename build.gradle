@@ -3,7 +3,8 @@ buildscript
     repositories
     {
         maven { url = "http://files.minecraftforge.net/maven" }
-        jcenter()
+
+		jcenter()
         mavenCentral()
     }
     dependencies
@@ -16,7 +17,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 //apply plugin: 'maven-publish'
 
-String ForgeVersion = '1.14.4-28.1.37'
+String ForgeVersion = '1.14.4-28.1.44'
 
 version = "1.14.4-1.6.0.0"
 group= "net.zarathul.simpleportals" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
@@ -34,14 +35,7 @@ minecraft
     mappings channel: 'snapshot', version: '20190719-1.14.3'
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 
-    // Could not find method replaceIn() for arguments [SimplePortals.java] on object of type net.minecraftforge.gradle.userdev.UserDevExtension.
-    //replaceIn "SimplePortals.java"
-    //replace "@VERSION@", project.version
-	// Vanilla field names used to set private fields with reflection.
-	// Field names in DEV environment need to be MCP, after compile SRG.
-	//replaceIn "Utils.java"
-	//replace "(\"invulnerableDimensionChange\")", "(\"field_184851_cj\")"
-	//replace "(\"bossInfo\")", "(\"field_186109_c\")"
+	accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     
 	runs
 	{
@@ -87,7 +81,7 @@ dependencies
 jar
 {
     exclude 'mcjty/**'
-    
+
 	manifest
 	{
 		attributes([

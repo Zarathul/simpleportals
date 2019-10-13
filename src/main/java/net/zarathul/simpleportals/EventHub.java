@@ -11,7 +11,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.zarathul.simpleportals.blocks.BlockPortal;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
@@ -35,13 +35,19 @@ public final class EventHub
 	@SubscribeEvent
 	public static void onConfigLoaded(ModConfig.Loading event)
 	{
-		Config.updatePowerSource();
+		if (event.getConfig().getType() == ModConfig.Type.COMMON)
+		{
+			Config.updatePowerSource();
+		}
 	}
 
 	@SubscribeEvent
 	public static void onConfigChanged(ModConfig.ConfigReloading event)
 	{
-		Config.updatePowerSource();
+		if (event.getConfig().getType() == ModConfig.Type.COMMON)
+		{
+			Config.updatePowerSource();
+		}
 	}
 
 	@SubscribeEvent
@@ -94,7 +100,7 @@ public final class EventHub
 	}
 
 	@SubscribeEvent
-	public static void onCommonSetup(FMLCommonSetupEvent event)
+	public static void onInteropSetup(InterModEnqueueEvent event)
 	{
 		if (ModList.get().isLoaded("theoneprobe"))
 		{

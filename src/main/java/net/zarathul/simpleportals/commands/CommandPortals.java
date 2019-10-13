@@ -11,19 +11,20 @@ import net.minecraft.command.arguments.BlockPosArgument;
 import net.minecraft.command.arguments.DimensionArgument;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.Tag;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.dimension.DimensionType;
 import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.commands.arguments.BlockArgument;
+import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.registration.Address;
 import net.zarathul.simpleportals.registration.Portal;
 import net.zarathul.simpleportals.registration.PortalRegistry;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CommandPortals
@@ -45,7 +46,8 @@ public class CommandPortals
 	{
 		Add,
 		Remove,
-		Get
+		Get,
+		Items
 	}
 
 	public static void register(CommandDispatcher<CommandSource> dispatcher)
@@ -207,6 +209,35 @@ public class CommandPortals
 										)
 								)
 						)
+						.then(
+							Commands.literal("items")
+								.executes(context -> {
+									Tag<Item> powerTag = ItemTags.getCollection().get(Config.powerSource);
+
+									if (powerTag == null)
+									{
+										SendTranslatedMessage(context.getSource(), "commands.errors.no_power_items", Config.powerSource);
+										return 1;
+									}
+
+									Collection<Item> itemsWithPowerTag = powerTag.getAllElements();
+
+									if (itemsWithPowerTag.size() == 0)
+									{
+										SendTranslatedMessage(context.getSource(), "commands.errors.no_power_items", Config.powerSource);
+										return 1;
+									}
+
+									SendTranslatedMessage(context.getSource(), "commands.sportals.power.items.success", itemsWithPowerTag.size());
+
+									for (Item powerSource : itemsWithPowerTag)
+									{
+										SendTranslatedMessage(context.getSource(), powerSource.getTranslationKey());
+									}
+
+									return 1;
+								})
+						)
 				)
 				.then(
 					Commands.literal("cooldown")
@@ -347,7 +378,7 @@ public class CommandPortals
 				}
 
 				portals = PortalRegistry.getPortalsAt(pos, dimension.getId());
-				if (portals == null || portals.size() == 0) throw new CommandException(new TranslationTextComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos, dimension.getRegistryName().toString()));
+				if (portals == null || portals.size() == 0)	throw new CommandException(new TranslationTextComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName().toString()));
 
 				break;
 		}
@@ -361,7 +392,7 @@ public class CommandPortals
 			if (dimType == null) throw new CommandException(new TranslationTextComponent("commands.errors.missing_dimension", portal.getDimension()));
 
 			PortalRegistry.deactivatePortal(source.getServer().getWorld(dimType), portalPos);
-			SendTranslatedMessage(source, "commands.sportals.deactivate.success", portalPos, dimType.getRegistryName().toString());
+			SendTranslatedMessage(source, "commands.sportals.deactivate.success", portalPos.getX(), portalPos.getY(), portalPos.getZ(), dimType.getRegistryName().toString());
 		}
 
 		return 1;
@@ -388,11 +419,11 @@ public class CommandPortals
 
 		if (portals == null || portals.size() == 0)
 		{
-			throw new CommandException(new TranslationTextComponent("commands.errors.portal_not_found_with_address_in_dimension", pos, dimension.getRegistryName().toString()));
+			throw new CommandException(new TranslationTextComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName().toString()));
 		}
 		else if (portals.size() > 1)
 		{
-			throw new CommandException(new TranslationTextComponent("commands.errors.multiple_portals_found_at_pos_in_dimension", pos, dimension.getRegistryName().toString()));
+			throw new CommandException(new TranslationTextComponent("commands.errors.multiple_portals_found_at_pos_in_dimension", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName().toString()));
 		}
 
 		Portal portal = portals.get(0);
@@ -402,20 +433,20 @@ public class CommandPortals
 			case Add:
 				// sportals power add <amount> <x> <y> <z> [dimension]
 				amount = amount - PortalRegistry.addPower(portal, amount);
-				SendTranslatedMessage(source, "commands.sportals.power.add.success", pos, dimension.getRegistryName().toString(), amount);
+				SendTranslatedMessage(source, "commands.sportals.power.add.success", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName().toString(), amount);
 				break;
 
 			case Remove:
 				// sportals power remove <amount> <x> <y> <z> [dimension]
 				amount = Math.min(amount, PortalRegistry.getPower(portal));
 				amount = (PortalRegistry.removePower(portal, amount)) ? amount : 0;
-				SendTranslatedMessage(source, "commands.sportals.power.remove.success", pos, dimension.getRegistryName().toString(), amount);
+				SendTranslatedMessage(source, "commands.sportals.power.remove.success", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName().toString(), amount);
 				break;
 
 			case Get:
 				// sportals power get <x> <y> <z> [dimension]
 				amount = PortalRegistry.getPower(portal);
-				SendTranslatedMessage(source, "commands.sportals.power.get.success", pos, dimension.getRegistryName().toString(), amount);
+				SendTranslatedMessage(source, "commands.sportals.power.get.success", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName().toString(), amount);
 				break;
 		}
 

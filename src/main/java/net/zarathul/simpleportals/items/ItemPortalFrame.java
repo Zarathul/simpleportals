@@ -47,7 +47,7 @@ public class ItemPortalFrame extends BlockItem
 
 		if (leftShiftState == GLFW.GLFW_PRESS || rightShiftState == GLFW.GLFW_PRESS)
 		{
-			tooltip.addAll(Utils.multiLineTranslateToLocal(toolTipDetailsKey, 1));
+			tooltip.addAll(Utils.multiLineTranslate(toolTipDetailsKey, 1));
 		}
 		else
 		{

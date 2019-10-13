@@ -15,11 +15,13 @@ public final class Config
 {
 	// Configs
 
-	public static ForgeConfigSpec ConfigSpec;
+	public static ForgeConfigSpec CommonConfigSpec;
+	public static ForgeConfigSpec ClientConfigSpec;
 
 	// Config builders
 
-	private static final ForgeConfigSpec.Builder ConfigBuilder = new ForgeConfigSpec.Builder();
+	private static final ForgeConfigSpec.Builder CommonConfigBuilder = new ForgeConfigSpec.Builder();
+	private static final ForgeConfigSpec.Builder ClientConfigBuilder = new ForgeConfigSpec.Builder();
 
 	// Default values
 	
@@ -43,43 +45,45 @@ public final class Config
 
 	static
 	{
-		// Server
+		// Common
 
-		ConfigBuilder.push("server");
+		CommonConfigBuilder.push("common");
 
-		maxSize = ConfigBuilder.translation("config.max_size")
+		maxSize = CommonConfigBuilder.translation("config.max_size")
 				.comment("The maximum size including the frame of a portal.")
 				.defineInRange("maxSize", defaultMaxSize, 3, 128);
 
-		powerCost = ConfigBuilder.translation("config.power_cost")
+		powerCost = CommonConfigBuilder.translation("config.power_cost")
 				.comment("The power cost per port. Set to 0 for no cost.")
 				.defineInRange("powerCost", defaultPowerCost, -1, Integer.MAX_VALUE);
 
-		powerCapacity = ConfigBuilder.translation("config.power_capacity")
+		powerCapacity = CommonConfigBuilder.translation("config.power_capacity")
 				.comment("The amount of power a portal can store.")
 				.defineInRange("powerCapacity", defaultPowerCapacity, 0, Integer.MAX_VALUE);
 
-		powerSourceString = ConfigBuilder.translation("config.power_source")
+		powerSourceString = CommonConfigBuilder.translation("config.power_source")
 				.comment("The item that gets converted to power when thrown into a portal (1 power per item). This MUST be a tag.")
 				.define("powerSource", defaultPowerSource);
 
-		ConfigBuilder.pop();
+		CommonConfigBuilder.pop();
+
+		CommonConfigSpec = CommonConfigBuilder.build();
 
 		// Client
 
-		ConfigBuilder.push("client");
+		ClientConfigBuilder.push("client");
 
-		particlesEnabled = ConfigBuilder.translation("config.particles_enabled")
+		particlesEnabled = ClientConfigBuilder.translation("config.particles_enabled")
 				.comment("Enables the portal particle effect.")
 				.define("particlesEnabled", defaultParticlesEnabled);
 
-		ambientSoundEnabled = ConfigBuilder.translation("config.ambient_sound_enabled")
+		ambientSoundEnabled = ClientConfigBuilder.translation("config.ambient_sound_enabled")
 				.comment("Enables the portal ambient sound.")
 				.define("ambientSoundEnabled", defaultAmbientSoundEnabled);
 
-		ConfigBuilder.pop();
+		ClientConfigBuilder.pop();
 
-		ConfigSpec = ConfigBuilder.build();
+		ClientConfigSpec = ClientConfigBuilder.build();
 	}
 
 	/**
