@@ -9,6 +9,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.translation.LanguageMap;
 import net.minecraft.world.dimension.DimensionType;
@@ -145,6 +146,7 @@ public final class Utils
 
 		ServerPlayerEntity player = (entity instanceof ServerPlayerEntity) ? (ServerPlayerEntity) entity : null;
 		boolean interdimensional = (entity.dimension.getId() != dimensionId);
+		entity.setMotion(Vec3d.ZERO);
 
 		if (player != null)
 		{
@@ -257,29 +259,5 @@ public final class Utils
 		}
 
 		return yaw;
-	}
-
-	/**
-	 * Determines if a string represents an integer (may be negative).
-	 *
-	 * @param numberString
-	 * The string to check.
-	 * @return
-	 * <code>true</code> if numberString can be converted to an integer, otherwise <code>false</code>.
-	 */
-	public static boolean isInteger(String numberString)
-	{
-		boolean success = true;
-
-		try
-		{
-			int value = Integer.parseInt(numberString);
-		}
-		catch (NumberFormatException ex)
-		{
-			success = false;
-		}
-
-		return success;
 	}
 }

@@ -48,7 +48,7 @@ public class SimplePortals
 	public static BlockItem itemPowerGauge;
 
 	// creative tab
-	public static ItemGroup creativeTab;
+	public static ItemGroup creativeTab = MakeCreativeTab();
 	// world save data handler
 	public static PortalWorldSaveData portalSaveData;
 	
@@ -60,8 +60,6 @@ public class SimplePortals
 
 	public SimplePortals()
 	{
-		MakeCreativeTab();
-
 		// Register custom argument types for command parser
 		ArgumentTypes.register("sportals_block", BlockArgument.class, new ArgumentSerializer<>(BlockArgument::block));
 
@@ -78,10 +76,10 @@ public class SimplePortals
 		MinecraftForge.EVENT_BUS.register(EventHub.class);
 	}
 
-	static void MakeCreativeTab()
+	static ItemGroup MakeCreativeTab()
 	{
 		// Checks if a "Simple Mods" tab already exists, otherwise makes one.
-		creativeTab = Arrays.stream(ItemGroup.GROUPS)
+		return Arrays.stream(ItemGroup.GROUPS)
 			.filter(tab -> tab.getPath().equals(SimplePortals.MOD_ID))
 			.findFirst()
 			.orElseGet(() ->

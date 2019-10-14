@@ -2,6 +2,7 @@ package net.zarathul.simpleportals.blocks;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.material.MaterialColor;
@@ -89,10 +90,12 @@ public class BlockPortalFrame extends Block
 	@Override
 	public void neighborChanged(BlockState state, World world, BlockPos pos, Block neighborBlock, BlockPos sourcePos, boolean isMoving)
 	{
-		if (!world.isRemote)
+		if (!world.isRemote	&&
+			neighborBlock != Blocks.AIR	&&
+			neighborBlock != SimplePortals.blockPortalFrame	&&
+			neighborBlock != SimplePortals.blockPowerGauge &&
+			neighborBlock != SimplePortals.blockPortal)
 		{
-			if (neighborBlock instanceof BlockPortalFrame || neighborBlock == SimplePortals.blockPortal) return;
-
 			// Deactivate all portals that share this frame block if an address block was removed or changed.
 
 			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType().getId());

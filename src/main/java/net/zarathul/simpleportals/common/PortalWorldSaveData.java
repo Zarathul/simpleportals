@@ -37,8 +37,7 @@ public class PortalWorldSaveData extends WorldSavedData
 		if (world == null) return null;
 		
 		DimensionSavedDataManager storage = world.getSavedData();
-		PortalWorldSaveData instance = storage.getOrCreate(PortalWorldSaveData::new, DATA_NAME);
 
-		return instance;
+		return storage.getOrCreate(PortalWorldSaveData::new, DATA_NAME);
 	}
 }

@@ -30,7 +30,26 @@ import net.zarathul.simpleportals.theoneprobe.TheOneProbeCompat;
  */
 public final class EventHub
 {
-	// Common
+	@SubscribeEvent
+	public static void onServerStarting(FMLServerStartingEvent event)
+	{
+		CommandPortals.register(event.getCommandDispatcher());
+		CommandTeleport.register(event.getCommandDispatcher());
+	}
+
+	@SubscribeEvent
+	public static void onInteropSetup(InterModEnqueueEvent event)
+	{
+		if (ModList.get().isLoaded("theoneprobe"))
+		{
+			SimplePortals.log.info("Sending compatibility request to TheOneProbe.");
+			InterModComms.sendTo("theoneprobe", "getTheOneProbe", () -> new TheOneProbeCompat());
+		}
+		else
+		{
+			SimplePortals.log.info("TheOneProbe not found. Skipping compatibility request.");
+		}
+	}
 
 	@SubscribeEvent
 	public static void onConfigLoaded(ModConfig.Loading event)
@@ -88,28 +107,5 @@ public final class EventHub
 			SimplePortals.itemPowerGauge,
 			SimplePortals.itemPortalActivator
 		);
-	}
-
-	// Server
-
-	@SubscribeEvent
-	public static void onServerStarting(FMLServerStartingEvent event)
-	{
-		CommandPortals.register(event.getCommandDispatcher());
-		CommandTeleport.register(event.getCommandDispatcher());
-	}
-
-	@SubscribeEvent
-	public static void onInteropSetup(InterModEnqueueEvent event)
-	{
-		if (ModList.get().isLoaded("theoneprobe"))
-		{
-			SimplePortals.log.info("Sending compatibility request to TheOneProbe.");
-			InterModComms.sendTo("theoneprobe", "getTheOneProbe", () -> new TheOneProbeCompat());
-		}
-		else
-		{
-			SimplePortals.log.info("TheOneProbe not found. Skipping compatibility request.");
-		}
 	}
 }

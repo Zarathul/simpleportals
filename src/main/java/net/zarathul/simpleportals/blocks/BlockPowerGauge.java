@@ -44,9 +44,7 @@ public class BlockPowerGauge extends BlockPortalFrame
 					signalSum += getSignalStrength(portal);
 				}
 
-				int combinedSignal = MathHelper.floor(signalSum / (float)portals.size());
-
-				return combinedSignal;
+				return MathHelper.floor(signalSum / (float)portals.size());		// combined signal strength
 			}
 		}
 

@@ -186,7 +186,7 @@ public final class PortalRegistry
 		
 		for (BlockPos framePos : portal.getFramePositions(false))
 		{
-			if (world.getBlockState(framePos).getBlock() instanceof BlockPowerGauge)
+			if (world.getBlockState(framePos).getBlock() == SimplePortals.blockPowerGauge)
 			{
 				powerGauges.add(framePos);
 			}
@@ -295,9 +295,8 @@ public final class PortalRegistry
 	public static List<Portal> getPortalsInDimension(int dimension)
 	{
 		Set<Portal> uniquePortals = new HashSet<>(portals.values());
-		List<Portal> foundPortals = uniquePortals.stream().filter(portal -> portal.getDimension() == dimension).collect(Collectors.toList());
 
-		return foundPortals;
+		return uniquePortals.stream().filter(portal -> portal.getDimension() == dimension).collect(Collectors.toList());
 	}
 
 	/**
@@ -585,13 +584,15 @@ public final class PortalRegistry
 	 * @param pos
 	 * The {@link BlockPos} to check.
 	 * @return
-	 * <code>true</code> if the block is a portal frame, otherwise <code>false</code>.
+	 * <code>true</code> if the block is a portal frame (power gauges also count as part of the frame), otherwise <code>false</code>.
 	 */
 	private static boolean isPortalFrame(World world, BlockPos pos)
 	{
 		if (world == null || pos == null) return false;
 		
-		return world.getBlockState(pos).getBlock() instanceof BlockPortalFrame;
+		Block block = world.getBlockState(pos).getBlock();
+
+		return (block == SimplePortals.blockPortalFrame || block == SimplePortals.blockPowerGauge);
 	}
 	
 	/**
@@ -605,9 +606,7 @@ public final class PortalRegistry
 	 */
 	private static boolean isValidAddressBlock(BlockState state)
 	{
-		if (state == null || state.getBlock().hasTileEntity(state) || state.isAir())	return false;
-		
-		return true;
+		return (state != null && !state.getBlock().hasTileEntity(state) && !state.isAir());
 	}
 	
 	/**
