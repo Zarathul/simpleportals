@@ -20,8 +20,10 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
@@ -29,6 +31,7 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.zarathul.simpleportals.SimplePortals;
+import net.zarathul.simpleportals.common.TeleportTask;
 import net.zarathul.simpleportals.common.Utils;
 import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.registration.Portal;
@@ -52,9 +55,7 @@ public class BlockPortal extends BreakableBlock
 		"axis",
 		Axis.class,
 		Axis.X, Axis.Y, Axis.Z);
-	
-	private static final int COOLDOWN = 60;
-	
+
 	public BlockPortal()
 	{
 		super(Block.Properties.create(Material.PORTAL)
@@ -91,18 +92,17 @@ public class BlockPortal extends BreakableBlock
 	@Override
 	public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity)
 	{
-		if (!world.isRemote && !entity.isOnePlayerRiding() && !entity.isBeingRidden() && entity.isNonBoss() && entity.isAlive())
+		if (!world.isRemote && entity.isAlive() && !entity.isPassenger() && !entity.isBeingRidden() && entity.isNonBoss() &&
+			VoxelShapes.compare(VoxelShapes.create(entity.getBoundingBox().offset((double)(-pos.getX()), (double)(-pos.getY()), (double)(-pos.getZ()))), state.getShape(world, pos), IBooleanFunction.AND))
 		{
+			// For players a configurable cooldown is used instead of the value provided by getPortalCooldown(), because
+			// that value is very small. A small value is fine for vanilla teleportation mechanics but can cause issues
+			// for this mod.
+			int cooldown = (entity instanceof ServerPlayerEntity) ? Config.playerTeleportationCooldown.get() : entity.getPortalCooldown();
 			// Check if entity is on teleportation cooldown
-			if (entity.timeUntilPortal > 0)
-			{
-				return;
-			}
+			if (entity.timeUntilPortal > 0) return;
 
-			// Put the entity on "cooldown" in order to prevent it from instantly porting again
-			entity.timeUntilPortal = COOLDOWN;
-
-			List<Portal> portals = PortalRegistry.getPortalsAt(pos, entity.dimension.getId());
+			List<Portal> portals = PortalRegistry.getPortalsAt(pos, entity.dimension);
 			
 			if (portals == null || portals.size() < 1) return;
 			
@@ -117,7 +117,7 @@ public class BlockPortal extends BreakableBlock
 				if ((PortalRegistry.getPower(start) < Config.powerCapacity.get()) && item.getItem().getTags().contains(Config.powerSource))
 				{
 					int surplus = PortalRegistry.addPower(start, item.getCount());
-					
+
 					PortalRegistry.updatePowerGauges(world, start);
 					
 					if (surplus > 0)
@@ -128,7 +128,7 @@ public class BlockPortal extends BreakableBlock
 					{
 						entity.remove();
 					}
-					
+
 					return;
 				}
 			}
@@ -152,44 +152,75 @@ public class BlockPortal extends BreakableBlock
 			
 			if (destinations.size() > 0 && (bypassPowerCost || Config.powerCost.get() == 0 || PortalRegistry.removePower(start, Config.powerCost.get())))
 			{
-				ServerWorld server;
-				BlockPos portTarget = null;
-				Portal destination = null;
 				MinecraftServer mcServer = entity.getServer();
+				if (mcServer == null) return;
+
 				int entityHeight = MathHelper.ceil(entity.getHeight());
-				
+				ServerWorld serverWorld;
+				DimensionType dimension;
+				BlockPos destinationPos = null;
+				Portal destinationPortal = null;
+
 				// Pick the first not blocked destination portal
 				for (Portal portal : destinations)
 				{
-					server = mcServer.getWorld(DimensionType.getById(portal.getDimension()));
-					portTarget = portal.getPortDestination(server, entityHeight);
+					dimension = portal.getDimension();
+					if (dimension == null) continue;
+
+					serverWorld = mcServer.getWorld(dimension);
+					destinationPos = portal.getPortDestination(serverWorld, entityHeight);
 					
-					if (portTarget != null)
+					if (destinationPos != null)
 					{
-						destination = portal;
+						destinationPortal = portal;
 						break;
 					}
 				}
 				
-				if (portTarget != null)
+				if (destinationPos != null)
 				{
 					// Get a facing pointing away from the destination portal. After porting, the portal 
 					// will always be behind the entity. When porting to a horizontal portal the initial
 					// facing is not changed.
-					Direction entityFacing = (destination.getAxis() == Axis.Y)
+					Direction entityFacing = (destinationPortal.getAxis() == Axis.Y)
 						? entity.getHorizontalFacing()
-						: (destination.getAxis() == Axis.Z)
-						? (portTarget.getZ() > destination.getCorner1().getPos().getZ())
+						: (destinationPortal.getAxis() == Axis.Z)
+						? (destinationPos.getZ() > destinationPortal.getCorner1().getPos().getZ())
 						? Direction.SOUTH
 						: Direction.NORTH
-						: (portTarget.getX() > destination.getCorner1().getPos().getX())
+						: (destinationPos.getX() > destinationPortal.getCorner1().getPos().getX())
 						? Direction.EAST
 						: Direction.WEST;
 					
-					Utils.teleportTo(entity, destination.getDimension(), portTarget, entityFacing);
-					PortalRegistry.updatePowerGauges(world, start);
+					if (entity instanceof ServerPlayerEntity)
+					{
+						try
+						{
+							SimplePortals.TELEPORT_QUEUE.put(new TeleportTask(
+									(ServerPlayerEntity)entity,
+									destinationPortal.getDimension(),
+									destinationPos,
+									entityFacing));
+						}
+						catch (InterruptedException ex)
+						{
+							SimplePortals.log.error("Failed to enqueue teleportation task for player '{}' to dimension ' {}'.",
+													((ServerPlayerEntity)entity).getName(),
+													(destinationPortal.getDimension().getRegistryName() != null)
+													? destinationPortal.getDimension().getRegistryName()
+													: "UNKNOWN");
+						}
+					}
+					else
+					{
+						Utils.teleportTo(entity, destinationPortal.getDimension(), destinationPos, entityFacing);
+						PortalRegistry.updatePowerGauges(world, start);
+					}
 				}
 			}
+
+			// Put the entity on "cooldown" in order to prevent it from instantly porting again.
+			entity.timeUntilPortal = cooldown;
 		}
 	}
 
@@ -200,7 +231,7 @@ public class BlockPortal extends BreakableBlock
 		{
 			// Deactivate damaged portals.
 			
-			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType().getId());
+			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType());
 			
 			if (affectedPortals == null || affectedPortals.size() < 1) return;
 			

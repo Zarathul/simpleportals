@@ -4,8 +4,10 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.Direction.AxisDirection;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.zarathul.simpleportals.blocks.BlockPortal;
 import net.zarathul.simpleportals.blocks.BlockPortalFrame;
@@ -21,19 +23,19 @@ import java.util.List;
  */
 public class Portal implements INBTSerializable<CompoundNBT>
 {
-	private int dimension;
+	private DimensionType dimension;
 	private Address address;
 	private Axis axis;
 	private Corner corner1;
 	private Corner corner2;
 	private Corner corner3;
 	private Corner corner4;
-	
+
 	public Portal()
 	{
 	}
 	
-	public Portal(int dimension, Address address, Axis axis,
+	public Portal(DimensionType dimension, Address address, Axis axis,
 				  Corner corner1, Corner corner2,
 			      Corner corner3, Corner corner4)
 	{
@@ -50,9 +52,9 @@ public class Portal implements INBTSerializable<CompoundNBT>
 	 * Gets the dimension the portal is located in.
 	 * 
 	 * @return
-	 * An <code>int</code> representing the dimension id.
+	 * A <code>DimensionType</code> representing the dimension.
 	 */
-	public int getDimension()
+	public DimensionType getDimension()
 	{
 		return dimension;
 	}
@@ -429,7 +431,7 @@ public class Portal implements INBTSerializable<CompoundNBT>
 	public CompoundNBT serializeNBT()
 	{
 		CompoundNBT tag = new CompoundNBT();
-		tag.putInt("dimension", dimension);
+		tag.putString("dimension", (dimension.getRegistryName() != null) ? dimension.getRegistryName().toString() : "");
 		tag.put("address", address.serializeNBT());
 		tag.putString("axis", axis.name());
 		tag.put("corner1", corner1.serializeNBT());
@@ -444,9 +446,19 @@ public class Portal implements INBTSerializable<CompoundNBT>
 	public void deserializeNBT(CompoundNBT nbt)
 	{
 		if (nbt == null) return;
-		
-		dimension = nbt.getInt("dimension");
-		
+
+		// Handle legacy dimension id tags. This allows old worlds to load properly. :LegacyDimensionId
+		if (nbt.contains("dimension", 3))	// Type 3 means integer.
+		{
+			int dimensionId = nbt.getInt("dimension");
+			dimension = DimensionType.getById(dimensionId);
+		}
+		else
+		{
+			ResourceLocation dimensionRegistryKey = new ResourceLocation(nbt.getString("dimension"));
+			dimension = DimensionType.byName(dimensionRegistryKey);
+		}
+
 		address = new Address();
 		address.deserializeNBT(nbt.getCompound("address"));
 		
@@ -470,7 +482,7 @@ public class Portal implements INBTSerializable<CompoundNBT>
 	{
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + dimension;
+		result = prime * result + dimension.hashCode();
 		result = prime * result + ((address == null) ? 0 : address.hashCode());
 		result = prime * result + ((axis == null) ? 0 : axis.hashCode());
 		result = prime * result + ((corner1 == null) ? 0 : corner1.hashCode());

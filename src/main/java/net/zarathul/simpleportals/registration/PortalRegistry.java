@@ -8,10 +8,9 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
 import net.zarathul.simpleportals.SimplePortals;
 import net.zarathul.simpleportals.blocks.BlockPortal;
-import net.zarathul.simpleportals.blocks.BlockPortalFrame;
-import net.zarathul.simpleportals.blocks.BlockPowerGauge;
 import net.zarathul.simpleportals.common.Utils;
 import net.zarathul.simpleportals.configuration.Config;
 
@@ -160,9 +159,7 @@ public final class PortalRegistry
 			getAddressBlockId(addBlock3.getBlock()),
 			getAddressBlockId(addBlock4.getBlock()));
 		
-		int dimension = world.getDimension().getType().getId();
-		
-		Portal portal = new Portal(dimension, address, portalAxis, corner1, corner2, corner3, corner4);
+		Portal portal = new Portal(world.getDimension().getType(), address, portalAxis, corner1, corner2, corner3, corner4);
 		
 		Iterable<BlockPos> portalPositions = portal.getPortalPositions();
 		
@@ -234,7 +231,7 @@ public final class PortalRegistry
 	 * <code>true</code> if the block at the specified position is part of 
 	 * a registered portal, otherwise <code>false</code>.
 	 */
-	public static boolean isPortalAt(BlockPos pos, int dimension)
+	public static boolean isPortalAt(BlockPos pos, DimensionType dimension)
 	{
 		List<Portal> portals = getPortalsAt(pos, dimension);
 		
@@ -275,7 +272,7 @@ public final class PortalRegistry
 	 * A read-only list of found portals (may be empty) or <code>null</code> if
 	 * <code>pos</code> was <code>null</code>.
 	 */
-	public static List<Portal> getPortalsAt(BlockPos pos, int dimension)
+	public static List<Portal> getPortalsAt(BlockPos pos, DimensionType dimension)
 	{
 		if (pos == null) return null;
 		
@@ -292,7 +289,7 @@ public final class PortalRegistry
 	 * @return
 	 * A read-only list of found portals (may be empty).
 	 */
-	public static List<Portal> getPortalsInDimension(int dimension)
+	public static List<Portal> getPortalsInDimension(DimensionType dimension)
 	{
 		Set<Portal> uniquePortals = new HashSet<>(portals.values());
 
@@ -695,7 +692,7 @@ public final class PortalRegistry
 			
 			portal = new Portal();
 			portal.deserializeNBT(tag);
-			
+
 			portalIDs.put(i++, portal);
 		}
 		

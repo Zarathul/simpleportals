@@ -297,7 +297,7 @@ public class CommandPortals
 
 			case Dimension:
 				// sportals list <dimension>
-				portals = PortalRegistry.getPortalsInDimension(dimension.getId());
+				portals = PortalRegistry.getPortalsInDimension(dimension);
 				break;
 
 			default:
@@ -305,9 +305,9 @@ public class CommandPortals
 		}
 
 		SimplePortals.log.info("Registered portals");
-		SimplePortals.log.info("|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
-		SimplePortals.log.info("| Dimension | Position                         | Power | Address                                                                                                                                                |");
-		SimplePortals.log.info("|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
+		SimplePortals.log.info("|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
+		SimplePortals.log.info("| Dimension                                | Position                    | Power | Address                                                                                                                                                |");
+		SimplePortals.log.info("|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
 
 		BlockPos portalBlockPos;
 		String formattedPortalBlockPos;
@@ -317,11 +317,11 @@ public class CommandPortals
 			portalBlockPos = portal.getCorner1().getPos();
 			formattedPortalBlockPos = String.format("x=%d, y=%d, z=%d", portalBlockPos.getX(), portalBlockPos.getY(), portalBlockPos.getZ());
 
-			SimplePortals.log.info(String.format("| %9s | %32s | %5d | %-150s |",
-				portal.getDimension(), formattedPortalBlockPos, PortalRegistry.getPower(portal), portal.getAddress()));
+			SimplePortals.log.info(String.format("| %40s | %27s | %5d | %-150s |",
+				portal.getDimension().getRegistryName(), formattedPortalBlockPos, PortalRegistry.getPower(portal), portal.getAddress()));
 		}
 
-		SimplePortals.log.info("|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
+		SimplePortals.log.info("|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
 
 		SendTranslatedMessage(source, "commands.sportals.list.success");
 
@@ -342,7 +342,7 @@ public class CommandPortals
 				{
 					if (dimension != null)
 					{
-						SendTranslatedMessage(source, "commands.errors.portal_not_found_with_address_in_dimension", address, dimension.getRegistryName().toString());
+						SendTranslatedMessage(source, "commands.errors.portal_not_found_with_address_in_dimension", address, dimension.getRegistryName());
 					}
 					else
 					{
@@ -355,8 +355,8 @@ public class CommandPortals
 				if (dimension != null)
 				{
 					// filter out all portals that are not in the specified dimension
-					int dimensionId = dimension.getId();	// This is necessary because Java wants closures in lambda expressions to be effectively final.
-					portals = portals.stream().filter((portal -> portal.getDimension() == dimensionId)).collect(Collectors.toList());
+					final DimensionType dimensionCopy = dimension;	// This is necessary because Java wants closures in lambda expressions to be effectively final.
+					portals = portals.stream().filter((portal -> portal.getDimension() == dimensionCopy)).collect(Collectors.toList());
 				}
 
 				break;
@@ -377,8 +377,8 @@ public class CommandPortals
 					}
 				}
 
-				portals = PortalRegistry.getPortalsAt(pos, dimension.getId());
-				if (portals == null || portals.size() == 0)	throw new CommandException(new TranslationTextComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName().toString()));
+				portals = PortalRegistry.getPortalsAt(pos, dimension);
+				if (portals == null || portals.size() == 0)	throw new CommandException(new TranslationTextComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName()));
 
 				break;
 		}
@@ -388,11 +388,11 @@ public class CommandPortals
 		for (Portal portal : portals)
 		{
 			portalPos = portal.getCorner1().getPos();
-			DimensionType dimType = DimensionType.getById(portal.getDimension());
+			DimensionType dimType = portal.getDimension();
 			if (dimType == null) throw new CommandException(new TranslationTextComponent("commands.errors.missing_dimension", portal.getDimension()));
 
 			PortalRegistry.deactivatePortal(source.getServer().getWorld(dimType), portalPos);
-			SendTranslatedMessage(source, "commands.sportals.deactivate.success", portalPos.getX(), portalPos.getY(), portalPos.getZ(), dimType.getRegistryName().toString());
+			SendTranslatedMessage(source, "commands.sportals.deactivate.success", portalPos.getX(), portalPos.getY(), portalPos.getZ(), dimType.getRegistryName());
 		}
 
 		return 1;
@@ -414,16 +414,15 @@ public class CommandPortals
 			}
 		}
 
-		int dimensionId = dimension.getId();
-		List<Portal> portals = PortalRegistry.getPortalsAt(pos, dimensionId);
+		List<Portal> portals = PortalRegistry.getPortalsAt(pos, dimension);
 
 		if (portals == null || portals.size() == 0)
 		{
-			throw new CommandException(new TranslationTextComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName().toString()));
+			throw new CommandException(new TranslationTextComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName()));
 		}
 		else if (portals.size() > 1)
 		{
-			throw new CommandException(new TranslationTextComponent("commands.errors.multiple_portals_found_at_pos_in_dimension", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName().toString()));
+			throw new CommandException(new TranslationTextComponent("commands.errors.multiple_portals_found_at_pos_in_dimension", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName()));
 		}
 
 		Portal portal = portals.get(0);
@@ -433,20 +432,20 @@ public class CommandPortals
 			case Add:
 				// sportals power add <amount> <x> <y> <z> [dimension]
 				amount = amount - PortalRegistry.addPower(portal, amount);
-				SendTranslatedMessage(source, "commands.sportals.power.add.success", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName().toString(), amount);
+				SendTranslatedMessage(source, "commands.sportals.power.add.success", amount, pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName());
 				break;
 
 			case Remove:
 				// sportals power remove <amount> <x> <y> <z> [dimension]
 				amount = Math.min(amount, PortalRegistry.getPower(portal));
 				amount = (PortalRegistry.removePower(portal, amount)) ? amount : 0;
-				SendTranslatedMessage(source, "commands.sportals.power.remove.success", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName().toString(), amount);
+				SendTranslatedMessage(source, "commands.sportals.power.remove.success", amount, pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName());
 				break;
 
 			case Get:
 				// sportals power get <x> <y> <z> [dimension]
 				amount = PortalRegistry.getPower(portal);
-				SendTranslatedMessage(source, "commands.sportals.power.get.success", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName().toString(), amount);
+				SendTranslatedMessage(source, "commands.sportals.power.get.success", pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName(), amount);
 				break;
 		}
 

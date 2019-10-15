@@ -6,6 +6,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.world.WorldEvent.Load;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
@@ -19,6 +20,8 @@ import net.zarathul.simpleportals.blocks.BlockPowerGauge;
 import net.zarathul.simpleportals.commands.CommandPortals;
 import net.zarathul.simpleportals.commands.CommandTeleport;
 import net.zarathul.simpleportals.common.PortalWorldSaveData;
+import net.zarathul.simpleportals.common.TeleportTask;
+import net.zarathul.simpleportals.common.Utils;
 import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
 import net.zarathul.simpleportals.items.ItemPortalFrame;
@@ -48,6 +51,26 @@ public final class EventHub
 		else
 		{
 			SimplePortals.log.info("TheOneProbe not found. Skipping compatibility request.");
+		}
+	}
+
+	private static int ticksSinceLastTeleportQueueCheck = 0;
+
+	@SubscribeEvent
+	public static void onServerTick(TickEvent.ServerTickEvent event)
+	{
+		if (ticksSinceLastTeleportQueueCheck >= Config.serverTickInterval.get())
+		{
+			ticksSinceLastTeleportQueueCheck = 0;
+
+			TeleportTask task = SimplePortals.TELEPORT_QUEUE.poll();
+			if (task == null) return;
+
+			Utils.teleportTo(task.player, task.dimension, task.pos, task.facing);
+		}
+		else
+		{
+			ticksSinceLastTeleportQueueCheck++;
 		}
 	}
 

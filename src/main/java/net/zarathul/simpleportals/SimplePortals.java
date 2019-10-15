@@ -19,12 +19,14 @@ import net.zarathul.simpleportals.blocks.BlockPortalFrame;
 import net.zarathul.simpleportals.blocks.BlockPowerGauge;
 import net.zarathul.simpleportals.commands.arguments.BlockArgument;
 import net.zarathul.simpleportals.common.PortalWorldSaveData;
+import net.zarathul.simpleportals.common.TeleportTask;
 import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @Mod(SimplePortals.MOD_ID)
 public class SimplePortals
@@ -57,6 +59,8 @@ public class SimplePortals
 
 	// logger
 	public static final Logger log = LogManager.getLogger(MOD_ID);
+
+	public static LinkedBlockingQueue<TeleportTask> TELEPORT_QUEUE = new LinkedBlockingQueue<>();
 
 	public SimplePortals()
 	{

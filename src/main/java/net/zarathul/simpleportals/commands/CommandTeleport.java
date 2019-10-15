@@ -93,8 +93,8 @@ public class CommandTeleport
 				break;
 		}
 
-		Utils.teleportTo(player, dimension.getId(), destination, Direction.NORTH);
-		SendTranslatedMessage(source, "commands.tpd.success", player.getName(), destination.getX(), destination.getY(), destination.getZ(), dimension.getRegistryName().toString());
+		Utils.teleportTo(player, dimension, destination, Direction.NORTH);
+		SendTranslatedMessage(source, "commands.tpd.success", player.getName(), destination.getX(), destination.getY(), destination.getZ(), dimension.getRegistryName());
 
 		return 1;
 	}

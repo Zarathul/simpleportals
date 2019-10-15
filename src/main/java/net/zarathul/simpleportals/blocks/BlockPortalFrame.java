@@ -55,7 +55,7 @@ public class BlockPortalFrame extends Block
 				{
 					world.destroyBlock(pos, true);
 				}
-				else if (!PortalRegistry.isPortalAt(pos, player.dimension.getId()))
+				else if (!PortalRegistry.isPortalAt(pos, player.dimension))
 				{
 					PortalRegistry.activatePortal(world, pos, hit.getFace());
 				}
@@ -72,7 +72,7 @@ public class BlockPortalFrame extends Block
 		{
 			// Deactivate damaged portals.
 
-			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType().getId());
+			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType());
 
 			if (affectedPortals == null || affectedPortals.size() < 1) return;
 
@@ -98,7 +98,7 @@ public class BlockPortalFrame extends Block
 		{
 			// Deactivate all portals that share this frame block if an address block was removed or changed.
 
-			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType().getId());
+			List<Portal> affectedPortals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType());
 
 			if (affectedPortals == null || affectedPortals.size() < 1) return;
 

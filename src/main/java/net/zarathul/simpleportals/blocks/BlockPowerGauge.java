@@ -33,7 +33,7 @@ public class BlockPowerGauge extends BlockPortalFrame
 	{
 		if (!world.isRemote)
 		{
-			List<Portal> portals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType().getId());
+			List<Portal> portals = PortalRegistry.getPortalsAt(pos, world.getDimension().getType());
 
 			if (portals != null && portals.size() > 0)
 			{

@@ -15,7 +15,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.zarathul.simpleportals.SimplePortals;
-import net.zarathul.simpleportals.common.Utils;
 import net.zarathul.simpleportals.configuration.Config;
 import net.zarathul.simpleportals.registration.Portal;
 import net.zarathul.simpleportals.registration.PortalRegistry;
@@ -29,12 +28,12 @@ import java.util.List;
 public class PortalInfoProvider implements IProbeInfoProvider
 {
 	// I18N keys
-	private static final String PORTAL_INFO = "interop.top.";
-	private static final String POWER_CAPACITY = PORTAL_INFO + "power_capacity";
-	private static final String POWER_SOURCES = PORTAL_INFO + "power_sources";
-	private static final String INVALID_POWER_SOURCE = PORTAL_INFO + "invalid_power_source";
-	private static final String ADDRESS = PORTAL_INFO + "address";
-	private static final String REDSTONE_POWER = PORTAL_INFO + "redstone_power";
+	private static final String PORTAL_INFO = IProbeInfo.STARTLOC + "interop.top.";
+	private static final String POWER_CAPACITY = PORTAL_INFO + "power_capacity" + IProbeInfo.ENDLOC;
+	private static final String POWER_SOURCES = PORTAL_INFO + "power_sources" + IProbeInfo.ENDLOC;
+	private static final String INVALID_POWER_SOURCE = PORTAL_INFO + "invalid_power_source" + IProbeInfo.ENDLOC;
+	private static final String ADDRESS = PORTAL_INFO + "address" + IProbeInfo.ENDLOC;
+	private static final String REDSTONE_POWER = PORTAL_INFO + "redstone_power" + IProbeInfo.ENDLOC;
 
 	private static final IForgeRegistry<Block> BLOCK_REGISTRY = GameRegistry.findRegistry(Block.class);
 
@@ -49,7 +48,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 	{
 		// Note: Text translations will only work in singleplayer. On a dedicated server everything will be english only unfortunately.
 
-		List<Portal> portals = PortalRegistry.getPortalsAt(data.getPos(), world.getDimension().getType().getId());
+		List<Portal> portals = PortalRegistry.getPortalsAt(data.getPos(), world.getDimension().getType());
 		if (portals == null) return;
 
 		for (Portal portal : portals)
@@ -63,14 +62,14 @@ public class PortalInfoProvider implements IProbeInfoProvider
 								 ? MathHelper.clamp((int) ((long) power * 100 / Config.powerCapacity.get()), 0, 100)
 								 : 100;
 
-				probeInfo.text(Utils.translate(POWER_CAPACITY, power, Config.powerCapacity.get(), percentage));
+				probeInfo.text(POWER_CAPACITY + String.format(" %,d/%,d (%d%%)", power, Config.powerCapacity.get(), percentage));
 				probeInfo.progress(power, Config.powerCapacity.get(), probeInfo.defaultProgressStyle().showText(false));
 
 				if (mode == ProbeMode.EXTENDED)
 				{
 					// Add a list of items that are considered valid power sources for the portal (4 max)
 
-					probeInfo.text(Utils.translate(POWER_SOURCES));
+					probeInfo.text(POWER_SOURCES);
 					IProbeInfo powerSourceInfo =  probeInfo.horizontal();
 					Tag<Item> powerTag = ItemTags.getCollection().get(Config.powerSource);
 
@@ -89,7 +88,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 					}
 					else
 					{
-						powerSourceInfo.text(Utils.translate(INVALID_POWER_SOURCE, Config.powerSource));
+						powerSourceInfo.text(INVALID_POWER_SOURCE + String.format(" (%s)", Config.powerSource));
 					}
 				}
 			}
@@ -98,7 +97,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 			{
 				// Add the address as block icons
 
-				probeInfo.text(Utils.translate(ADDRESS));
+				probeInfo.text(ADDRESS);
 				IProbeInfo addressInfo = probeInfo.horizontal();
 
 				String address = portal.getAddress().toString();
@@ -151,7 +150,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 
 					probeInfo.horizontal(probeInfo.defaultLayoutStyle().alignment(ElementAlignment.ALIGN_CENTER))
 							.item(new ItemStack(Items.REDSTONE))
-							.text(Utils.translate(REDSTONE_POWER, gaugeLevel));
+							.text(REDSTONE_POWER + " " + gaugeLevel);
 
 				}
 			}
@@ -159,7 +158,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 			{
 				// Add the address in plain text in debug mode
 
-				probeInfo.text(Utils.translate(ADDRESS));
+				probeInfo.text(ADDRESS);
 
 				String address = portal.getAddress().toString();
 				String[] addressComponents = address.split(",");

@@ -2,10 +2,10 @@ package net.zarathul.simpleportals.common;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.play.server.SPlayEntityEffectPacket;
-import net.minecraft.network.play.server.SSetExperiencePacket;
+import net.minecraft.network.play.server.*;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.BlockPos;
@@ -14,6 +14,8 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.translation.LanguageMap;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.storage.WorldInfo;
+import net.zarathul.simpleportals.configuration.Config;
 
 import java.util.ArrayList;
 
@@ -130,46 +132,38 @@ public final class Utils
 	 *
 	 * @param entity
 	 * The entity to teleport. Can be any entity (item, mob, player).
-	 * @param dimensionId
-	 * The id of the dimension to port to.
+	 * @param dimension
+	 * The dimension to port to.
 	 * @param destination
 	 * The position to port to.
 	 * @param facing
 	 * The direction the entity should face after porting.
 	 */
-	public static void teleportTo(Entity entity, int dimensionId, BlockPos destination, Direction facing)
+	public static void teleportTo(Entity entity, DimensionType dimension, BlockPos destination, Direction facing)
 	{
-		if (entity == null || destination == null || entity.isBeingRidden() || entity.isOnePlayerRiding() || !entity.isNonBoss()) return;
-
-		DimensionType dimension = DimensionType.getById(dimensionId);
-		if (dimension == null) return;
+		if (entity == null || dimension == null || destination == null || entity.isBeingRidden() || entity.isOnePlayerRiding() || !entity.isNonBoss()) return;
 
 		ServerPlayerEntity player = (entity instanceof ServerPlayerEntity) ? (ServerPlayerEntity) entity : null;
-		boolean interdimensional = (entity.dimension.getId() != dimensionId);
+		boolean interdimensional = (entity.dimension != dimension);
 		entity.setMotion(Vec3d.ZERO);
 
 		if (player != null)
 		{
-			// Note: This field is normally not accessible (see accesstransformer.cfg in META-INF folder).
-			// Setting this flag circumvents at least a part of the shitty speed hack checks in
-			// net.minecraft.network.play.ServerPlayNetHandler#processPlayer() that cause nothing but trouble.
-			player.invulnerableDimensionChange = true;
-
-			ServerWorld destinationWorld = player.getServer().getWorld(dimension);
-			player.teleport(destinationWorld, destination.getX() + 0.5d, destination.getY(), destination.getZ() + 0.5d, getYaw(facing), player.rotationPitch);
-
 			if (interdimensional)
 			{
-				// FIXME: Remove whenever ServerPlayerEntity.teleport() actually does this.
-				// Reapply potion effects
-				for (EffectInstance potionEffect : player.getActivePotionEffects())
-				{
-					player.connection.sendPacket(new SPlayEntityEffectPacket(player.getEntityId(), potionEffect));
-				}
-
-				// Resend player XP otherwise the XP bar won't show up until XP is either gained or lost
-				player.connection.sendPacket(new SSetExperiencePacket(player.experience, player.experienceTotal, player.experienceLevel));
+				teleportPlayerToDimension(player, dimension, destination, getYaw(facing), 0.0f);
 			}
+			else
+			{
+				player.connection.setPlayerLocation(destination.getX() + 0.5d,
+													destination.getY(),
+													destination.getZ() + 0.5d,
+													getYaw(facing),
+													0.0f);
+			}
+
+			// Play teleportation sound.
+			if (Config.teleportationSoundEnabled.get()) player.connection.sendPacket(new SPlaySoundEventPacket(1032, BlockPos.ZERO, 0, false));
 		}
 		else
 		{
@@ -183,9 +177,56 @@ public final class Utils
 											destination.getY(),
 											destination.getZ() + 0.5d,
 											getYaw(facing),
-											entity.rotationPitch);
+											0.0f);
 			}
 		}
+	}
+
+	private static void teleportPlayerToDimension(ServerPlayerEntity player, DimensionType destinationDimension, BlockPos destination, float yaw, float pitch)
+	{
+		if (!net.minecraftforge.common.ForgeHooks.onTravelToDimension(player, destinationDimension)) return;
+
+		// Note: This field is normally not accessible (see accesstransformer.cfg in META-INF folder).
+		// Setting this flag circumvents at least a part of the shitty speed hack checks in
+		// net.minecraft.network.play.ServerPlayNetHandler#processPlayer() that cause nothing but trouble.
+		player.invulnerableDimensionChange = true;
+		MinecraftServer server = player.getServer();
+		if (server == null) return;
+
+		//player.teleport(server.getWorld(destinationDimension), destination.getX() + 0.5d, destination.getY(), destination.getZ() + 0.5d, yaw, pitch);
+
+		DimensionType originDimension = player.dimension;
+		ServerWorld originServerWorld = server.getWorld(originDimension);
+		player.dimension = destinationDimension;
+		ServerWorld destinationServerWorld = server.getWorld(destinationDimension);
+		WorldInfo worldInfo = player.world.getWorldInfo();
+		net.minecraftforge.fml.network.NetworkHooks.sendDimensionDataPacket(player.connection.netManager, player);
+		player.connection.sendPacket(new SRespawnPacket(destinationDimension, worldInfo.getGenerator(), player.interactionManager.getGameType()));
+		player.connection.sendPacket(new SServerDifficultyPacket(worldInfo.getDifficulty(), worldInfo.isDifficultyLocked()));
+		PlayerList playerlist = server.getPlayerList();
+		playerlist.updatePermissionLevel(player);
+		originServerWorld.removeEntity(player, true);
+		player.revive();
+		player.setLocationAndAngles(destination.getX() + 0.5d, destination.getY(), destination.getZ() + 0.5d, yaw, pitch);
+		player.setMotion(Vec3d.ZERO);
+		player.setWorld(destinationServerWorld);
+		destinationServerWorld.func_217447_b(player);
+		player.connection.setPlayerLocation(player.posX, player.posY, player.posZ, yaw, pitch);
+		player.interactionManager.setWorld(destinationServerWorld);
+		player.connection.sendPacket(new SPlayerAbilitiesPacket(player.abilities));
+		playerlist.sendWorldInfo(player, destinationServerWorld);
+		playerlist.sendInventory(player);
+
+		// Reapply effects like potions
+		for(EffectInstance effectInstance : player.getActivePotionEffects())
+		{
+			player.connection.sendPacket(new SPlayEntityEffectPacket(player.getEntityId(), effectInstance));
+		}
+
+		// Resend player XP otherwise the XP bar won't show up until XP is either gained or lost
+		player.connection.sendPacket(new SSetExperiencePacket(player.experience, player.experienceTotal, player.experienceLevel));
+
+		net.minecraftforge.fml.hooks.BasicEventHooks.firePlayerChangedDimensionEvent(player, originDimension, destinationDimension);
 	}
 
 	/**
@@ -204,7 +245,7 @@ public final class Utils
 	 */
 	private static void teleportNonPlayerEntityToDimension(Entity entity, DimensionType dimension, BlockPos destination, float yaw)
 	{
-		if (!entity.world.isRemote && entity.isAlive())
+		if (!entity.world.isRemote && entity.isAlive() && entity.isNonBoss())
 		{
 			MinecraftServer server = entity.getServer();
 			ServerWorld startWorld = server.getWorld(entity.dimension);

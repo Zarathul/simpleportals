@@ -1,11 +1,10 @@
 package net.zarathul.simpleportals.commands.arguments;
 
-import com.google.common.collect.Lists;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.block.Block;
@@ -17,16 +16,18 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 public class BlockArgument implements ArgumentType<Block>
 {
-	private static final SimpleCommandExceptionType INVALID_ADDRESS = new SimpleCommandExceptionType(new TranslationTextComponent("commands.errors.address_argument"));
+	private static final DynamicCommandExceptionType INVALID_ADDRESS = new DynamicCommandExceptionType((args) -> new TranslationTextComponent("commands.errors.block_argument", args));
 	private static final Collection<String> EXAMPLES = Arrays.asList(
 		"minecraft:dirt",
 		"minecraft:iron_block",
 		"minecraft:white_wool");
+
+	private Function<SuggestionsBuilder, CompletableFuture<Suggestions>> suggestionFuture;
 
 	public static BlockArgument block()
 	{
@@ -41,12 +42,20 @@ public class BlockArgument implements ArgumentType<Block>
 	@Override
 	public Block parse(StringReader reader) throws CommandSyntaxException
 	{
-		if (!reader.canRead()) throw INVALID_ADDRESS.createWithContext(reader);
+		suggestionFuture = (builder) -> ISuggestionProvider.suggestIterable(ForgeRegistries.BLOCKS.getKeys(), builder);
 
-		ResourceLocation loc = ResourceLocation.read(reader);
-		if (!ForgeRegistries.BLOCKS.containsKey(loc)) throw INVALID_ADDRESS.createWithContext(reader);
+		int i = reader.getCursor();
+		ResourceLocation blockResourceLocation = ResourceLocation.read(reader);
 
-		return ForgeRegistries.BLOCKS.getValue(loc);
+		if (!ForgeRegistries.BLOCKS.containsKey(blockResourceLocation))
+		{
+			reader.setCursor(i);
+			throw INVALID_ADDRESS.createWithContext(reader, blockResourceLocation);
+		}
+
+		suggestionFuture = (builder) -> builder.buildFuture();
+
+		return ForgeRegistries.BLOCKS.getValue(blockResourceLocation);
 	}
 
 	@Override
@@ -54,36 +63,14 @@ public class BlockArgument implements ArgumentType<Block>
 	{
 		StringReader reader = new StringReader(builder.getInput());
 		reader.setCursor(builder.getStart());
-		reader.skipWhitespace();
 
-		boolean doFilter = reader.getRemainingLength() > 1;
-		List<String> list = Lists.newArrayList();
-
-		if (doFilter)
+		try
 		{
-			String input;
-
-			try
-			{
-				input = reader.readString();
-
-				ForgeRegistries.BLOCKS.getKeys().stream()
-					.sorted()
-					.filter(resourceLocation -> resourceLocation.toString().startsWith(input))
-					.forEachOrdered(resourceLocation -> list.add(resourceLocation.toString()));
-			}
-			catch (Exception ex)
-			{
-			}
+			parse(reader);
 		}
-		else
-		{
-			ForgeRegistries.BLOCKS.getKeys().stream()
-				.sorted()
-				.forEachOrdered(resourceLocation -> list.add(resourceLocation.toString()));
-		}
+		catch (CommandSyntaxException ex) {}
 
-		return ISuggestionProvider.suggest(list, builder);
+		return this.suggestionFuture.apply(builder.createOffset(reader.getCursor()));
 	}
 
 	@Override
