@@ -59,7 +59,7 @@ public final class EventHub
 	@SubscribeEvent
 	public static void onServerTick(TickEvent.ServerTickEvent event)
 	{
-		if (ticksSinceLastTeleportQueueCheck >= Config.serverTickInterval.get())
+		if (event.phase == TickEvent.Phase.END && ticksSinceLastTeleportQueueCheck >= Config.serverTickInterval.get())
 		{
 			ticksSinceLastTeleportQueueCheck = 0;
 

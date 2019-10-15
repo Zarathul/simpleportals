@@ -53,8 +53,8 @@
 	"commands.errors.unknown_sender_dimension": "No dimension was specified and the command senders dimension could not be determined.",
 	"commands.errors.portal_not_found_with_address": "No portals with the address '§c%s§r' could be found.",
 	"commands.errors.portal_not_found_with_address_in_dimension": "No portals with the address '§c%s§r' could be found in dimension '§c%s§r'.",
-	"commands.errors.portal_not_found_at_pos_in_dimension": "No portals could be found at '§bx=%d, y=%d, z=%d§r' in dimension '§c%s§r'.",
-	"commands.errors.multiple_portals_found_at_pos_in_dimension": "Multiple portals were found at '§bx=%d, y=%d, z=%d§r' in dimension '§c%s§r'. Use the coordinates of a block that is only part of one portal.",
+	"commands.errors.portal_not_found_at_pos_in_dimension": "No portals could be found at '§cx=%d, y=%d, z=%d§r' in dimension '§c%s§r'.",
+	"commands.errors.multiple_portals_found_at_pos_in_dimension": "Multiple portals were found at '§cx=%d, y=%d, z=%d§r' in dimension '§c%s§r'. Use the coordinates of a block that is only part of one portal.",
 	"commands.errors.no_power_items": "No valid items found for item tag '§c%s§r'. Check your config.",
 
 	"_comment": "Creative UI tab label",
