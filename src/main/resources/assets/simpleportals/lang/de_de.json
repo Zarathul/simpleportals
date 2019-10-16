@@ -64,7 +64,7 @@
 	"config.max_size": "Maximale Portalgröße",
 	"config.power_cost": "Energiekosten",
 	"config.power_capacity": "Energiekapazität",
-	"config.server_tick_interval": "Server Tick Intervall",
+	"config.player_teleportation_delay": "Teleportations-Verzögerung für Spieler",
 	"config.player_teleportation_cooldown": "Teleportations-Abklingzeit für Spieler",
 	"config.power_source": "Energiequelle",
 	"config.particles_enabled": "Partikel an",

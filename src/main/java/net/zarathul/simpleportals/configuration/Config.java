@@ -28,7 +28,7 @@ public final class Config
 	private static final int defaultMaxSize = 7;
 	private static final int defaultPowerCost = 1;
 	private static final int defaultPowerCapacity = 64;
-	private static final int defaultServerTickInterval = 20;
+	private static final int defaultplayerTeleportationDelay = 10;
 	private static final int defaultPlayerTeleportationCooldown = 60;
 	private static final boolean defaultParticlesEnabled = true;
 	private static final boolean defaultAmbientSoundEnabled = false;
@@ -40,7 +40,7 @@ public final class Config
 	public static ForgeConfigSpec.IntValue maxSize;
 	public static ForgeConfigSpec.IntValue powerCost;
 	public static ForgeConfigSpec.IntValue powerCapacity;
-	public static ForgeConfigSpec.IntValue serverTickInterval;
+	public static ForgeConfigSpec.IntValue playerTeleportationDelay;
 	public static ForgeConfigSpec.IntValue playerTeleportationCooldown;
 	public static ForgeConfigSpec.BooleanValue particlesEnabled;
 	public static ForgeConfigSpec.BooleanValue ambientSoundEnabled;
@@ -67,13 +67,13 @@ public final class Config
 				.comment("The amount of power a portal can store.")
 				.defineInRange("powerCapacity", defaultPowerCapacity, 0, Integer.MAX_VALUE);
 
-		serverTickInterval = CommonConfigBuilder.translation("config.server_tick_interval")
-				.comment("The interval in ticks between the phases when the server processes the teleportation queue. Higher number means less stress on the server.")
-				.defineInRange("serverTickInterval", defaultServerTickInterval, 0, 100);
+		playerTeleportationDelay = CommonConfigBuilder.translation("config.player_teleportation_delay")
+				.comment("The delay in ticks before a player actually gets teleported. Needs to be lower than playerTeleportationCooldown.")
+				.defineInRange("playerTeleportationDelay", defaultplayerTeleportationDelay, 0, 40);
 
 		playerTeleportationCooldown = CommonConfigBuilder.translation("config.player_teleportation_cooldown")
-				.comment("Cooldown time before a player can be teleported again by a portal (in ticks).")
-				.defineInRange("playerTeleportationCooldown", defaultPlayerTeleportationCooldown, 10, Integer.MAX_VALUE);
+				.comment("Cooldown in ticks before a player can be teleported again by a portal.")
+				.defineInRange("playerTeleportationCooldown", defaultPlayerTeleportationCooldown, 60, Integer.MAX_VALUE);
 
 		powerSourceString = CommonConfigBuilder.translation("config.power_source")
 				.comment("The tag that items must have to be able to power portals (1 power per item).")

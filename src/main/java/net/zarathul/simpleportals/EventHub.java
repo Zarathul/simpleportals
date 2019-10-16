@@ -2,6 +2,7 @@ package net.zarathul.simpleportals;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
@@ -54,23 +55,37 @@ public final class EventHub
 		}
 	}
 
-	private static int ticksSinceLastTeleportQueueCheck = 0;
-
 	@SubscribeEvent
 	public static void onServerTick(TickEvent.ServerTickEvent event)
 	{
-		if (event.phase == TickEvent.Phase.END && ticksSinceLastTeleportQueueCheck >= Config.serverTickInterval.get())
+		if (event.phase == TickEvent.Phase.END)
 		{
-			ticksSinceLastTeleportQueueCheck = 0;
+			TeleportTask task;
+			MinecraftServer mcServer;
 
-			TeleportTask task = SimplePortals.TELEPORT_QUEUE.poll();
-			if (task == null) return;
+			while (true)
+			{
+				task = SimplePortals.TELEPORT_QUEUE.peek();
+				if (task == null) return;
 
-			Utils.teleportTo(task.player, task.dimension, task.pos, task.facing);
-		}
-		else
-		{
-			ticksSinceLastTeleportQueueCheck++;
+				mcServer = task.player.getServer();
+				if (mcServer == null)
+				{
+					// No point in keeping the task if there's no server. Should never happen but who knows.
+					SimplePortals.TELEPORT_QUEUE.poll();
+				}
+				else if (mcServer.getTickCounter() > (task.creationTickCount + Config.playerTeleportationDelay.get()))
+				{
+					// Task is due.
+					SimplePortals.TELEPORT_QUEUE.poll();
+					Utils.teleportTo(task.player, task.dimension, task.pos, task.facing);
+				}
+				else
+				{
+					// Task was not due yet, so if there are others they won't be either.
+					return;
+				}
+			}
 		}
 	}
 

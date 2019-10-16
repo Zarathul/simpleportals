@@ -193,8 +193,6 @@ public final class Utils
 		MinecraftServer server = player.getServer();
 		if (server == null) return;
 
-		//player.teleport(server.getWorld(destinationDimension), destination.getX() + 0.5d, destination.getY(), destination.getZ() + 0.5d, yaw, pitch);
-
 		DimensionType originDimension = player.dimension;
 		ServerWorld originServerWorld = server.getWorld(originDimension);
 		player.dimension = destinationDimension;

@@ -194,9 +194,16 @@ public class BlockPortal extends BreakableBlock
 					
 					if (entity instanceof ServerPlayerEntity)
 					{
+						// Player teleportations are queued to avoid at least some of the problems that arise from
+						// handling player teleportation inside an entity collision handler. There seem to be all
+						// kinds of weird race conditions of movement packets that trigger the dreaded "moved wrongly"
+						// and "moved to quickly" checks in ServerPlayNetHandler.processPlayer(). No idea why end portals
+						// don't have these problems, considering that I use the same copy and pasted code minus the
+						// platform generation stuff.
 						try
 						{
 							SimplePortals.TELEPORT_QUEUE.put(new TeleportTask(
+									mcServer.getTickCounter(),
 									(ServerPlayerEntity)entity,
 									destinationPortal.getDimension(),
 									destinationPos,
@@ -204,7 +211,7 @@ public class BlockPortal extends BreakableBlock
 						}
 						catch (InterruptedException ex)
 						{
-							SimplePortals.log.error("Failed to enqueue teleportation task for player '{}' to dimension ' {}'.",
+							SimplePortals.log.error("Failed to enqueue teleportation task for player '{}' to dimension '{}'.",
 													((ServerPlayerEntity)entity).getName(),
 													(destinationPortal.getDimension().getRegistryName() != null)
 													? destinationPortal.getDimension().getRegistryName()
