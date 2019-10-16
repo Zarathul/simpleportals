@@ -2,7 +2,6 @@ package net.zarathul.simpleportals.blocks;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.material.MaterialColor;
@@ -88,10 +87,10 @@ public class BlockPortalFrame extends Block
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, World world, BlockPos pos, Block neighborBlock, BlockPos sourcePos, boolean isMoving)
+	public void neighborChanged(BlockState state, World world, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean isMoving)
 	{
 		if (!world.isRemote	&&
-			neighborBlock != Blocks.AIR	&&
+			!neighborBlock.isAir(neighborBlock.getDefaultState()) &&	// I'd like to supply a proper BlockState here but the new block has already been placed, so there's no way.
 			neighborBlock != SimplePortals.blockPortalFrame	&&
 			neighborBlock != SimplePortals.blockPowerGauge &&
 			neighborBlock != SimplePortals.blockPortal)
@@ -110,6 +109,6 @@ public class BlockPortalFrame extends Block
 			}
 		}
 
-		super.neighborChanged(state, world, pos, neighborBlock, sourcePos, isMoving);
+		super.neighborChanged(state, world, pos, neighborBlock, neighborPos, isMoving);
 	}
 }
