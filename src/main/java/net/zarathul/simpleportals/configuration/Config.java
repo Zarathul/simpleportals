@@ -77,7 +77,7 @@ public final class Config
 
 		powerSourceString = CommonConfigBuilder.translation("config.power_source")
 				.comment("The tag that items must have to be able to power portals (1 power per item).")
-				.define("powerSource", defaultPowerSource);
+				.define("powerSource", defaultPowerSource);		// Defining a validator here won't work, because the tag lists still empty in the main menu.
 
 		CommonConfigBuilder.pop();
 

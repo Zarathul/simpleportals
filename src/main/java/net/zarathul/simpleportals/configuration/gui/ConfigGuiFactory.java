@@ -1,0 +1,61 @@
+package net.zarathul.simpleportals.configuration.gui;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.zarathul.simpleportals.SimplePortals;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * The factory providing the in-game config UI.
+ */
+public final class ConfigGuiFactory
+{
+	private static ForgeConfigSpec[] configSpecs;
+
+	public static Screen getConfigGui(Minecraft mc, Screen parent)
+	{
+		return new ConfigGui(new StringTextComponent("Simple Portals Config"), parent, configSpecs);
+	}
+
+	public static void setConfigHolder(String classPath)
+	{
+		Class classHolder = null;
+
+		try
+		{
+			classHolder = Class.forName(classPath);
+
+		}
+		catch (ClassNotFoundException ex)
+		{
+			SimplePortals.log.error("Config holder class not found.");
+		}
+
+		if (classHolder == null) return;
+
+		List<ForgeConfigSpec> specs = new ArrayList<>();
+
+		for (Field field : classHolder.getFields())
+		{
+			if (field.getType() == ForgeConfigSpec.class)
+			{
+				try
+				{
+					specs.add((ForgeConfigSpec)field.get(classHolder));
+				}
+				catch (IllegalAccessException ex)
+				{
+					SimplePortals.log.error("Could not access ForgeConfigSpec fields of the config holder class.");
+				}
+			}
+		}
+
+		configSpecs = new ForgeConfigSpec[specs.size()];
+		specs.toArray(configSpecs);
+	}
+}

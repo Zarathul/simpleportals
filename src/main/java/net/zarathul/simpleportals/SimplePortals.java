@@ -9,6 +9,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -21,6 +23,7 @@ import net.zarathul.simpleportals.commands.arguments.BlockArgument;
 import net.zarathul.simpleportals.common.PortalWorldSaveData;
 import net.zarathul.simpleportals.common.TeleportTask;
 import net.zarathul.simpleportals.configuration.Config;
+import net.zarathul.simpleportals.configuration.gui.ConfigGuiFactory;
 import net.zarathul.simpleportals.items.ItemPortalActivator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,6 +76,15 @@ public class SimplePortals
 		Mlc.registerConfig(ModConfig.Type.CLIENT, Config.ClientConfigSpec, MOD_ID + "-client.toml");
 		Config.load(Config.CommonConfigSpec, FMLPaths.CONFIGDIR.get().resolve(MOD_ID + "-common.toml"));
 		Config.load(Config.ClientConfigSpec, FMLPaths.CONFIGDIR.get().resolve(MOD_ID + "-client.toml"));
+
+		// Setup config UI
+		ConfigGuiFactory.setConfigHolder("net.zarathul.simpleportals.configuration.Config");
+		DistExecutor.callWhenOn(Dist.CLIENT, () ->
+			() -> {
+				Mlc.registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY, () -> ConfigGuiFactory::getConfigGui);
+				return null;
+			}
+		);
 
 		// Setup event listeners
 		IEventBus SetupEventBus = FMLJavaModLoadingContext.get().getModEventBus();
