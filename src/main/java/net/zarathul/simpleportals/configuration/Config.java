@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.zarathul.simpleportals.common.Utils;
 
 import java.nio.file.Path;
 
@@ -56,7 +57,7 @@ public final class Config
 		CommonConfigBuilder.push("common");
 
 		maxSize = CommonConfigBuilder.translation("config.max_size")
-				.comment("The maximum size including the frame of a portal.")
+				.comment("The maximum size of the portal including the frame")
 				.defineInRange("maxSize", defaultMaxSize, 3, 128);
 
 		powerCost = CommonConfigBuilder.translation("config.power_cost")
@@ -77,7 +78,7 @@ public final class Config
 
 		powerSourceString = CommonConfigBuilder.translation("config.power_source")
 				.comment("The tag that items must have to be able to power portals (1 power per item).")
-				.define("powerSource", defaultPowerSource);		// Defining a validator here won't work, because the tag lists still empty in the main menu.
+				.define("powerSource", defaultPowerSource, o -> Utils.isValidResourceLocation((String)o));
 
 		CommonConfigBuilder.pop();
 
@@ -117,7 +118,6 @@ public final class Config
 	{
 		final CommentedFileConfig configData = CommentedFileConfig.builder(path)
 				.sync()
-				.autosave()
 				.writingMode(WritingMode.REPLACE)
 				.build();
 
@@ -127,6 +127,10 @@ public final class Config
 
 	public static void updatePowerSource()
 	{
-		powerSource = new ResourceLocation(powerSourceString.get());
+		String powerTag = powerSourceString.get();
+
+		powerSource = (Utils.isValidResourceLocation(powerTag)) ?
+					  new ResourceLocation(powerTag) :
+					  new ResourceLocation("", "");
 	}
 }

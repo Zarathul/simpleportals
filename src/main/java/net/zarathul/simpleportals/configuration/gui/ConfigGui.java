@@ -2,6 +2,7 @@ package net.zarathul.simpleportals.configuration.gui;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.Screen;
@@ -16,6 +17,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
@@ -26,7 +28,7 @@ public class ConfigGui extends Screen
 	private ForgeConfigSpec[] configSpecs;
 	private ModOptionList optionList;
 
-	private final int PADDING = 5;
+	private static final int PADDING = 5;
 
 	public ConfigGui(ITextComponent title, Screen parent, ForgeConfigSpec[] configSpecs)
 	{
@@ -45,11 +47,9 @@ public class ConfigGui extends Screen
 		int paddedTitleHeight = titleHeight + PADDING * 2;
 
 		addButton(width - 120 - 2 * PADDING, 0, 60, paddedTitleHeight, "Back", button -> mc.displayGuiScreen(parent));
-		addButton(width - 60 - PADDING, 0, 60, paddedTitleHeight, "Done", button -> {
-			for (ForgeConfigSpec spec : configSpecs)
-			{
-				spec.save();
-			}
+		addButton(width - 60 - PADDING, 0, 60, paddedTitleHeight, "Save", button -> {
+			this.optionList.commitChanges();
+			for (ForgeConfigSpec spec : configSpecs) spec.save();
 
 			mc.displayGuiScreen(parent);
 		});
@@ -71,7 +71,8 @@ public class ConfigGui extends Screen
 	public void render(int mouseX, int mouseY, float partialTicks)
 	{
 		this.renderBackground();
-		this.optionList.render(mouseX, mouseX, partialTicks);
+		this.optionList.render(mouseX, mouseY, partialTicks);
+		GlStateManager.disableLighting();	// Rendering the tooltip enables lighting but buttons etc. assume lighting to be disabled.
 		super.render(mouseX, mouseY, partialTicks);
 		minecraft.fontRenderer.drawStringWithShadow(title.getFormattedText(), PADDING, PADDING, 16777215);
 	}
@@ -85,7 +86,11 @@ public class ConfigGui extends Screen
 
 	public class ModOptionList extends AbstractOptionList<ModOptionList.Entry>
 	{
-		private final int LEFT_RIGHT_BORDER = 30;
+		private static final int LEFT_RIGHT_BORDER = 30;
+		private static final String I18N_TOOLTIP_SUFFIX = ".tooltip";
+		private static final String I18N_VALID = "config.input_valid";
+		private static final String I18N_INVALID = "config.input_invalid";
+		private static final String I18N_NEEDS_WORLD_RESTART = "config.needs_world_restart";
 
 		public ModOptionList(ForgeConfigSpec[] configSpecs, Minecraft mc, int width, int height, int top, int bottom, int itemHeight)
 		{
@@ -95,6 +100,27 @@ public class ConfigGui extends Screen
 			{
 				UnmodifiableConfig configValues = spec.getValues();
 				generateEntries(spec, configValues, "");
+			}
+		}
+
+		@Override
+		public void render(int mouseX, int mouseY, float partialTicks)
+		{
+			super.render(mouseX, mouseY, partialTicks);
+
+			String tooltip = null;
+
+			for (Entry entry : this.children())
+			{
+				tooltip = entry.getTooltip();
+
+				if (!StringUtils.isNullOrEmpty(tooltip))
+				{
+					List<String> comment = Arrays.asList(tooltip.split("\n"));
+					renderTooltip(comment, mouseX, mouseY);
+
+					break;
+				}
 			}
 		}
 
@@ -136,6 +162,14 @@ public class ConfigGui extends Screen
 			return false;
 		}
 
+		public void commitChanges()
+		{
+			for (Entry entry : this.children())
+			{
+				entry.commitChanges();
+			}
+		}
+
 		private void generateEntries(UnmodifiableConfig spec, UnmodifiableConfig values, String path)
 		{
 			String currentPath;
@@ -146,7 +180,10 @@ public class ConfigGui extends Screen
 
 				if (entry.getValue() instanceof com.electronwill.nightconfig.core.Config)
 				{
-					addEntry(new CategoryEntry(entry.getKey()));
+					String i18nKey = "config." + entry.getKey();
+					String categoryLabel = (I18n.hasKey(i18nKey)) ? I18n.format(i18nKey) : entry.getKey();
+
+					addEntry(new CategoryEntry(categoryLabel));
 					generateEntries(spec.get(entry.getKey()), values, currentPath);
 				}
 				else if (entry.getValue() instanceof ForgeConfigSpec.ValueSpec)
@@ -154,7 +191,7 @@ public class ConfigGui extends Screen
 					ForgeConfigSpec.ConfigValue<?> value = values.get(currentPath);
 					ForgeConfigSpec.ValueSpec valueSpec = entry.getValue();
 
-					addEntry(new OptionEntry(valueSpec, value.get()));
+					addEntry(new OptionEntry(valueSpec, value));
 				}
 			}
 		}
@@ -162,7 +199,9 @@ public class ConfigGui extends Screen
 		public abstract class Entry extends AbstractOptionList.Entry<ConfigGui.ModOptionList.Entry>
 		{
 			public abstract void clearFocus();
+			public abstract void commitChanges();
 			public abstract void tick();
+			public abstract String getTooltip();
 		}
 
 		public class CategoryEntry extends Entry
@@ -200,31 +239,43 @@ public class ConfigGui extends Screen
 			}
 
 			@Override
+			public void commitChanges()
+			{
+			}
+
+			@Override
 			public void tick()
 			{
+			}
+
+			@Override
+			public String getTooltip()
+			{
+				return null;
 			}
 		}
 
 		public class OptionEntry extends Entry
 		{
 			private ForgeConfigSpec.ValueSpec valueSpec;
-			private Object value;
+			private ForgeConfigSpec.ConfigValue<?> configValue;
 			private TextFieldWidget editBox;
 			private CheckboxButton checkBox;
 			private ImageButton needsWorldRestartButton;
 			private ValidationStatusButton validatedButton;
 			private List<IGuiEventListener> children;
+			private String tooltipText;
 
 			// Sets the state of the ValidationStatusButton button based on the input in the TextFieldWidget.
 			private final Predicate<String> textInputValidator = text -> {
-				if (StringUtils.isNullOrEmpty(text)) return true;
+				Object value = this.configValue.get();
 
 				if (value instanceof Integer)
 				{
 					try
 					{
 						int parsedValue = Integer.parseInt(text);
-						this.validatedButton.setValid(valueSpec.test(parsedValue));
+						this.validatedButton.setValid(this.valueSpec.test(parsedValue));
 					}
 					catch (NumberFormatException ex)
 					{
@@ -236,7 +287,7 @@ public class ConfigGui extends Screen
 					try
 					{
 						long parsedValue = Long.parseLong(text);
-						this.validatedButton.setValid(valueSpec.test(parsedValue));
+						this.validatedButton.setValid(this.valueSpec.test(parsedValue));
 					}
 					catch (NumberFormatException ex)
 					{
@@ -248,7 +299,7 @@ public class ConfigGui extends Screen
 					try
 					{
 						double parsedValue = Double.parseDouble(text);
-						this.validatedButton.setValid(valueSpec.test(parsedValue));
+						this.validatedButton.setValid(this.valueSpec.test(parsedValue));
 					}
 					catch (NumberFormatException ex)
 					{
@@ -257,18 +308,16 @@ public class ConfigGui extends Screen
 				}
 				else if (value instanceof String)
 				{
-					this.validatedButton.setValid(valueSpec.test(text));
+					this.validatedButton.setValid(this.valueSpec.test(text));
 				}
-
-				// TODO: write value back to config
 
 				return true;
 			};
 
-			public OptionEntry(ForgeConfigSpec.ValueSpec valueSpec, Object value)
+			public OptionEntry(ForgeConfigSpec.ValueSpec valueSpec, ForgeConfigSpec.ConfigValue<?> configValue)
 			{
 				this.valueSpec = valueSpec;
-				this.value = value;
+				this.configValue = configValue;
 
 				this.validatedButton = new ValidationStatusButton(0, 0, button -> {
 					if (this.editBox != null)
@@ -278,10 +327,11 @@ public class ConfigGui extends Screen
 					}
 				});
 
-				this.needsWorldRestartButton = new ImageButton(0, 0, 20, 20, 0, 106, 20, Button.WIDGETS_LOCATION, 256, 256, (button -> {;}), "Needs world restart!");
+				this.needsWorldRestartButton = new ImageButton(0, 0, 15, 12, 182, 24, 0, Button.WIDGETS_LOCATION, 256, 256, (b) -> {;});
 				this.needsWorldRestartButton.active = false;
-				// TODO: enable this code
-				//this.needsWorldRestartButton.visible = valueSpec.needsWorldRestart();
+				this.needsWorldRestartButton.visible = valueSpec.needsWorldRestart();
+
+				Object value = configValue.get();
 
 				if (value instanceof Boolean)
 				{
@@ -300,12 +350,13 @@ public class ConfigGui extends Screen
 
 					this.children = ImmutableList.of(this.validatedButton, this.needsWorldRestartButton, this.editBox);
 				}
+
+				this.tooltipText = null;
 			}
 
 			@Override
 			public void render(int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isHot, float partialTicks)
 			{
-				//this.validatedButton.x = this.editBox.x + this.editBox.getWidth() + PADDING;
 				this.validatedButton.x = getScrollbarPosition() - this.validatedButton.getWidth() - this.needsWorldRestartButton.getWidth() - 2 * PADDING;
 				this.validatedButton.y = top + ((itemHeight - this.validatedButton.getHeight()) / 2) - 1;
 				this.validatedButton.render(mouseX, mouseY, partialTicks);
@@ -317,7 +368,6 @@ public class ConfigGui extends Screen
 				// BEFORE this ImageButton. DON'T delete this comment to avoid confusion in the future.
 				//GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0f);
 
-				//this.needsWorldRestartButton.x = this.validatedButton.x + this.validatedButton.getWidth() + PADDING;
 				this.needsWorldRestartButton.x = getScrollbarPosition() - this.needsWorldRestartButton.getWidth() - PADDING;
 				this.needsWorldRestartButton.y = top + ((itemHeight - this.needsWorldRestartButton.getHeight()) / 2) - 1;
 				this.needsWorldRestartButton.render(mouseX, mouseY, partialTicks);
@@ -336,6 +386,7 @@ public class ConfigGui extends Screen
 					this.checkBox.render(mouseX, mouseY, partialTicks);
 				}
 
+				// Getting translations during rendering is not exactly a smart thing to do, but it's just the config UI so .. meh.
 				String description = I18n.format(valueSpec.getTranslationKey());
 				int descriptionWidth = minecraft.fontRenderer.getStringWidth(description);
 				int descriptionLeft = left + (width / 2) - descriptionWidth - PADDING;
@@ -344,6 +395,42 @@ public class ConfigGui extends Screen
 															descriptionLeft,
 															descriptionTop,
 															16777215);
+
+				// Set tooltip to be rendered by the ModOptionList. This could be moved to mouseMoved(), but either
+				// the tooltip for the description text would have to stay here or its bounds would have to be stored.
+				// To not complicate things, keep everything here for now.
+				if ((mouseX >= descriptionLeft) &&
+					(mouseX < (descriptionLeft + descriptionWidth)) &&
+					(mouseY >= descriptionTop) &&
+					(mouseY < (descriptionTop + minecraft.fontRenderer.FONT_HEIGHT)))
+				{
+					// Tooltip for the description
+					String i18nTooltipKey = this.valueSpec.getTranslationKey() + I18N_TOOLTIP_SUFFIX;
+					this.tooltipText = (I18n.hasKey(i18nTooltipKey)) ?
+									   I18n.format(i18nTooltipKey) :
+									   this.valueSpec.getComment();
+				}
+				else if ((mouseX >= this.validatedButton.x) &&
+						 (mouseX < (this.validatedButton.x + this.validatedButton.getWidth())) &&
+						 (mouseY >= this.validatedButton.y) &&
+						 (mouseY < (this.validatedButton.y + this.validatedButton.getHeight())))
+				{
+					// Tooltip for the validation button.
+					this.tooltipText = (this.validatedButton.isValid()) ? I18n.format(I18N_VALID) : I18n.format(I18N_INVALID);
+				}
+				else if (valueSpec.needsWorldRestart() &&
+						 (mouseX >= this.needsWorldRestartButton.x) &&
+						 (mouseX < (this.needsWorldRestartButton.x + this.needsWorldRestartButton.getWidth())) &&
+						 (mouseY >= this.needsWorldRestartButton.y) &&
+						 (mouseY < (this.needsWorldRestartButton.y + this.needsWorldRestartButton.getHeight())))
+				{
+					// Tooltip for the needs world restart button.
+					this.tooltipText = I18n.format(I18N_NEEDS_WORLD_RESTART);
+				}
+				else
+				{
+					this.tooltipText = null;
+				}
 			}
 
 			@Override
@@ -362,12 +449,91 @@ public class ConfigGui extends Screen
 			}
 
 			@Override
+			public void commitChanges()
+			{
+				Object value = this.configValue.get();
+
+				if (value instanceof Boolean)
+				{
+					ForgeConfigSpec.BooleanValue cfg = (ForgeConfigSpec.BooleanValue)this.configValue;
+					cfg.set(this.checkBox.func_212942_a());
+				}
+				else
+				{
+					String text = this.editBox.getText();
+
+					if (value instanceof Integer)
+					{
+						try
+						{
+							int parsedValue = Integer.parseInt(text);
+
+							if (this.valueSpec.test(parsedValue))
+							{
+								ForgeConfigSpec.IntValue cfg = (ForgeConfigSpec.IntValue)this.configValue;
+								cfg.set(parsedValue);
+							}
+						}
+						catch (NumberFormatException ex)
+						{
+						}
+					}
+					else if (value instanceof Long)
+					{
+						try
+						{
+							long parsedValue = Long.parseLong(text);
+
+							if (this.valueSpec.test(parsedValue))
+							{
+								ForgeConfigSpec.LongValue cfg = (ForgeConfigSpec.LongValue)this.configValue;
+								cfg.set(parsedValue);
+							}
+						}
+						catch (NumberFormatException ex)
+						{
+						}
+					}
+					else if (value instanceof Double)
+					{
+						try
+						{
+							double parsedValue = Double.parseDouble(text);
+
+							if (this.valueSpec.test(parsedValue))
+							{
+								ForgeConfigSpec.DoubleValue cfg = (ForgeConfigSpec.DoubleValue)this.configValue;
+								cfg.set(parsedValue);
+							}
+						}
+						catch (NumberFormatException ex)
+						{
+						}
+					}
+					else if (value instanceof String)
+					{
+						if (this.valueSpec.test(text))
+						{
+							ForgeConfigSpec.ConfigValue<String> cfg = (ForgeConfigSpec.ConfigValue<String>)this.configValue;
+							cfg.set(text);
+						}
+					}
+				}
+			}
+
+			@Override
 			public void tick()
 			{
 				if (this.editBox != null)
 				{
 					this.editBox.tick();
 				}
+			}
+
+			@Override
+			public String getTooltip()
+			{
+				return this.tooltipText;
 			}
 		}
 	}

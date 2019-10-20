@@ -8,6 +8,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
+import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.StringTextComponent;
@@ -298,5 +299,27 @@ public final class Utils
 		}
 
 		return yaw;
+	}
+
+	/**
+	 * Checks if a string is a valid representation of a ResourceLocation.
+	 * Allowed characters in the namespace are: [a-z0-9_.-]
+	 * Allowed characters in the path are: [a-z0-9._-/]
+	 * Namespace and path are separated by [:].
+	 *
+	 * @param locationString
+	 * The string to check.
+	 * @return
+	 * <code>true</code> if only valid characters where found, otherwise <code>false</code>.
+	 */
+	public static boolean isValidResourceLocation(String locationString)
+	{
+		if (StringUtils.isNullOrEmpty(locationString)) return false;
+
+		String[] components = locationString.split(":", 2);
+		if (components.length != 2 || components[0].length() == 0 || components[1].length() == 0) return false;
+
+		return (components[0].chars().allMatch(c -> (c == 95 || c == 45 || c >= 97 && c <= 122 || c >= 48 && c <= 57 || c == 46)) &&
+				components[1].chars().allMatch(c -> (c == 95 || c == 45 || c >= 97 && c <= 122 || c >= 48 && c <= 57 || c == 46 || c == 47)));
 	}
 }

@@ -30,6 +30,11 @@ class ValidationStatusButton extends Button
 		this.valid = false;
 	}
 
+	public boolean isValid()
+	{
+		return this.valid;
+	}
+
 	@Override
 	public void renderButton(int mouseX, int mouseY, float partialTicks)
 	{
