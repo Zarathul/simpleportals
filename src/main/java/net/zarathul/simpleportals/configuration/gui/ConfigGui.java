@@ -260,59 +260,12 @@ public class ConfigGui extends Screen
 			private ForgeConfigSpec.ValueSpec valueSpec;
 			private ForgeConfigSpec.ConfigValue<?> configValue;
 			private TextFieldWidget editBox;
-			private CheckboxButton checkBox;
+			private CheckboxButtonEx checkBox;
+			private EnumOptionButton enumButton;
 			private ImageButton needsWorldRestartButton;
 			private ValidationStatusButton validatedButton;
 			private List<IGuiEventListener> children;
 			private String tooltipText;
-
-			// Sets the state of the ValidationStatusButton button based on the input in the TextFieldWidget.
-			private final Predicate<String> textInputValidator = text -> {
-				Object value = this.configValue.get();
-
-				if (value instanceof Integer)
-				{
-					try
-					{
-						int parsedValue = Integer.parseInt(text);
-						this.validatedButton.setValid(this.valueSpec.test(parsedValue));
-					}
-					catch (NumberFormatException ex)
-					{
-						this.validatedButton.setInvalid();
-					}
-				}
-				else if (value instanceof Long)
-				{
-					try
-					{
-						long parsedValue = Long.parseLong(text);
-						this.validatedButton.setValid(this.valueSpec.test(parsedValue));
-					}
-					catch (NumberFormatException ex)
-					{
-						this.validatedButton.setInvalid();
-					}
-				}
-				else if (value instanceof Double)
-				{
-					try
-					{
-						double parsedValue = Double.parseDouble(text);
-						this.validatedButton.setValid(this.valueSpec.test(parsedValue));
-					}
-					catch (NumberFormatException ex)
-					{
-						this.validatedButton.setInvalid();
-					}
-				}
-				else if (value instanceof String)
-				{
-					this.validatedButton.setValid(this.valueSpec.test(text));
-				}
-
-				return true;
-			};
 
 			public OptionEntry(ForgeConfigSpec.ValueSpec valueSpec, ForgeConfigSpec.ConfigValue<?> configValue)
 			{
@@ -325,6 +278,14 @@ public class ConfigGui extends Screen
 						this.editBox.setText(this.valueSpec.getDefault().toString());
 						this.editBox.setFocused2(false);
 					}
+					else if (this.checkBox != null)
+					{
+						this.checkBox.value = (boolean)this.valueSpec.getDefault();
+					}
+					else if (this.enumButton != null)
+					{
+						this.enumButton.setValue((Enum)this.valueSpec.getDefault());
+					}
 				});
 
 				this.needsWorldRestartButton = new ImageButton(0, 0, 15, 12, 182, 24, 0, Button.WIDGETS_LOCATION, 256, 256, (b) -> {;});
@@ -335,9 +296,15 @@ public class ConfigGui extends Screen
 
 				if (value instanceof Boolean)
 				{
-					this.checkBox = new CheckboxButton(0, 0, 20, 20, "", (boolean)value);
+					this.checkBox = new CheckboxButtonEx(0, 0, 20, 20, "", (boolean)value);
 
 					this.children = ImmutableList.of(this.validatedButton, this.needsWorldRestartButton, this.checkBox);
+				}
+				else if (value instanceof Enum)
+				{
+					this.enumButton = new EnumOptionButton(value.getClass(), value.toString(), 0, 0, 100, itemHeight - PADDING);
+
+					this.children = ImmutableList.of(this.validatedButton, this.needsWorldRestartButton, this.enumButton);
 				}
 				else
 				{
@@ -346,7 +313,7 @@ public class ConfigGui extends Screen
 					this.editBox.setText(value.toString());
 					this.editBox.setMaxStringLength(256);
 					this.editBox.setCanLoseFocus(true);
-					this.editBox.setValidator(textInputValidator);
+					this.editBox.setValidator(this::validateTextFieldInput);
 
 					this.children = ImmutableList.of(this.validatedButton, this.needsWorldRestartButton, this.editBox);
 				}
@@ -384,6 +351,13 @@ public class ConfigGui extends Screen
 					this.checkBox.x = left + (width / 2) + PADDING;
 					this.checkBox.y = top;
 					this.checkBox.render(mouseX, mouseY, partialTicks);
+				}
+				else if (this.enumButton != null)
+				{
+					this.enumButton.x = left + (width / 2) + PADDING;
+					this.enumButton.y = top;
+					this.enumButton.setWidth((width / 2) - this.validatedButton.getWidth() - this.needsWorldRestartButton.getWidth() - 4 * PADDING - 6);
+					this.enumButton.render(mouseX, mouseY, partialTicks);
 				}
 
 				// Getting translations during rendering is not exactly a smart thing to do, but it's just the config UI so .. meh.
@@ -456,7 +430,12 @@ public class ConfigGui extends Screen
 				if (value instanceof Boolean)
 				{
 					ForgeConfigSpec.BooleanValue cfg = (ForgeConfigSpec.BooleanValue)this.configValue;
-					cfg.set(this.checkBox.func_212942_a());
+					cfg.set(this.checkBox.value);
+				}
+				else if (value instanceof Enum)
+				{
+					ForgeConfigSpec.EnumValue cfg = (ForgeConfigSpec.EnumValue)this.configValue;
+					cfg.set(this.enumButton.getValue());
 				}
 				else
 				{
@@ -534,6 +513,55 @@ public class ConfigGui extends Screen
 			public String getTooltip()
 			{
 				return this.tooltipText;
+			}
+
+			// Sets the state of the ValidationStatusButton button based on the input in the TextFieldWidget.
+			private boolean validateTextFieldInput(String text)
+			{
+				Object value = this.configValue.get();
+
+				if (value instanceof Integer)
+				{
+					try
+					{
+						int parsedValue = Integer.parseInt(text);
+						this.validatedButton.setValid(this.valueSpec.test(parsedValue));
+					}
+					catch (NumberFormatException ex)
+					{
+						this.validatedButton.setInvalid();
+					}
+				}
+				else if (value instanceof Long)
+				{
+					try
+					{
+						long parsedValue = Long.parseLong(text);
+						this.validatedButton.setValid(this.valueSpec.test(parsedValue));
+					}
+					catch (NumberFormatException ex)
+					{
+						this.validatedButton.setInvalid();
+					}
+				}
+				else if (value instanceof Double)
+				{
+					try
+					{
+						double parsedValue = Double.parseDouble(text);
+						this.validatedButton.setValid(this.valueSpec.test(parsedValue));
+					}
+					catch (NumberFormatException ex)
+					{
+						this.validatedButton.setInvalid();
+					}
+				}
+				else if (value instanceof String)
+				{
+					this.validatedButton.setValid(this.valueSpec.test(text));
+				}
+
+				return true;
 			}
 		}
 	}
