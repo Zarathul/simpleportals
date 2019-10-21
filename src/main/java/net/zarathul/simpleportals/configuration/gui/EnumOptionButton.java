@@ -12,9 +12,14 @@ public class EnumOptionButton<E extends Enum<E>> extends GuiButtonExt
 
 	private static final String I18N_ENUM_PREFIX = "config.enums.";
 
+	/**
+	 * The button message is automatically localized. Localization keys are of the following format:
+	 * "config.enums.enum_name.enum_value" e.g. "config.enums.colors.red". Note that both enum_name
+	 * and enum_value need to be lower case.
+	 */
 	public EnumOptionButton(Class<E> clazz, String value, int x, int y, int width, int height)
 	{
-		super(x, y, width, height, I18n.format(I18N_ENUM_PREFIX + clazz.getSimpleName() + "." + value), (button) -> {;});
+		super(x, y, width, height, I18n.format(I18N_ENUM_PREFIX + clazz.getSimpleName().toLowerCase() + "." + value.toLowerCase()), (button) -> {;});
 
 		this.clazz = clazz;
 		this.selectedIndex = 0;
@@ -28,7 +33,7 @@ public class EnumOptionButton<E extends Enum<E>> extends GuiButtonExt
 		for (E e : constants)
 		{
 			names[i] = e.name();
-			i18nNames[i] = I18n.format(I18N_ENUM_PREFIX + clazz.getSimpleName() + "." + e.name());
+			i18nNames[i] = I18n.format(I18N_ENUM_PREFIX + clazz.getSimpleName().toLowerCase() + "." + e.name().toLowerCase());
 			if (e.name().equals(value)) selectedIndex = i;
 			i++;
 		}
