@@ -13,6 +13,8 @@ import net.minecraft.client.gui.widget.list.AbstractOptionList;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 
@@ -20,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+@OnlyIn(Dist.CLIENT)
 public class ConfigGui extends Screen
 {
 	private Screen parent;
@@ -82,6 +85,7 @@ public class ConfigGui extends Screen
 		optionList.tick();
 	}
 
+	@OnlyIn(Dist.CLIENT)
 	public class ModOptionList extends AbstractOptionList<ModOptionList.Entry>
 	{
 		private static final int LEFT_RIGHT_BORDER = 30;
@@ -194,6 +198,7 @@ public class ConfigGui extends Screen
 			}
 		}
 
+		@OnlyIn(Dist.CLIENT)
 		public abstract class Entry extends AbstractOptionList.Entry<ConfigGui.ModOptionList.Entry>
 		{
 			public abstract void clearFocus();
@@ -202,6 +207,7 @@ public class ConfigGui extends Screen
 			public abstract String getTooltip();
 		}
 
+		@OnlyIn(Dist.CLIENT)
 		public class CategoryEntry extends Entry
 		{
 			private final String text;
@@ -253,6 +259,7 @@ public class ConfigGui extends Screen
 			}
 		}
 
+		@OnlyIn(Dist.CLIENT)
 		public class OptionEntry extends Entry
 		{
 			private ForgeConfigSpec.ValueSpec valueSpec;
@@ -564,4 +571,3 @@ public class ConfigGui extends Screen
 		}
 	}
 }
-

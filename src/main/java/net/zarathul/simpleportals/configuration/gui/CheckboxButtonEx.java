@@ -6,7 +6,10 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.widget.button.AbstractButton;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class CheckboxButtonEx extends AbstractButton
 {
 	public boolean value;

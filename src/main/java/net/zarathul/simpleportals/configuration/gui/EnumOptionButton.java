@@ -1,8 +1,11 @@
 package net.zarathul.simpleportals.configuration.gui;
 
 import net.minecraft.client.resources.I18n;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 
+@OnlyIn(Dist.CLIENT)
 public class EnumOptionButton<E extends Enum<E>> extends GuiButtonExt
 {
 	private Class<E> clazz;

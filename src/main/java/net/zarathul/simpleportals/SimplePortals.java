@@ -78,9 +78,9 @@ public class SimplePortals
 		Config.load(Config.ClientConfigSpec, FMLPaths.CONFIGDIR.get().resolve(MOD_ID + "-client.toml"));
 
 		// Setup config UI
-		ConfigGuiFactory.setConfigHolder("net.zarathul.simpleportals.configuration.Config");
 		DistExecutor.callWhenOn(Dist.CLIENT, () ->
 			() -> {
+				ConfigGuiFactory.setConfigHolder("net.zarathul.simpleportals.configuration.Config");
 				Mlc.registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY, () -> ConfigGuiFactory::getConfigGui);
 				return null;
 			}

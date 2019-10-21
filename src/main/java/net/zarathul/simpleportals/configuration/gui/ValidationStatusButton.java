@@ -3,7 +3,10 @@ package net.zarathul.simpleportals.configuration.gui;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.widget.button.Button;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 class ValidationStatusButton extends Button
 {
 	private boolean valid;

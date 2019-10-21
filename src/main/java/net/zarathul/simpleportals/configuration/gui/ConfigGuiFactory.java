@@ -3,6 +3,8 @@ package net.zarathul.simpleportals.configuration.gui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.zarathul.simpleportals.SimplePortals;
 
@@ -13,6 +15,7 @@ import java.util.List;
 /**
  * The factory providing the in-game config UI.
  */
+@OnlyIn(Dist.CLIENT)
 public final class ConfigGuiFactory
 {
 	private static ForgeConfigSpec[] configSpecs;
