@@ -19,7 +19,7 @@ apply plugin: 'eclipse'
 
 String ForgeVersion = '1.14.4-28.1.56'
 
-version = "1.14.4-1.6.0.0"
+version = "1.14.4-1.6.0.1"
 group= "net.zarathul.simpleportals" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "simpleportals"
 
