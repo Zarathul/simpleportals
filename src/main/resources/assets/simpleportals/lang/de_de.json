@@ -58,7 +58,7 @@
 	"commands.errors.no_power_items": "Es konnten keine gültigen Gegenstände für den Tag '§c%s§r' gefunden werden. Überprüfe deine Config.",
 
 	"_comment": "Creative UI tab label",
-	"itemGroup.simpleportals": "Simple Portals",
+	"itemGroup.simplemods": "Simple Mods",
 
 	"_comment": "Config",
 	"config.common": "Allgemein",

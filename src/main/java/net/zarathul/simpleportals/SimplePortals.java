@@ -59,6 +59,7 @@ public class SimplePortals
 	
 	// constants
 	public static final String MOD_ID = "simpleportals";
+	public static final String SIMPLE_MODS_ID = "simplemods";
 
 	// logger
 	public static final Logger log = LogManager.getLogger(MOD_ID);
@@ -96,10 +97,10 @@ public class SimplePortals
 	{
 		// Checks if a "Simple Mods" tab already exists, otherwise makes one.
 		return Arrays.stream(ItemGroup.GROUPS)
-			.filter(tab -> tab.getPath().equals(SimplePortals.MOD_ID))
+			.filter(tab -> tab.getPath().equals(SimplePortals.SIMPLE_MODS_ID))
 			.findFirst()
 			.orElseGet(() ->
-				new ItemGroup(SimplePortals.MOD_ID)
+				new ItemGroup(SimplePortals.SIMPLE_MODS_ID)
 				{
 					@OnlyIn(Dist.CLIENT)
 					private ItemStack iconStack;

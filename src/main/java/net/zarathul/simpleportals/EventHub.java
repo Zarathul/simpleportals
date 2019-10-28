@@ -46,12 +46,12 @@ public final class EventHub
 	{
 		if (ModList.get().isLoaded("theoneprobe"))
 		{
-			SimplePortals.log.info("Sending compatibility request to TheOneProbe.");
+			SimplePortals.log.debug("Sending compatibility request to TheOneProbe.");
 			InterModComms.sendTo("theoneprobe", "getTheOneProbe", () -> new TheOneProbeCompat());
 		}
 		else
 		{
-			SimplePortals.log.info("TheOneProbe not found. Skipping compatibility request.");
+			SimplePortals.log.debug("TheOneProbe not found. Skipping compatibility request.");
 		}
 	}
 

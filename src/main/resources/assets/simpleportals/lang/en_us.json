@@ -58,7 +58,7 @@
 	"commands.errors.no_power_items": "No valid items found for item tag '§c%s§r'. Check your config.",
 
 	"_comment": "Creative UI tab label",
-	"itemGroup.simpleportals": "Simple Portals",
+	"itemGroup.simplemods": "Simple Mods",
 
 	"_comment": "Config",
 	"config.common": "Common",

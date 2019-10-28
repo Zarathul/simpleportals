@@ -16,7 +16,7 @@ public final class TheOneProbeCompat implements Function<ITheOneProbe, Void>
 	public Void apply(ITheOneProbe theOneProbe)
 	{
 		theOneProbe.registerProvider(new PortalInfoProvider());
-		SimplePortals.log.info("TheOneProbe compatibility enabled.");
+		SimplePortals.log.debug("TheOneProbe compatibility enabled.");
 
 		return null;
 	}
