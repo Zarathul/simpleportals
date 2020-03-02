@@ -147,10 +147,10 @@ public class BlockPortal extends BreakableBlock
 				.filter(e -> !e.equals(start))
 				.collect(Collectors.toList());
 			
-			Collections.shuffle(destinations);
-			
-			if (destinations.size() > 0 && (bypassPowerCost || Config.powerCost.get() == 0 || PortalRegistry.removePower(start, Config.powerCost.get())))
+			if (destinations.size() > 0)
 			{
+				Collections.shuffle(destinations);
+
 				MinecraftServer mcServer = entity.getServer();
 				if (mcServer == null) return;
 
@@ -176,7 +176,7 @@ public class BlockPortal extends BreakableBlock
 					}
 				}
 				
-				if (destinationPos != null)
+				if ((destinationPos != null) && (bypassPowerCost || Config.powerCost.get() == 0 || PortalRegistry.removePower(start, Config.powerCost.get())))
 				{
 					// Get a facing pointing away from the destination portal. After porting, the portal 
 					// will always be behind the entity. When porting to a horizontal portal the initial
@@ -221,9 +221,9 @@ public class BlockPortal extends BreakableBlock
 					{
 						Utils.teleportTo(entity, destinationPortal.getDimension(), destinationPos, entityFacing);
 					}
-				}
 
-				PortalRegistry.updatePowerGauges(world, start);
+					PortalRegistry.updatePowerGauges(world, start);
+				}
 			}
 
 			// Put the entity on "cooldown" in order to prevent it from instantly porting again.
