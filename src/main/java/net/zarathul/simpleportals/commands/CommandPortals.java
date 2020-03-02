@@ -432,6 +432,7 @@ public class CommandPortals
 			case Add:
 				// sportals power add <amount> <x> <y> <z> [dimension]
 				amount = amount - PortalRegistry.addPower(portal, amount);
+				PortalRegistry.updatePowerGauges(source.getWorld(), portal);
 				SendTranslatedMessage(source, "commands.sportals.power.add.success", amount, pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName());
 				break;
 
@@ -439,6 +440,7 @@ public class CommandPortals
 				// sportals power remove <amount> <x> <y> <z> [dimension]
 				amount = Math.min(amount, PortalRegistry.getPower(portal));
 				amount = (PortalRegistry.removePower(portal, amount)) ? amount : 0;
+				PortalRegistry.updatePowerGauges(source.getWorld(), portal);
 				SendTranslatedMessage(source, "commands.sportals.power.remove.success", amount, pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName());
 				break;
 
