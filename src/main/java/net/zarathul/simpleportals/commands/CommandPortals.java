@@ -96,7 +96,7 @@ public class CommandPortals
 						.then(
 							Commands.argument("dimension", DimensionArgument.getDimension())		// sportals list <dimension>
 								.executes(context -> {
-									return list(context.getSource(), ListMode.Dimension, null, DimensionArgument.func_212592_a(context, "dimension"));
+									return list(context.getSource(), ListMode.Dimension, null, DimensionArgument.getDimensionArgument(context, "dimension"));
 								})
 						)
 				)
@@ -130,7 +130,7 @@ public class CommandPortals
 																			PortalRegistry.getAddressBlockId(BlockArgument.getBlock(context, "address3")),
 																			PortalRegistry.getAddressBlockId(BlockArgument.getBlock(context, "address4")));
 
-																	DimensionType dimension = DimensionArgument.func_212592_a(context, "dimension");
+																	DimensionType dimension = DimensionArgument.getDimensionArgument(context, "dimension");
 
 																	return deactivate(context.getSource(), DeactiveMode.Address, address, null, dimension);
 																})
@@ -147,7 +147,7 @@ public class CommandPortals
 								.then(
 									Commands.argument("dimension", DimensionArgument.getDimension())		// sportals deactivate <x> <y> <z> [dimension]
 										.executes(context -> {
-											return deactivate(context.getSource(), DeactiveMode.Position, null, BlockPosArgument.getBlockPos(context, "position"), DimensionArgument.func_212592_a(context, "dimension"));
+											return deactivate(context.getSource(), DeactiveMode.Position, null, BlockPosArgument.getBlockPos(context, "position"), DimensionArgument.getDimensionArgument(context, "dimension"));
 										})
 								)
 						)
@@ -170,7 +170,7 @@ public class CommandPortals
 												.then(
 													Commands.argument("dimension", DimensionArgument.getDimension())		// sportals power add <amount> <x> <y> <z> [dimension]
 														.executes(context -> {
-															return power(context.getSource(), PowerMode.Add, IntegerArgumentType.getInteger(context, "amount"), BlockPosArgument.getBlockPos(context, "position"), DimensionArgument.func_212592_a(context, "dimension"));
+															return power(context.getSource(), PowerMode.Add, IntegerArgumentType.getInteger(context, "amount"), BlockPosArgument.getBlockPos(context, "position"), DimensionArgument.getDimensionArgument(context, "dimension"));
 														})
 												)
 										)
@@ -188,7 +188,7 @@ public class CommandPortals
 												.then(
 													Commands.argument("dimension", DimensionArgument.getDimension())		// sportals power remove <amount> <x> <y> <z> [dimension]
 														.executes(context -> {
-															return power(context.getSource(), PowerMode.Remove, IntegerArgumentType.getInteger(context, "amount"), BlockPosArgument.getBlockPos(context, "position"), DimensionArgument.func_212592_a(context, "dimension"));
+															return power(context.getSource(), PowerMode.Remove, IntegerArgumentType.getInteger(context, "amount"), BlockPosArgument.getBlockPos(context, "position"), DimensionArgument.getDimensionArgument(context, "dimension"));
 														})
 												)
 										)
@@ -204,7 +204,7 @@ public class CommandPortals
 										.then(
 											Commands.argument("dimension", DimensionArgument.getDimension())		// sportals power get <x> <y> <z> [dimension]
 												.executes(context -> {
-													return power(context.getSource(), PowerMode.Get, 0, BlockPosArgument.getBlockPos(context, "position"), DimensionArgument.func_212592_a(context, "dimension"));
+													return power(context.getSource(), PowerMode.Get, 0, BlockPosArgument.getBlockPos(context, "position"), DimensionArgument.getDimensionArgument(context, "dimension"));
 												})
 										)
 								)

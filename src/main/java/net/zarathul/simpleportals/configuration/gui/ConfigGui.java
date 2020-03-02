@@ -2,7 +2,7 @@ package net.zarathul.simpleportals.configuration.gui;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.Screen;
@@ -16,7 +16,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.client.config.GuiButtonExt;
+import net.minecraftforge.fml.client.gui.widget.ExtendedButton;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,14 +55,14 @@ public class ConfigGui extends Screen
 			mc.displayGuiScreen(parent);
 		});
 
-		int optionListTop = titleHeight + 2 * PADDING;
-		this.optionList = new ModOptionList(configSpecs, minecraft, width, height - optionListTop, optionListTop, height, 26);
+		int optionListHeaderHeight = titleHeight + 2 * PADDING;
+		this.optionList = new ModOptionList(configSpecs, minecraft, width, height, optionListHeaderHeight, height - optionListHeaderHeight, 26);
 		this.children.add(optionList);
 	}
 
 	private void addButton(int x, int y, int width, int height, String label, Button.IPressable pressHandler)
 	{
-		Button button = new GuiButtonExt(x, y, width, height, label, pressHandler);
+		Button button = new ExtendedButton(x, y, width, height, label, pressHandler);
 
 		children.add(button);
 		buttons.add(button);
@@ -73,7 +73,7 @@ public class ConfigGui extends Screen
 	{
 		this.renderBackground();
 		this.optionList.render(mouseX, mouseY, partialTicks);
-		GlStateManager.disableLighting();	// Rendering the tooltip enables lighting but buttons etc. assume lighting to be disabled.
+		RenderSystem.disableLighting();	// Rendering the tooltip enables lighting but buttons etc. assume lighting to be disabled.
 		super.render(mouseX, mouseY, partialTicks);
 		minecraft.fontRenderer.drawStringWithShadow(title.getFormattedText(), PADDING, PADDING, 16777215);
 	}
@@ -338,7 +338,7 @@ public class ConfigGui extends Screen
 				// ImageButtons are just black after the first TextFieldWidget is rendered.
 				// Update: No longer needed because the ValidationStatusButton sets up the state correctly and is rendered
 				// BEFORE this ImageButton. DON'T delete this comment to avoid confusion in the future.
-				//GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0f);
+				// RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0f);
 
 				this.needsWorldRestartButton.x = getScrollbarPosition() - this.needsWorldRestartButton.getWidth() - PADDING;
 				this.needsWorldRestartButton.y = top + ((itemHeight - this.needsWorldRestartButton.getHeight()) / 2) - 1;

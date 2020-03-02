@@ -1,6 +1,7 @@
 package net.zarathul.simpleportals.configuration.gui;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.widget.button.AbstractButton;
@@ -34,12 +35,12 @@ public class CheckboxButtonEx extends AbstractButton
 	{
 		Minecraft minecraft = Minecraft.getInstance();
 		minecraft.getTextureManager().bindTexture(CHECKBOX_TEXTURE);
-		GlStateManager.enableDepthTest();
+		RenderSystem.enableDepthTest();
 		FontRenderer fontrenderer = minecraft.fontRenderer;
-		GlStateManager.color4f(1.0F, 1.0F, 1.0F, this.alpha);
-		GlStateManager.enableBlend();
-		GlStateManager.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-		GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+		RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
+		RenderSystem.enableBlend();
+		RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+		RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 		blit(this.x, this.y, 0.0F, this.value ? 20.0F : 0.0F, 20, this.height, 32, 64);
 		this.renderBg(minecraft, mouseX, mouseY);
 		int i = 14737632;

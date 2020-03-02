@@ -37,7 +37,7 @@ public class ItemPowerGauge extends BlockItem
 	@OnlyIn(Dist.CLIENT)
 	public void addInformation(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
 	{
-		long windowHandle = Minecraft.getInstance().mainWindow.getHandle();
+		long windowHandle = Minecraft.getInstance().getMainWindow().getHandle();
 		int leftShiftState = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_LEFT_SHIFT);
 		int rightShiftState = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_RIGHT_SHIFT);
 

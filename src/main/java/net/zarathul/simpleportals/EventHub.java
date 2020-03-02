@@ -1,15 +1,19 @@
 package net.zarathul.simpleportals;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.item.Item;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.world.WorldEvent.Load;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.config.ModConfig;
@@ -99,7 +103,7 @@ public final class EventHub
 	}
 
 	@SubscribeEvent
-	public static void onConfigChanged(ModConfig.ConfigReloading event)
+	public static void onConfigChanged(ModConfig.Reloading event)
 	{
 		if (event.getConfig().getType() == ModConfig.Type.COMMON)
 		{
@@ -130,6 +134,13 @@ public final class EventHub
 			SimplePortals.blockPortal,
 			SimplePortals.blockPortalFrame,
 			SimplePortals.blockPowerGauge
+		);
+
+		DistExecutor.callWhenOn(Dist.CLIENT, () ->
+				() -> {
+					RenderTypeLookup.setRenderLayer(SimplePortals.blockPortal, RenderType.getTranslucent());
+					return null;
+				}
 		);
 	}
 

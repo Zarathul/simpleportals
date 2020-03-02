@@ -11,8 +11,8 @@ import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.text.LanguageMap;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.translation.LanguageMap;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraft.world.storage.WorldInfo;
@@ -200,7 +200,7 @@ public final class Utils
 		ServerWorld destinationServerWorld = server.getWorld(destinationDimension);
 		WorldInfo worldInfo = player.world.getWorldInfo();
 		net.minecraftforge.fml.network.NetworkHooks.sendDimensionDataPacket(player.connection.netManager, player);
-		player.connection.sendPacket(new SRespawnPacket(destinationDimension, worldInfo.getGenerator(), player.interactionManager.getGameType()));
+		player.connection.sendPacket(new SRespawnPacket(destinationDimension, WorldInfo.byHashing(worldInfo.getSeed()), worldInfo.getGenerator(), player.interactionManager.getGameType()));
 		player.connection.sendPacket(new SServerDifficultyPacket(worldInfo.getDifficulty(), worldInfo.isDifficultyLocked()));
 		PlayerList playerlist = server.getPlayerList();
 		playerlist.updatePermissionLevel(player);
@@ -210,7 +210,7 @@ public final class Utils
 		player.setMotion(Vec3d.ZERO);
 		player.setWorld(destinationServerWorld);
 		destinationServerWorld.func_217447_b(player);
-		player.connection.setPlayerLocation(player.posX, player.posY, player.posZ, yaw, pitch);
+		player.connection.setPlayerLocation(player.getPosX(), player.getPosY(), player.getPosZ(), yaw, pitch);
 		player.interactionManager.setWorld(destinationServerWorld);
 		player.connection.sendPacket(new SPlayerAbilitiesPacket(player.abilities));
 		playerlist.sendWorldInfo(player, destinationServerWorld);

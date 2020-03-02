@@ -3,10 +3,10 @@ package net.zarathul.simpleportals.configuration.gui;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.client.config.GuiButtonExt;
+import net.minecraftforge.fml.client.gui.widget.ExtendedButton;
 
 @OnlyIn(Dist.CLIENT)
-public class EnumOptionButton<E extends Enum<E>> extends GuiButtonExt
+public class EnumOptionButton<E extends Enum<E>> extends ExtendedButton
 {
 	private Class<E> clazz;
 	private int selectedIndex;

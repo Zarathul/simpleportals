@@ -8,6 +8,7 @@ import net.minecraft.block.material.MaterialColor;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -41,7 +42,7 @@ public class BlockPortalFrame extends Block
 	}
 
 	@Override
-	public boolean onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit)
+	public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit)
 	{
 		if (!world.isRemote)
 		{
@@ -50,7 +51,9 @@ public class BlockPortalFrame extends Block
 
 			if (usedItem == SimplePortals.itemPortalActivator)
 			{
-				if (player.isSneaking())
+				// Another case of shitty renaming. Hey let's rename isSneaking() to isShiftKeyDown() because nobody
+				// would ever rebind buttons or would they?  -sigh-
+				if (player.isShiftKeyDown())
 				{
 					world.destroyBlock(pos, true);
 				}

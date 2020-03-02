@@ -13,7 +13,6 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.SoundCategory;
@@ -221,9 +220,10 @@ public class BlockPortal extends BreakableBlock
 					else
 					{
 						Utils.teleportTo(entity, destinationPortal.getDimension(), destinationPos, entityFacing);
-						PortalRegistry.updatePowerGauges(world, start);
 					}
 				}
+
+				PortalRegistry.updatePowerGauges(world, start);
 			}
 
 			// Put the entity on "cooldown" in order to prevent it from instantly porting again.
@@ -257,12 +257,12 @@ public class BlockPortal extends BreakableBlock
 		return ItemStack.EMPTY;
 	}
 
-	@Override
-	@OnlyIn(Dist.CLIENT)
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.TRANSLUCENT;
-	}
+//	@Override
+//	@OnlyIn(Dist.CLIENT)
+//	public BlockRenderLayer getRenderLayer()
+//	{
+//		return BlockRenderLayer.TRANSLUCENT;
+//	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)

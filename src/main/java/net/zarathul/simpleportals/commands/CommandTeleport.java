@@ -36,17 +36,17 @@ public class CommandTeleport
 			.then(
 				Commands.argument("dimension", DimensionArgument.getDimension())
 					.executes(context -> {
-						return tp(context.getSource(), TeleportMode.ToPosition, DimensionArgument.func_212592_a(context, "dimension"), null, null, null);
+						return tp(context.getSource(), TeleportMode.ToPosition, DimensionArgument.getDimensionArgument(context, "dimension"), null, null, null);
 					})
 					.then(
 						Commands.argument("position", BlockPosArgument.blockPos())
 							.executes(context -> {
-								return tp(context.getSource(), TeleportMode.ToPosition, DimensionArgument.func_212592_a(context, "dimension"), BlockPosArgument.getBlockPos(context, "position"), null, null);
+								return tp(context.getSource(), TeleportMode.ToPosition, DimensionArgument.getDimensionArgument(context, "dimension"), BlockPosArgument.getBlockPos(context, "position"), null, null);
 							})
 							.then(
 								Commands.argument("player", EntityArgument.player())		// tpd <dimension> [<x> <y> <z>] [player]
 									.executes(context -> {
-										return tp(context.getSource(), TeleportMode.ToPosition, DimensionArgument.func_212592_a(context, "dimension"), BlockPosArgument.getBlockPos(context, "position"), null, EntityArgument.getPlayer(context, "player"));
+										return tp(context.getSource(), TeleportMode.ToPosition, DimensionArgument.getDimensionArgument(context, "dimension"), BlockPosArgument.getBlockPos(context, "position"), null, EntityArgument.getPlayer(context, "player"));
 									})
 							)
 					)
