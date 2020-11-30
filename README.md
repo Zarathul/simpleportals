@@ -2,10 +2,6 @@ SimplePortals (SP)
 ==================
 SimplePortals (SP) is a minecraft mod that adds constructable portals that allow intra- and interdimensional travel.
 
-Download
-========
-Get the lastest version at [CurseForge](https://minecraft.curseforge.com/projects/simpleportals/files)
-
 Design
 ======
 This is supposed to serve as a rough overview of the mods inner workings.
